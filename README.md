@@ -147,16 +147,25 @@ Authorization: Bearer TOKEN
 * POST /respostas
 * GET /respostas/relatorio/:pesquisaId
 
+### Users (Admins)
+
+* GET /users
+* POST /users
+* GET /users/:id
+* PATCH /users/:id
+* DELETE /users/:id
+
 ---
 
 ## Fluxo de Uso
 
 ### Admin
 
-1. Login
-2. Cria pesquisa
-3. Adiciona questões
-4. Publica
+1. Cadastro
+2. Login
+3. Cria pesquisa
+4. Adiciona questões
+5. Publica
 
 ### Usuário
 
