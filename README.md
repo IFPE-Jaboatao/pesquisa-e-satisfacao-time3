@@ -215,33 +215,7 @@ npm run start:dev
 
 ---
 
-## Problemas Comuns
 
-### 401 Unauthorized
-
-* token não enviado
-* token inválido
-* JWT_SECRET incorreto
-* strategy não registrada
-
-### req.user undefined
-
-* problema na estratégia anônima
-
-### erro de banco
-
-* verificar variáveis do .env
-
----
-
-## Melhorias Futuras
-
-* Swagger
-* Relatórios mais completos
-* Dashboard
-* Deploy
-
----
 
 ## Autor
 
