@@ -14,6 +14,9 @@ import {
 import { UsersService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from './user-role.enum';
 
 @Controller('users')
 export class UsersController {
@@ -33,9 +36,9 @@ export class UsersController {
 
   // 🔒 Buscar por ID
   @UseGuards(JwtAuthGuard)
-  @Get(':userId')
-  findOne(@Param('userId') userId: string) {
-    return this.service.findOne(userId);
+  @Get('me')
+  findOne(@Req() req,) {
+    return this.service.findOne(req.user.userId);
   }
 
     @UseGuards(JwtAuthGuard)
@@ -68,4 +71,35 @@ export class UsersController {
 
     return this.service.delete(userId);
   }
+
+  // teste de rotas com roles
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Get('/admin')
+@Roles(Role.ADMIN)
+testAdmin() {
+  return 'admin ok';
+}
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Get('/gestor')
+@Roles(Role.GESTOR, Role.ADMIN)
+testGestor() {
+  return 'gestor ok';
+}
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Get('/aluno')
+@Roles(Role.ALUNO, Role.ADMIN)
+testAluno() {
+  return 'aluno ok';
+}
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Get('/docente')
+@Roles(Role.DOCENTE, Role.ADMIN)
+testDocente() {
+  return 'docente ok';
+}
+
 }
