@@ -28,8 +28,9 @@ export class UsersController {
   }
 
     // 🔒 Listar todos
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
+  @Roles(Role.ADMIN)
   findAll() {
     return this.service.findAll();
   }
@@ -71,35 +72,5 @@ export class UsersController {
 
     return this.service.delete(userId);
   }
-
-  // teste de rotas com roles
-
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Get('/admin')
-@Roles(Role.ADMIN)
-testAdmin() {
-  return 'admin ok';
-}
-
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Get('/gestor')
-@Roles(Role.GESTOR, Role.ADMIN)
-testGestor() {
-  return 'gestor ok';
-}
-
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Get('/aluno')
-@Roles(Role.ALUNO, Role.ADMIN)
-testAluno() {
-  return 'aluno ok';
-}
-
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Get('/docente')
-@Roles(Role.DOCENTE, Role.ADMIN)
-testDocente() {
-  return 'docente ok';
-}
 
 }
