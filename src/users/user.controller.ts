@@ -7,6 +7,8 @@ import {
   Get,
   Delete,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import { UsersService } from './user.service';
@@ -41,14 +43,29 @@ export class UsersController {
   update(
     @Param('userId') userId: string,
     @Body() dto: Partial<{ username: string; password: string }>,
+    @Req() req,
   ) {
+
+    const isOwner = req.user.userId == userId;
+
+    if (!isOwner) {
+      throw new ForbiddenException("Você não tem permissão para alterar outro usuário!")
+    }
     return this.service.update(userId, dto);
   }
 
  // 🔒 Deletar
   @UseGuards(JwtAuthGuard)
   @Delete(':userId')
-  delete(@Param('userId') userId: string) {
+  delete(@Param('userId') userId: string,
+  @Req() req,) {
+
+    const isOwner = req.user.userId == userId;
+
+    if (!isOwner) {
+      throw new ForbiddenException("Voce não tem permissão para deletar outro usuário!")
+    }
+
     return this.service.delete(userId);
   }
 }

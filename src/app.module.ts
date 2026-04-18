@@ -65,7 +65,7 @@ import { Resposta } from './respostas/entities/resposta.entity';
 
         return {
           type: 'mysql',
-          host,
+          host: host,
           port: parseInt(port || '3306'),
           username: user,
           password: pass,
