@@ -22,6 +22,7 @@ import { Role } from './user-role.enum';
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async create(@Body() dto: CreateUserDto) {
     return this.service.create(dto);

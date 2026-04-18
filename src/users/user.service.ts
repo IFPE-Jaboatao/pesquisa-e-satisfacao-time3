@@ -5,19 +5,61 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from './user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User, 'mysql')
     private repo: Repository<User>,
+
+    private configService: ConfigService,
   ) {}
+
+  // função para seed Admin
+
+  async onModuleInit() {
+    await this.seedAdmin();
+  }
+
+  private async seedAdmin() {
+    const adminExists = await this.repo.findOne({
+      where: { role: Role.ADMIN },
+    });
+
+    if (adminExists) return;
+
+    const passwordEnv = this.configService.get<string>('SEED_ADMIN_PASSWORD');
+
+    let password: string;
+
+    if (!passwordEnv || passwordEnv.trim().length === 0) {
+      console.warn('⚠️ SEED_ADMIN_PASSWORD inválido, usando default');
+      password = 'admin123';
+    } else {
+      password = passwordEnv;
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const admin = this.repo.create({
+      username: 'admin',
+      password: hashed,
+      role: Role.ADMIN,
+    });
+
+    await this.repo.save(admin);
+
+    console.log('✔ Admin seed criado');
+  }
+
+  // funções para endpoints
 
   findByUsername(username: string) {
     return this.repo.findOne({ where: { username } });
   }
 
-   async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto) {
     const hashed = await bcrypt.hash(dto.password, 10);
 
     const user = this.repo.create({
@@ -41,7 +83,10 @@ export class UsersService {
     return user;
   }
 
-  async update(userId: string, dto: Partial<{ username: string; password: string }>) {
+  async update(
+    userId: string,
+    dto: Partial<{ username: string; password: string }>,
+  ) {
     const user = await this.findOne(userId);
 
     if (dto.password) {
@@ -58,5 +103,4 @@ export class UsersService {
 
     return this.repo.remove(user);
   }
-
 }
