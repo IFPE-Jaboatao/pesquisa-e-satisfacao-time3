@@ -1,15 +1,17 @@
 import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { Role } from '../user-role.enum';
 
-export class CreateUserDto {
-  @IsString()
-  username!: string;
-
-  @IsEnum(Role)
+export class UpdateUserDto {
   @IsOptional()
-  role?: Role;
+  @IsString()
+  username?: string;
 
+  @IsOptional()
   @IsString()
   @MinLength(6)
-  password!: string;
+  password?: string;
+
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role
 }

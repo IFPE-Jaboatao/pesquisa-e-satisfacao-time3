@@ -98,6 +98,21 @@ export class UsersService {
     return this.repo.save(user);
   }
 
+  async updatePassword(
+    userId: string,
+    password: string,
+  ) {
+    const user = await this.findOne(userId);
+
+    const hash = await bcrypt.hash(password, 10)
+
+    user.password = hash;
+
+    Object.assign(user);
+
+    return this.repo.save(user);
+  }
+
   async delete(userId: string) {
     const user = await this.findOne(userId);
 
