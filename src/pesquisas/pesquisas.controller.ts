@@ -12,49 +12,58 @@ import {
 import { PesquisasService } from './pesquisas.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Role } from 'src/users/user-role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('pesquisas')
 export class PesquisasController {
   constructor(private readonly service: PesquisasService) {}
 
-  // ADMIN cria pesquisa
-  @UseGuards(JwtAuthGuard)
+  // Gestor cria pesquisas
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
+  @Roles(Role.GESTOR)
   create(@Body() dto: CreatePesquisaDto) {
     return this.service.create(dto);
   }
 
-  // ADMIN lista todas as pesquisas
-  @UseGuards(JwtAuthGuard)
+  // Gestor lista todas as pesquisas
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
+  @Roles(Role.GESTOR)
   findAll() {
     return this.service.findAll();
   }
 
-  // PÚBLICO acessa pesquisa específica
+  // Aluno e gestor acessam a pesquisa específica
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
+  @Roles(Role.ALUNO, Role.GESTOR)
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  //  NOVA ROTA: ADMIN atualiza estrutura da pesquisa
-  // Só funciona se a pesquisa não estiver publicada (validação feita no Service)
-  @UseGuards(JwtAuthGuard)
+  // Gestor atualiza a pesquisa se não tiver respostas
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
+  @Roles(Role.GESTOR)
   update(@Param('id') id: string, @Body() dto: Partial<CreatePesquisaDto>) {
     return this.service.update(id, dto);
   }
 
-  // ADMIN publica pesquisa
-  @UseGuards(JwtAuthGuard)
+  // Gestor publica pesquisa
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id/publicar')
+  @Roles(Role.GESTOR)
   publicar(@Param('id') id: string) {
     return this.service.publicar(id);
   }
 
-  // ADMIN deleta pesquisa (com cascata no service)
-  @UseGuards(JwtAuthGuard)
+  // Gestor deleta pesquisa (com cascata no service)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
+  @Roles(Role.GESTOR)
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
