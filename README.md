@@ -1,238 +1,76 @@
-# Pesquisa - Backend (NestJS)
+# Pesquisas de Satisfação e Avaliação Docente - Time 3
 
 ## Visão Geral
 
-API desenvolvida com NestJS para criação e gerenciamento de pesquisas. Administradores criam e publicam pesquisas, usuários respondem de forma anônima. O sistema aplica regras para evitar respostas duplicadas e manter a integridade dos dados.
+API desenvolvida com NestJS para criação e gerenciamento de pesquisas. Gestores criam e publicam pesquisas, alunos respondem de forma anônima. O sistema aplica regras para evitar respostas duplicadas e manter a integridade dos dados.
 
 ---
 
-## Arquitetura
+## Como rodar o projeto
 
-```
-ADMIN (JWT)
-   ↓
-PESQUISAS (CRUD + PUBLICAÇÃO)
-   ↓
-QUESTÕES
-   ↓
-LINK PÚBLICO
-   ↓
-USUÁRIO ANÔNIMO
-   ↓
-COOKIE (anonId)
-   ↓
-FINGERPRINT (IP + USER-AGENT)
-   ↓
-RATE LIMIT
-   ↓
-RESPOSTAS
-   ↓
-RELATÓRIOS
+1. Clone este repositorio
+
+```bash
+git clone https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3
+cd pesquisa-e-satisfacao-time3
 ```
 
----
+2. Instale as dependências
 
-## Estrutura de Pastas
-
-```
-src/
-├── app.module.ts
-├── main.ts
-├── config/
-├── common/
-├── auth/
-├── anonymous/
-├── pesquisas/
-├── questoes/
-├── respostas/
-└── relatorios/
+```bash
+npm install
 ```
 
----
+3. Copie o arquivo .env.example e preencha as variáveis no arquivo .env.
 
-## Autenticação (Admin)
-
-* JWT com `passport-jwt`
-* Header:
-
-```
-Authorization: Bearer TOKEN
+```bash
+cp .env.example .env
 ```
 
----
+4. Rode o projeto com
 
-## Acesso Anônimo
-
-* Geração automática de `anonId` (cookie)
-* Fingerprint com IP + user-agent
-* Usado para impedir respostas duplicadas
-
----
-
-## Segurança Implementada
-
-* Autenticação com JWT
-* Acesso anônimo controlado
-* Rate limit por endpoint
-* Validação de período da pesquisa
-* Validação de ObjectId
-
-### Regras de Negócio
-
-* **Bloqueio de edição**: não permite `PATCH` em pesquisa já publicada
-* **Exclusão em cascata**: remover pesquisa apaga questões e respostas vinculadas
-* **Controle de duplicidade**: cruza `anonId` + `fingerprint`
-
----
-
-## Banco de Dados
-
-### MongoDB
-
-* Pesquisas
-* Questões
-* Respostas
-
-### MySQL
-
-* Usuários
-* Autenticação
-
----
-
-## Configurações Globais
-
-### main.ts
-
-* cookie-parser
-* ValidationPipe
-* CORS
-
-### app.module.ts
-
-* ConfigModule global
-* TypeORM (Mongo + MySQL)
-* ThrottlerModule
-
-### Configurações adicionais
-
-* Multi conexão (mongo + mysql)
-* Uso de `@InjectRepository(Entity, 'mongo')`
-* Ordenação por registros mais recentes nas listagens administrativas
-
----
-
-## Endpoints
-
-### Auth
-
-* POST /auth/login
-
-### Pesquisas
-
-* POST /pesquisas
-* GET /pesquisas
-* GET /pesquisas/:id
-* PATCH /pesquisas/:id
-* PATCH /pesquisas/:id/publicar
-* DELETE /pesquisas/:id
-
-### Questões
-
-* POST /questoes
-* GET /questoes/:pesquisaId
-
-### Respostas
-
-* POST /respostas
-* GET /respostas/relatorio/:pesquisaId
-
-### Users (Admins)
-
-* GET /users
-* POST /users
-* GET /users/:id
-* PATCH /users/:id
-* DELETE /users/:id
-
----
-
-## Fluxo de Uso
-
-### Admin
-
-1. Cadastro
-2. Login
-3. Cria pesquisa
-4. Adiciona questões
-5. Publica
-
-### Usuário
-
-1. Acessa o link
-2. Responde
-3. Envia
-
----
-
-## Instalação
-
-### Criar projeto
-
-```
-npm i -g @nestjs/cli
-nest new projeto
-cd projeto
-```
-
----
-
-### Instalar dependências (todas utilizadas no projeto)
-
-```
-npm install \
-@nestjs/common \
-@nestjs/config \
-@nestjs/core \
-@nestjs/jwt \
-@nestjs/passport \
-@nestjs/platform-express \
-@nestjs/throttler \
-@nestjs/typeorm \
-class-transformer \
-class-validator \
-cookie-parser \
-dotenv \
-mongodb \
-mysql2 \
-passport \
-passport-anonymous \
-passport-custom \
-passport-jwt \
-reflect-metadata \
-rxjs \
-typeorm
-```
-
----
-
-## Execução
-
-```
+```bash
 npm run start:dev
 ```
 
----
+5. Confira [Endpoints da API](docs/api.MD) para explorar as rotas disponíveis
 
+## Regras de Negócio
 
+Atualmente as regras implementadas são:
 
-## Autor
+- **Bloqueio de edição**: não permite `PATCH` em pesquisa já publicada
+- **Exclusão em cascata**: remover pesquisa apaga questões e respostas vinculadas
+- **Controle de duplicidade**: cruza `anonId` + `fingerprint`
 
-Projeto acadêmico.
+## Fluxo de Uso por Usuário
 
-Matheus Pereira, Maria Adila e Lucas Souza.
+### Admin
 
-# pesquisa-e-satisfacao-time3
+1. Login
+2. Gerencia os usuários
+3. Gerencia informações de campus, serviços, cursos, disciplinas e etc
+4. Visualiza relatórios
+
+### Gestor
+1. Login
+2. Cria pesquisa
+3. Adiciona questões
+4. Publica
+5. Visualiza relatórios
+
+### Docente
+
+1. Login
+2. Visualiza seu próprio relatório
+
+### Aluno
+
+1. Login
+2. Acessa pesquisa
+3. Responde
+4. Envia
+5. Visualiza sua própria resposta
 
 ## 📋 Gerenciamento de Tarefas
 
