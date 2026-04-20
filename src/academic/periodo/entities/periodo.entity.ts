@@ -1,7 +1,7 @@
-import { Max, Min, minLength, MinLength } from "class-validator";
-import { Column, Entity, FindOperator, LessThan, MoreThan, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
+@Unique(['ano', 'semestre'])
 export class Periodo {
 
     @PrimaryGeneratedColumn()

@@ -3,7 +3,8 @@ import { IsNumber, Max, Min } from "class-validator"
 export class CreatePeriodoDto {
 
     @IsNumber()
-    @Min(2024)
+    @Min(2010)
+    @Max(new Date().getFullYear() + 1)
     ano!: number
 
     @IsNumber()

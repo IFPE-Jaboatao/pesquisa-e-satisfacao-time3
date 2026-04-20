@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePeriodoDto } from './dto/create-periodo.dto';
 import { UpdatePeriodoDto } from './dto/update-periodo.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Periodo } from './entities/periodo.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class PeriodoService {
-  create(createPeriodoDto: CreatePeriodoDto) {
-    return 'This action adds a new periodo';
+  constructor(
+  @InjectRepository(Periodo, 'mysql')
+  private periodoRepo: Repository<Periodo>,
+  ) {}
+
+  async create(createPeriodoDto: CreatePeriodoDto) {
+    const exists = await this.periodoRepo.findOne({
+      where: {ano: createPeriodoDto.ano, semestre: createPeriodoDto.semestre}
+    });
+
+    if (exists) throw new ConflictException("Período já existe!")
+
+    const periodo = this.periodoRepo.create({
+      ano: createPeriodoDto.ano,
+      semestre: createPeriodoDto.semestre
+    });
+
+    return this.periodoRepo.save(periodo);
   }
 
-  findAll() {
-    return `This action returns all periodo`;
+  async findAll() {
+    return await this.periodoRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} periodo`;
+  async findOne(id: number) {
+    const periodo = await this.periodoRepo.findOne({ where: { id } });
+
+    if (!periodo) throw new NotFoundException("Período não encontrado!")
+
+    return periodo;
   }
 
-  update(id: number, updatePeriodoDto: UpdatePeriodoDto) {
-    return `This action updates a #${id} periodo`;
+  async update(id: number, updatePeriodoDto: UpdatePeriodoDto) {
+    const exists = await this.periodoRepo.findOne({
+      where: {ano: updatePeriodoDto.ano, semestre: updatePeriodoDto.semestre}
+    });
+
+    if (exists) throw new ConflictException("Período já existe!")
+
+    await this.periodoRepo.update(id, updatePeriodoDto)
+
+    const updated = await this.periodoRepo.findOne({where:{id}})
+
+    if (!updated) {
+      throw new NotFoundException("Período não encontrado!")
+    }
+
+    return updated;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} periodo`;
+  async remove(id: number) {
+    const result = await this.periodoRepo.delete(id);
+
+    if (result.affected === 0) throw new NotFoundException("Período não encontrado!");
+
+    return {"success": true, "message": "Período deletado com sucesso!"};
   }
 }
