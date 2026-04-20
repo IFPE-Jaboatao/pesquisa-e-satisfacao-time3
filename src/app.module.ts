@@ -16,6 +16,7 @@ import { User } from './users/user.entity';
 import { Pesquisa } from './pesquisas/entities/pesquisa.entity';
 import { Questao } from './questoes/entities/questao.entity';
 import { Resposta } from './respostas/entities/resposta.entity';
+import { InstitutionalModule } from './institutional/institutional.module';
 
 @Module({
   imports: [
@@ -93,6 +94,7 @@ import { Resposta } from './respostas/entities/resposta.entity';
     QuestoesModule,
     RespostasModule,
     AnonymousModule,
+    InstitutionalModule,
   ],
 })
 export class AppModule {}
