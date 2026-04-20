@@ -2,11 +2,12 @@
 
 
 
-### Auth
+## Auth
 
 * POST /auth/login
 
-### Pesquisas
+
+## Pesquisas
 
 * POST /pesquisas
 * GET /pesquisas
@@ -15,23 +16,25 @@
 * PATCH /pesquisas/:id/publicar
 * DELETE /pesquisas/:id
 
-### Questões
+## Questões
 
 * POST /questoes
 * GET /questoes/:pesquisaId
 
-### Respostas
+## Respostas
 
 * POST /respostas
 * GET /respostas/relatorio/:pesquisaId
 
-### Users (exclusivo para Admins)
+## Users (exclusivo para Admins)
 
 * GET /users
 * POST /users
 * GET /users/:id
 * PATCH /users/:id
 * DELETE /users/:id
+
+## Institutional
 
 ### Campus
 * POST /campus
@@ -58,6 +61,22 @@
 * DELETE /servico/:id → remover serviço
 * GET /servico?setorId=X → listar por setor
 
-### 
+## Academic
+
+### Curso
+* POST /curso → criar curso (vinculado ao campus)
+* GET /curso → listar cursos
+* GET /curso/:id → buscar curso
+* PATCH /curso/:id → atualizar curso
+* DELETE /curso/:id → remover curso
+* GET /curso?campusId=X → listar cursos por campus
+
+### Disciplina
+* POST /disciplina → criar disciplina (vinculado ao curso)
+* GET /disciplina → listar disciplinas
+* GET /disciplina/:id → buscar disciplina
+* PATCH /disciplina/:id → atualizar disciplina
+* DELETE /disciplina/:id → remover disciplina
+* GET /disciplina?cursoId=X → listar disciplinas por curso
 
 ---
