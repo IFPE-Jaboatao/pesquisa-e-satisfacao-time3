@@ -1,24 +1,28 @@
 import { Module } from '@nestjs/common';
-import { CursoModule } from './curso/curso.module';
-import { DisciplinaModule } from './disciplina/disciplina.module';
-import { TurmaModule } from './turma/turma.module';
-import { PeriodoModule } from './periodo/periodo.module';
-import { MatriculaModule } from './matricula/matricula.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CursoController } from './curso/curso.controller';
 import { DisciplinaController } from './disciplina/disciplina.controller';
 import { TurmaController } from './turma/turma.controller';
 import { PeriodoController } from './periodo/periodo.controller';
 import { MatriculaController } from './matricula/matricula.controller';
+
 import { CursoService } from './curso/curso.service';
 import { DisciplinaService } from './disciplina/disciplina.service';
 import { TurmaService } from './turma/turma.service';
 import { PeriodoService } from './periodo/periodo.service';
 import { MatriculaService } from './matricula/matricula.service';
 
+import { Curso } from './curso/entities/curso.entity';
+import { Disciplina } from './disciplina/entities/disciplina.entity';
+import { Turma } from './turma/entities/turma.entity';
+import { Periodo } from './periodo/entities/periodo.entity';
+import { Matricula } from './matricula/entities/matricula.entity';
+import { Campus } from 'src/institutional/campus/entities/campus.entity';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CursoModule, DisciplinaModule, TurmaModule, PeriodoModule, MatriculaModule], 'mysql')
+    TypeOrmModule.forFeature([Curso, Disciplina, Turma, Periodo, Matricula, Campus], 'mysql')
 ],
     controllers: [
         CursoController,
