@@ -19,10 +19,11 @@ import { Turma } from './turma/entities/turma.entity';
 import { Periodo } from './periodo/entities/periodo.entity';
 import { Matricula } from './matricula/entities/matricula.entity';
 import { Campus } from 'src/institutional/campus/entities/campus.entity';
+import { User } from 'src/users/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Curso, Disciplina, Turma, Periodo, Matricula, Campus], 'mysql')
+    TypeOrmModule.forFeature([Curso, Disciplina, Turma, Periodo, Matricula, Campus, User], 'mysql')
 ],
     controllers: [
         CursoController,
