@@ -79,4 +79,20 @@
 * DELETE /disciplina/:id → remover disciplina
 * GET /disciplina?cursoId=X → listar disciplinas por curso
 
+### Periodo
+* POST /periodo → criar periodo
+* GET /periodo → listar periodos
+* GET /periodo/:id → buscar periodo
+* PATCH /periodo/:id → atualizar periodo
+* DELETE /periodo/:id → remover periodo
+
+### Turma
+* POST /turma → criar turma (vinculado à disciplina, período e docente)
+* GET /turma → listar turmas
+* GET /turma/:id → buscar turma
+* PATCH /turma/:id → atualizar turma
+* DELETE /turma/:id → remover disciplina
+* GET /turma?disciplinaId=X → listar turmas por disciplinas
+
+
 ---

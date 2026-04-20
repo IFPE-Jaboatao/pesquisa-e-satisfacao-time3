@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TurmaService } from './turma.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
@@ -13,8 +13,8 @@ export class TurmaController {
   }
 
   @Get()
-  findAll() {
-    return this.turmaService.findAll();
+  findAll(@Query('disciplinaId') disciplinaId?: string) {
+    return this.turmaService.findAll(disciplinaId ? +disciplinaId : undefined);
   }
 
   @Get(':id')
