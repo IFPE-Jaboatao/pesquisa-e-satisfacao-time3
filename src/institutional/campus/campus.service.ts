@@ -1,26 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
+import { In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Campus } from './entities/campus.entity';
 
 @Injectable()
 export class CampusService {
-  create(createCampusDto: CreateCampusDto) {
-    return 'This action adds a new campus';
+  constructor(
+    @InjectRepository(Campus, 'mysql')
+    private campusRepo: Repository<Campus>,
+  ) {}
+
+  // criar campus vazio
+  async create(dto: CreateCampusDto) {
+
+    const campus = this.campusRepo.create({
+      nome: dto.nome
+    });
+
+    return this.campusRepo.save(campus);
   }
 
-  findAll() {
-    return `This action returns all campus`;
+  // listar todos os campi
+  async findAll() {
+    return this.campusRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} campus`;
+  // buscar um campus
+  async findOne(id: number) {
+    const campus = this.campusRepo.findOne({ where: { id } });
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!")
+
+    return campus;
   }
 
-  update(id: number, updateCampusDto: UpdateCampusDto) {
-    return `This action updates a #${id} campus`;
+  // buscar um campus e seus filhos
+  async findOneFull(id: number) {
+    const campus = this.campusRepo.findOne({ where: { id },
+    relations: {
+      setores: {
+        servicos: true
+      }
+    } });
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!")
+
+    return campus;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} campus`;
+  // atualizar um campus
+  async update(id: number, updateCampusDto: UpdateCampusDto) {
+    await this.campusRepo.update(id, updateCampusDto)
+
+    const updated = await this.campusRepo.findOne({where:{id}})
+
+    if (!updated) {
+      throw new NotFoundException("Campus não encontrado!")
+    }
+
+    return updated;
+  }
+
+  // remover um campus
+  async remove(id: number) {
+    const campus = await this.campusRepo.findOne({where: {id}});
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!");
+
+    const result = await this.campusRepo.delete(id);
+
+    if (result.affected === 0) throw new NotFoundException("Campus não encontrado!");
+
+    return {"success": true, "message": "Campus deletado com sucesso!"};
   }
 }

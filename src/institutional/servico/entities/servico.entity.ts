@@ -10,7 +10,9 @@ export class Servico {
     @Column()
     nome!: string;
 
-    @ManyToOne(() => Setor, (setor) => setor.servicos)
+    @ManyToOne(() => Setor, (setor) => setor.servicos, {
+        onDelete: "CASCADE"
+    })
     setor!: Setor;
 
 }

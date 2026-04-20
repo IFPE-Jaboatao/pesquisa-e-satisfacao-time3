@@ -17,6 +17,9 @@ import { Pesquisa } from './pesquisas/entities/pesquisa.entity';
 import { Questao } from './questoes/entities/questao.entity';
 import { Resposta } from './respostas/entities/resposta.entity';
 import { InstitutionalModule } from './institutional/institutional.module';
+import { Campus } from './institutional/campus/entities/campus.entity';
+import { Servico } from './institutional/servico/entities/servico.entity';
+import { Setor } from './institutional/setor/entities/setor.entity';
 
 @Module({
   imports: [
@@ -71,7 +74,7 @@ import { InstitutionalModule } from './institutional/institutional.module';
           username: user,
           password: pass,
           database: db,
-          entities: [User],
+          entities: [User, Campus, Setor, Servico],
           synchronize: true,
         };
       },

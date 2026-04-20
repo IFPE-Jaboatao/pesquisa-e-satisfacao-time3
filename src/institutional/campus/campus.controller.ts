@@ -22,6 +22,11 @@ export class CampusController {
     return this.campusService.findOne(+id);
   }
 
+  @Get(':id/full')
+  findOneFull(@Param('id') id: string) {
+    return this.campusService.findOneFull(+id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCampusDto: UpdateCampusDto) {
     return this.campusService.update(+id, updateCampusDto);

@@ -1,3 +1,4 @@
+import { MinLength } from "class-validator";
 import { Setor } from "src/institutional/setor/entities/setor.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 

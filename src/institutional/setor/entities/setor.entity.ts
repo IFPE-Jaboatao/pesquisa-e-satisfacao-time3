@@ -11,7 +11,9 @@ export class Setor {
     @Column()
     nome!: string
 
-    @ManyToOne(() => Campus, (campus) => campus.setores)
+    @ManyToOne(() => Campus, (campus) => campus.setores, {
+        onDelete: "CASCADE"
+    })
     campus!: Campus;
 
     @OneToMany(() => Servico, (servico) => servico.setor)

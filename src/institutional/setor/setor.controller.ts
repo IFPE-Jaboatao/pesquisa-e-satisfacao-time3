@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SetorService } from './setor.service';
 import { CreateSetorDto } from './dto/create-setor.dto';
 import { UpdateSetorDto } from './dto/update-setor.dto';
@@ -13,9 +13,10 @@ export class SetorController {
   }
 
   @Get()
-  findAll() {
-    return this.setorService.findAll();
+  findAll(@Query('campusId') campusId?: string) {
+    return this.setorService.findAll(campusId ? +campusId : undefined);
   }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
