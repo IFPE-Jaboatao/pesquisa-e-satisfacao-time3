@@ -20,6 +20,7 @@ import { InstitutionalModule } from './institutional/institutional.module';
 import { Campus } from './institutional/campus/entities/campus.entity';
 import { Servico } from './institutional/servico/entities/servico.entity';
 import { Setor } from './institutional/setor/entities/setor.entity';
+import { AcademicModule } from './academic/academic.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { Setor } from './institutional/setor/entities/setor.entity';
     RespostasModule,
     AnonymousModule,
     InstitutionalModule,
+    AcademicModule,
   ],
 })
 export class AppModule {}
