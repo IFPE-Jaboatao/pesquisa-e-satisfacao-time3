@@ -93,6 +93,15 @@
 * PATCH /turma/:id → atualizar turma
 * DELETE /turma/:id → remover disciplina
 * GET /turma?disciplinaId=X → listar turmas por disciplinas
+* GET /turma/docente/:id → listar turmas de um docente
 
+### Matrícula
+* POST /matricula → criar matricula (vinculada ao aluno e à turma)
+* GET /matricula → listar matriculas
+* GET /matricula/:id → buscar matricula
+* PATCH /matricula/:id → atualizar matricula
+* DELETE /matricula/:id → remover matricula
+* GET /matricula?turmaId=X → listar matriculas por turma
+* GET /matricula/aluno/:id → listar matrículas de um aluno
 
 ---
