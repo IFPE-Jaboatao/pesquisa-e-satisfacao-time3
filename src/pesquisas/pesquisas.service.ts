@@ -91,8 +91,11 @@ export class PesquisasService {
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
+    console.log(`\n[PASSO 1] PesquisasService: Iniciando update da pesquisa ${id}`);
+    
     const pesquisaAtual = await this.findOne(id);
 
+    // Validação de segurança para pesquisas já publicadas
     if (pesquisaAtual.publicada) {
       const camposProibidos = Object.keys(dto).filter(campo => campo !== 'dataFinal');
       if (camposProibidos.length > 0) {
@@ -100,13 +103,17 @@ export class PesquisasService {
       }
     }
 
+    // Lógica de Auditoria para alteração de prazo
     if (dto.dataFinal) {
       const tempoNovo = new Date(dto.dataFinal).getTime();
       const tempoAntigo = new Date(pesquisaAtual.dataFinal).getTime();
 
+      console.log(`[PASSO 2] Comparando datas: Banco(${pesquisaAtual.dataFinal}) vs DTO(${dto.dataFinal})`);
+
       if (tempoNovo !== tempoAntigo) {
+        console.log('[PASSO 3] Mudança de data detectada. Acionando AuditoriaService...');
+        
         await this.auditoriaService.registrar({
-          // CONFIGURAÇÃO DE BACKUP AQUI
           usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
           usuarioNome: usuario?.username || usuario?.nome || usuario?.name || 'Usuário Desconhecido',
           entidade: 'Pesquisa',
@@ -115,20 +122,31 @@ export class PesquisasService {
           dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
           dadosNovos: { dataFinal: dto.dataFinal }
         });
+      } else {
+        console.log('[AVISO] Auditoria não acionada: As datas são idênticas.');
       }
     }
 
+    // Executa a atualização no MongoDB
     await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: dto });
-    return { message: 'Pesquisa atualizada com sucesso', alteracoes: Object.keys(dto) };
+    
+    return { 
+      message: 'Pesquisa atualizada com sucesso', 
+      alteracoes: Object.keys(dto) 
+    };
   }
 
   async publicar(id: string, usuario: any) {
+    console.log(`\n[PASSO 1] PesquisasService: Iniciando publicação da pesquisa ${id}`);
+    
     const result = await this.repo.updateOne(
       { _id: new ObjectId(id) },
       { $set: { publicada: true } }
     );
 
     if (result.matchedCount === 0) throw new NotFoundException('Pesquisa não encontrada');
+
+    console.log('[PASSO 3] Pesquisa marcada como publicada. Acionando AuditoriaService...');
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
@@ -143,13 +161,19 @@ export class PesquisasService {
   }
 
   async remove(id: string, usuario: any) {
+    console.log(`\n[PASSO 1] PesquisasService: Iniciando remoção da pesquisa ${id}`);
+    
     const pesquisa = await this.findOne(id);
 
+    // Remove dados vinculados
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
+    
     const result = await this.repo.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount > 0) {
+      console.log('[PASSO 3] Pesquisa removida. Acionando AuditoriaService...');
+      
       await this.auditoriaService.registrar({
         usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
         usuarioNome: usuario?.username || usuario?.nome || usuario?.name || 'Usuário Desconhecido',

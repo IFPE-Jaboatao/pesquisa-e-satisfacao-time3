@@ -10,10 +10,10 @@ export class Auditoria {
   usuarioId!: string; 
 
   @Column()
-  usuarioNome!: string; // <-- ADICIONE ESTA LINHA para aceitar o nome do Admin/Gestor
+  usuarioNome!: string; // aceitar o nome do Admin/Gestor
 
   @Column()
-  entidade!: string; // Ex: 'Pesquisa'
+  entidade!: string; // 'Pesquisa'
 
   @Column()
   entidadeId!: string; 
