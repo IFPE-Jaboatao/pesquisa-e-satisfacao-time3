@@ -20,6 +20,12 @@ import { InstitutionalModule } from './institutional/institutional.module';
 import { Campus } from './institutional/campus/entities/campus.entity';
 import { Servico } from './institutional/servico/entities/servico.entity';
 import { Setor } from './institutional/setor/entities/setor.entity';
+import { AcademicModule } from './academic/academic.module';
+import { Curso } from './academic/curso/entities/curso.entity';
+import { Disciplina } from './academic/disciplina/entities/disciplina.entity';
+import { Matricula } from './academic/matricula/entities/matricula.entity';
+import { Periodo } from './academic/periodo/entities/periodo.entity';
+import { Turma } from './academic/turma/entities/turma.entity';
 
 @Module({
   imports: [
@@ -74,7 +80,7 @@ import { Setor } from './institutional/setor/entities/setor.entity';
           username: user,
           password: pass,
           database: db,
-          entities: [User, Campus, Setor, Servico],
+          entities: [User, Campus, Setor, Servico, Curso, Disciplina, Matricula, Periodo, Turma],
           synchronize: true,
         };
       },
@@ -98,6 +104,7 @@ import { Setor } from './institutional/setor/entities/setor.entity';
     RespostasModule,
     AnonymousModule,
     InstitutionalModule,
+    AcademicModule,
   ],
 })
 export class AppModule {}
