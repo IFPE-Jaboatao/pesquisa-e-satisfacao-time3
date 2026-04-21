@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,13 +15,14 @@ import { Periodo } from '../periodo/entities/periodo.entity';
 import { User } from 'src/users/user.entity';
 import { Role } from 'src/users/user-role.enum';
 import { Matricula } from '../matricula/entities/matricula.entity';
+import { isNumber } from 'class-validator';
 
 @Injectable()
 export class TurmaService {
   constructor(
     @InjectRepository(Turma, 'mysql')
     private turmaRepo: Repository<Turma>,
-    
+
     @InjectRepository(Disciplina, 'mysql')
     private disciplinaRepo: Repository<Disciplina>,
 
@@ -26,9 +33,7 @@ export class TurmaService {
     private usersRepo: Repository<User>,
   ) {}
 
-
   async create(createTurmaDto: CreateTurmaDto) {
-
     const { nome, disciplinaId, periodoId, docenteId } = createTurmaDto;
 
     // validação de duplicidade
@@ -86,41 +91,83 @@ export class TurmaService {
       nome: savedTurma.nome,
       disciplina: savedTurma.disciplina,
       periodo: savedTurma.periodo,
-      docente: {id:savedTurma.docente.id, username: savedTurma.docente.username}
+      docente: {
+        id: savedTurma.docente.id,
+        username: savedTurma.docente.username,
+      },
     };
   }
 
   async findAll(disciplinaId?: number) {
     const turmas = await this.turmaRepo.find({
-      where: disciplinaId ? { disciplina: { id:disciplinaId } } : {},
+      where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
       relations: { disciplina: true, periodo: true, docente: true },
-    })
+    });
 
     return turmas.map((turma) => ({
       id: turma?.id,
       nome: turma?.nome,
       disciplina: turma?.disciplina,
       periodo: turma?.periodo,
-      docente: {id: turma.docente?.id, username: turma.docente?.username},
+      docente: { id: turma.docente?.id, username: turma.docente?.username },
     }));
   }
 
-  async findOne(id: number) {
-    const turma = await this.turmaRepo.findOne({where: {id}, relations: {disciplina: true, periodo: true, docente: true }})
+  async findAllProfessor(docenteId: number) {
+    const docente = await this.usersRepo.findOne({ where: { id: docenteId } });
 
-    if (!turma) throw new NotFoundException("Turma não encontrada!")
+    if (!docente) throw new NotFoundException('Docente não encontrado!');
+
+    if (docente.role !== Role.DOCENTE)
+      throw new BadRequestException(
+        `Usuários com role ${docente.role} não podem ministrar turmas!`,
+      );
+
+    const turmas = await this.turmaRepo.find({
+      where: { docente: docente },
+      relations: {
+        docente: true,
+        periodo: true,
+        disciplina: true,
+      },
+    });
+
+    // informações do docente não se repetem
+    return {
+      docenteId: turmas[0]?.docente.id,
+      docenteUsername: turmas[0]?.docente.username,
+      turmas: turmas?.map((turma) => ({
+        id: turma?.id,
+        nome: turma?.nome,
+        disciplina: {
+          id: turma?.disciplina.id,
+          nome: turma?.disciplina.nome,
+        },
+        periodo: turma?.periodo,
+      })),
+    };
+  }
+
+  async findOne(id: number) {
+    if (!isNumber(id)) throw new BadRequestException('ID deve ser um número!');
+
+    const turma = await this.turmaRepo.findOne({
+      where: { id },
+      relations: { disciplina: true, periodo: true, docente: true },
+    });
+
+    if (!turma) throw new NotFoundException('Turma não encontrada!');
 
     return {
       id: turma.id,
       nome: turma.nome,
       disciplina: turma.disciplina,
       periodo: turma.periodo,
-      docente: {id: turma.docente.id, username: turma.docente.username},
+      docente: { id: turma.docente.id, username: turma.docente.username },
     };
   }
 
   async update(id: number, updateTurmaDto: UpdateTurmaDto) {
-
     const turma = await this.turmaRepo.findOne({
       where: { id },
       relations: {
@@ -187,7 +234,7 @@ export class TurmaService {
       docente = found;
     }
 
-    // aplica update manual 
+    // aplica update manual
     turma.nome = updateTurmaDto.nome ?? turma.nome;
     turma.disciplina = disciplina;
     turma.periodo = periodo;
@@ -213,14 +260,15 @@ export class TurmaService {
         id: updated?.docente?.id,
         username: updated?.docente?.username,
       },
-  };
-}
+    };
+  }
 
   async remove(id: number) {
     const result = await this.turmaRepo.delete(id);
 
-    if (result.affected === 0) throw new NotFoundException("Turma não encontrada!")
+    if (result.affected === 0)
+      throw new NotFoundException('Turma não encontrada!');
 
-    return {"success": true, "message": "Turma deletada com sucesso!"};
+    return { success: true, message: 'Turma deletada com sucesso!' };
   }
 }

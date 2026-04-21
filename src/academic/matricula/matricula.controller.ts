@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MatriculaService } from './matricula.service';
 import { CreateMatriculaDto } from './dto/create-matricula.dto';
 import { UpdateMatriculaDto } from './dto/update-matricula.dto';
@@ -13,8 +13,13 @@ export class MatriculaController {
   }
 
   @Get()
-  findAll() {
-    return this.matriculaService.findAll();
+  findAll(@Query('turmaId') turmaId?: string) {
+    return this.matriculaService.findAll(turmaId ? +turmaId : undefined);
+  }
+
+  @Get('/aluno/:id')
+  findAllStudent(@Param('id') alunoId: string) {
+    return this.matriculaService.findAllStudent(+alunoId);
   }
 
   @Get(':id')

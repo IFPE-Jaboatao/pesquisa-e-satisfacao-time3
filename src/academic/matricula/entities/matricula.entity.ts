@@ -1,8 +1,9 @@
 import { Turma } from "src/academic/turma/entities/turma.entity";
 import { User } from "src/users/user.entity";
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
+@Unique(['aluno', 'turma'])
 export class Matricula {
 
     @PrimaryGeneratedColumn()

@@ -30,8 +30,6 @@ export class CursoService {
     }
     );
 
-    console.log(curso)
-
     return this.cursoRepo.save(curso);
   }
 

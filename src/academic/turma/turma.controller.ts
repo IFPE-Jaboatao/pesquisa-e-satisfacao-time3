@@ -17,6 +17,11 @@ export class TurmaController {
     return this.turmaService.findAll(disciplinaId ? +disciplinaId : undefined);
   }
 
+  @Get('/docente/:id')
+  findAllProfessor(@Param('id') docenteId: string) {
+    return this.turmaService.findAllProfessor(+docenteId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.turmaService.findOne(+id);
