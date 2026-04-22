@@ -13,6 +13,9 @@ import { RespostasService } from './respostas.service';
 import { AnonymousGuard } from '../anonymous/anonymous.guard';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { EnviarRespostaDto } from './dto/enviar-resposta.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/users/user-role.enum';
 
 type AnonymousUser = {
   anonId: string;
@@ -41,9 +44,10 @@ export class RespostasController {
     return this.service.registrar(dto, user);
   }
 
-  //  ADMIN
-  @UseGuards(JwtAuthGuard)
+  // ???
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('relatorio/:pesquisaId')
+  @Roles(Role.GESTOR)
   relatorio(@Param('pesquisaId') pesquisaId: string) {
     return this.service.relatorio(pesquisaId);
   }

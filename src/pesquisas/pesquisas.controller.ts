@@ -7,55 +7,78 @@ import {
   Get,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 
 import { PesquisasService } from './pesquisas.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Role } from 'src/users/user-role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('pesquisas')
+@UseGuards(JwtAuthGuard, RolesGuard) // Proteção aplicada a todas as rotas da classe
 export class PesquisasController {
   constructor(private readonly service: PesquisasService) {}
 
-  // ADMIN cria pesquisa
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  create(@Body() dto: CreatePesquisaDto) {
-    return this.service.create(dto);
-  }
+  // -------------------------------------------------------------------------
+  // OPERAÇÕES DE CONSULTA (Leitura)
+  // -------------------------------------------------------------------------
 
-  // ADMIN lista todas as pesquisas
-  @UseGuards(JwtAuthGuard)
+  // Gestores e Admins listam tudo
   @Get()
+  @Roles(Role.GESTOR, Role.ADMIN)
   findAll() {
     return this.service.findAll();
   }
 
-  // PÚBLICO acessa pesquisa específica
+  // Alunos, Gestores e Admins podem ver uma pesquisa específica
   @Get(':id')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  //  NOVA ROTA: ADMIN atualiza estrutura da pesquisa
-  // Só funciona se a pesquisa não estiver publicada (validação feita no Service)
-  @UseGuards(JwtAuthGuard)
+  // Apenas Gestores e Admins acessam relatórios de BI
+  @Get(':id/relatorio')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  getRelatorio(@Param('id') id: string) {
+    return this.service.getRelatorio(id);
+  }
+
+  // -------------------------------------------------------------------------
+  // OPERAÇÕES DE ESCRITA (Com Auditoria)
+  // -------------------------------------------------------------------------
+
+  @Post()
+  @Roles(Role.GESTOR, Role.ADMIN)
+  create(@Body() dto: CreatePesquisaDto) {
+    return this.service.create(dto);
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: Partial<CreatePesquisaDto>) {
-    return this.service.update(id, dto);
+  @Roles(Role.GESTOR, Role.ADMIN)
+  update(
+    @Param('id') id: string, 
+    @Body() dto: Partial<CreatePesquisaDto>,
+    @Req() req: any 
+  ) {
+    // Passa req.user para o service registrar quem alterou
+    return this.service.update(id, dto, req.user);
   }
 
-  // ADMIN publica pesquisa
-  @UseGuards(JwtAuthGuard)
   @Patch(':id/publicar')
-  publicar(@Param('id') id: string) {
-    return this.service.publicar(id);
+  @Roles(Role.GESTOR, Role.ADMIN)
+  publicar(@Param('id') id: string, @Req() req: any) {
+    return this.service.publicar(id, req.user);
   }
 
-  // ADMIN deleta pesquisa (com cascata no service)
-  @UseGuards(JwtAuthGuard)
+  // OPERAÇÕES DE EXCLUSÃO
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  @Roles(Role.GESTOR, Role.ADMIN)
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.service.remove(id, req.user);
   }
 }

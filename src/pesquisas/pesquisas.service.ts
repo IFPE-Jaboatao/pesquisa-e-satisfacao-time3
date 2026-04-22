@@ -1,13 +1,19 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { 
+  Injectable, 
+  BadRequestException, 
+  NotFoundException, 
+  ForbiddenException 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 
-// Importação das entidades para os repositórios injetados
+// Importações de Entidades e Serviços Externos
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
+import { AuditoriaService } from '../auditoria/auditoria.service';
 
 @Injectable()
 export class PesquisasService {
@@ -20,9 +26,74 @@ export class PesquisasService {
 
     @InjectRepository(Resposta, 'mongo')
     private readonly respostaRepo: MongoRepository<Resposta>,
+
+    private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  // Criar nova pesquisa (Admin)
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE LEITURA
+  // -------------------------------------------------------------------------
+
+  async findAll() {
+    return await this.repo.find({ order: { _id: 'DESC' } });
+  }
+
+  async findOne(id: string) {
+    if (!ObjectId.isValid(id)) {
+      throw new BadRequestException('ID inválido');
+    }
+    const pesquisa = await this.repo.findOneBy({ _id: new ObjectId(id) });
+    if (!pesquisa) {
+      throw new NotFoundException('Pesquisa não encontrada');
+    }
+    return pesquisa;
+  }
+
+  async getRelatorio(id: string) {
+    const pesquisa = await this.findOne(id);
+    const questoes = await this.questaoRepo.find({ where: { pesquisaId: id } });
+    const todasRespostas = await this.respostaRepo.find({ where: { pesquisaId: id } });
+
+    const relatorioQuestoes = questoes.map((q: any) => {
+      const questaoIdStr = q.id ? q.id.toString() : q._id?.toString();
+
+      const respostasDestaQuestao = todasRespostas
+        .map(doc => doc.respostas?.find(item => item.questaoId === questaoIdStr))
+        .filter(item => item !== undefined);
+
+      const frequencia = respostasDestaQuestao.reduce((acc, curr) => {
+        const valor = curr.valor || "Sem Resposta";
+        acc[valor] = (acc[valor] || 0) + 1;
+        return acc;
+      }, {});
+
+      return {
+        questaoId: questaoIdStr,
+        enunciado: q.texto || q.enunciado || "Questão sem título",
+        tipo: q.tipo,
+        totalRespostas: respostasDestaQuestao.length,
+        dados: Object.keys(frequencia).map(chave => ({
+          label: chave,
+          valor: frequencia[chave]
+        }))
+      };
+    });
+
+    return {
+      titulo: pesquisa.titulo,
+      publicada: pesquisa.publicada,
+      estatisticas: {
+        totalQuestoes: questoes.length,
+        totalParticipantes: todasRespostas.length,
+      },
+      detalhes: relatorioQuestoes,
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE ESCRITA (COM AUDITORIA E TRAVAS)
+  // -------------------------------------------------------------------------
+
   async create(dto: CreatePesquisaDto) {
     const pesquisa = this.repo.create({
       ...dto,
@@ -31,97 +102,87 @@ export class PesquisasService {
     return this.repo.save(pesquisa);
   }
 
-  // Listar todas as pesquisas (Admin)
-  async findAll() {
-    return await this.repo.find({
-      order: { _id: 'DESC' },
-    });
-  }
+  async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
+    const pesquisaAtual = await this.findOne(id);
 
-  // Buscar uma pesquisa específica (Público/Admin)
-  async findOne(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
-    }
-
-    const pesquisa = await this.repo.findOneBy({
-      _id: new ObjectId(id),
-    });
-
-    if (!pesquisa) {
-      throw new NotFoundException('Pesquisa não encontrada');
-    }
-    return pesquisa;
-  }
-
-  // 🟢 NOVO: Atualizar pesquisa (Admin) - Com Trava de Segurança
-  async update(id: string, dto: Partial<CreatePesquisaDto>) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
-    }
-
-    const pesquisaAtual = await this.repo.findOneBy({ _id: new ObjectId(id) });
-
-    if (!pesquisaAtual) {
-      throw new NotFoundException('Pesquisa não encontrada');
-    }
-
-    // Dica de Ouro: Bloqueia edição se já estiver publicada
+    // Validação: Se publicada, só permite alterar a dataFinal
     if (pesquisaAtual.publicada) {
-      throw new BadRequestException(
-        'Esta pesquisa já foi publicada e não pode mais ser editada para garantir a integridade dos dados coletados.',
-      );
+      const camposProibidos = Object.keys(dto).filter(campo => campo !== 'dataFinal');
+      if (camposProibidos.length > 0) {
+        throw new ForbiddenException(
+          'Esta pesquisa já foi publicada. Apenas o prazo (dataFinal) pode ser editado.'
+        );
+      }
     }
 
-    await this.repo.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: dto },
-    );
+    // Auditoria de alteração de prazo
+    if (dto.dataFinal) {
+      const tempoNovo = new Date(dto.dataFinal).getTime();
+      const tempoAntigo = new Date(pesquisaAtual.dataFinal).getTime();
 
+      if (tempoNovo !== tempoAntigo) {
+        await this.auditoriaService.registrar({
+          usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
+          usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+          entidade: 'Pesquisa',
+          entidadeId: id,
+          acao: 'ALTERACAO_PRAZO',
+          dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
+          dadosNovos: { dataFinal: dto.dataFinal }
+        });
+      }
+    }
+
+    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: dto });
+    
     return { 
-      message: 'Pesquisa atualizada com sucesso',
-      camposAlterados: Object.keys(dto)
+      message: 'Pesquisa atualizada com sucesso', 
+      camposAlterados: Object.keys(dto) 
     };
   }
 
-  // Publicar uma pesquisa (Admin)
-  async publicar(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
-    }
-
+  async publicar(id: string, usuario: any) {
     const result = await this.repo.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { publicada: true } },
+      { $set: { publicada: true } }
     );
 
-    if (result.matchedCount === 0) {
-      throw new NotFoundException('Pesquisa não encontrada');
-    }
+    if (result.matchedCount === 0) throw new NotFoundException('Pesquisa não encontrada');
+
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'PUBLICAR_PESQUISA',
+      dadosNovos: { publicada: true }
+    });
 
     return { message: 'Pesquisa publicada com sucesso' };
   }
 
-  // Deletar pesquisa com cascata (Admin)
-  async remove(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID da pesquisa inválido');
-    }
+  async remove(id: string, usuario: any) {
+    const pesquisa = await this.findOne(id);
 
+    // Remoção em cascata (Questões e Respostas vinculadas)
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
-
-    const result = await this.repo.deleteOne({
-      _id: new ObjectId(id),
-    });
+    
+    const result = await this.repo.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
-      throw new NotFoundException('Pesquisa não encontrada para remover');
+      throw new NotFoundException('Pesquisa não encontrada para remoção');
     }
 
-    return {
-      message: 'Pesquisa e todos os dados vinculados removidos com sucesso.',
-      idDeletado: id,
-    };
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'REMOVER_PESQUISA',
+      dadosAnteriores: { titulo: pesquisa.titulo }
+    });
+
+    return { message: 'Pesquisa e todos os dados vinculados foram removidos com sucesso.' };
   }
 }

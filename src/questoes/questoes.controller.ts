@@ -10,20 +10,31 @@ import {
 import { QuestoesService } from './questoes.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreateQuestaoDto } from './dto/create-questao.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Role } from 'src/users/user-role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('questoes')
 export class QuestoesController {
   constructor(private readonly service: QuestoesService) {}
 
-  //  ADMIN cria questão
-  @UseGuards(JwtAuthGuard)
+  /**
+   * CRIAÇÃO DE QUESTÕES
+   * Liberado para ADMIN e GESTOR para evitar o erro 403 que você recebeu.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
+  @Roles(Role.ADMIN, Role.GESTOR) 
   create(@Body() dto: CreateQuestaoDto) {
     return this.service.create(dto);
   }
 
-  //  PÚBLICO busca questões da pesquisa
-  @Get(':pesquisaId')
+  /**
+   * BUSCA DE QUESTÕES POR PESQUISA
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('pesquisa/:pesquisaId')
+  @Roles(Role.ADMIN, Role.GESTOR, Role.ALUNO)
   findByPesquisa(@Param('pesquisaId') pesquisaId: string) {
     return this.service.findByPesquisa(pesquisaId);
   }

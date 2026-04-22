@@ -10,5 +10,6 @@ import { RespostasController } from './respostas.controller';
   imports: [TypeOrmModule.forFeature([Resposta, Pesquisa], 'mongo')],
   providers: [RespostasService],
   controllers: [RespostasController],
+  exports: [RespostasService], 
 })
 export class RespostasModule {}

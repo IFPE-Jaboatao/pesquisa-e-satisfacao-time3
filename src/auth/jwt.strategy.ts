@@ -18,10 +18,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // O que este método retorna vira o "req.user" usado nos serviços
   validate(payload: any) {
     return {
-      userId: payload.sub,
+      sub: payload.sub,
       username: payload.username,
+      role: payload.role
     };
   }
 }
