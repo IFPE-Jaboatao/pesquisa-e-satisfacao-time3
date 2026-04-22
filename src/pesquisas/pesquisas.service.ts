@@ -10,7 +10,7 @@ import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 
-// Importações para o Relatório e Auditoria
+// Importações de Entidades e Serviços Externos
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaService } from '../auditoria/auditoria.service';
@@ -30,22 +30,22 @@ export class PesquisasService {
     private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  async create(dto: CreatePesquisaDto) {
-    const pesquisa = this.repo.create({
-      ...dto,
-      publicada: false,
-    });
-    return this.repo.save(pesquisa);
-  }
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE LEITURA
+  // -------------------------------------------------------------------------
 
   async findAll() {
     return await this.repo.find({ order: { _id: 'DESC' } });
   }
 
   async findOne(id: string) {
-    if (!ObjectId.isValid(id)) throw new BadRequestException('ID inválido');
+    if (!ObjectId.isValid(id)) {
+      throw new BadRequestException('ID inválido');
+    }
     const pesquisa = await this.repo.findOneBy({ _id: new ObjectId(id) });
-    if (!pesquisa) throw new NotFoundException('Pesquisa não encontrada');
+    if (!pesquisa) {
+      throw new NotFoundException('Pesquisa não encontrada');
+    }
     return pesquisa;
   }
 
@@ -90,55 +90,58 @@ export class PesquisasService {
     };
   }
 
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE ESCRITA (COM AUDITORIA E TRAVAS)
+  // -------------------------------------------------------------------------
+
+  async create(dto: CreatePesquisaDto) {
+    const pesquisa = this.repo.create({
+      ...dto,
+      publicada: false,
+    });
+    return this.repo.save(pesquisa);
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
-    console.log(`\n[PASSO 1] PesquisasService: Iniciando update da pesquisa ${id}`);
-    
     const pesquisaAtual = await this.findOne(id);
 
-    // Validação de segurança para pesquisas já publicadas
+    // Validação: Se publicada, só permite alterar a dataFinal
     if (pesquisaAtual.publicada) {
       const camposProibidos = Object.keys(dto).filter(campo => campo !== 'dataFinal');
       if (camposProibidos.length > 0) {
-        throw new ForbiddenException(`Apenas 'dataFinal' pode ser alterada em pesquisas publicadas.`);
+        throw new ForbiddenException(
+          'Esta pesquisa já foi publicada. Apenas o prazo (dataFinal) pode ser editado.'
+        );
       }
     }
 
-    // Lógica de Auditoria para alteração de prazo
+    // Auditoria de alteração de prazo
     if (dto.dataFinal) {
       const tempoNovo = new Date(dto.dataFinal).getTime();
       const tempoAntigo = new Date(pesquisaAtual.dataFinal).getTime();
 
-      console.log(`[PASSO 2] Comparando datas: Banco(${pesquisaAtual.dataFinal}) vs DTO(${dto.dataFinal})`);
-
       if (tempoNovo !== tempoAntigo) {
-        console.log('[PASSO 3] Mudança de data detectada. Acionando AuditoriaService...');
-        
         await this.auditoriaService.registrar({
           usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-          usuarioNome: usuario?.username || usuario?.nome || usuario?.name || 'Usuário Desconhecido',
+          usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
           entidade: 'Pesquisa',
           entidadeId: id,
           acao: 'ALTERACAO_PRAZO',
           dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
           dadosNovos: { dataFinal: dto.dataFinal }
         });
-      } else {
-        console.log('[AVISO] Auditoria não acionada: As datas são idênticas.');
       }
     }
 
-    // Executa a atualização no MongoDB
     await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: dto });
     
     return { 
       message: 'Pesquisa atualizada com sucesso', 
-      alteracoes: Object.keys(dto) 
+      camposAlterados: Object.keys(dto) 
     };
   }
 
   async publicar(id: string, usuario: any) {
-    console.log(`\n[PASSO 1] PesquisasService: Iniciando publicação da pesquisa ${id}`);
-    
     const result = await this.repo.updateOne(
       { _id: new ObjectId(id) },
       { $set: { publicada: true } }
@@ -146,11 +149,9 @@ export class PesquisasService {
 
     if (result.matchedCount === 0) throw new NotFoundException('Pesquisa não encontrada');
 
-    console.log('[PASSO 3] Pesquisa marcada como publicada. Acionando AuditoriaService...');
-
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-      usuarioNome: usuario?.username || usuario?.nome || usuario?.name || 'Usuário Desconhecido',
+      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'PUBLICAR_PESQUISA',
@@ -161,29 +162,27 @@ export class PesquisasService {
   }
 
   async remove(id: string, usuario: any) {
-    console.log(`\n[PASSO 1] PesquisasService: Iniciando remoção da pesquisa ${id}`);
-    
     const pesquisa = await this.findOne(id);
 
-    // Remove dados vinculados
+    // Remoção em cascata (Questões e Respostas vinculadas)
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
     
     const result = await this.repo.deleteOne({ _id: new ObjectId(id) });
 
-    if (result.deletedCount > 0) {
-      console.log('[PASSO 3] Pesquisa removida. Acionando AuditoriaService...');
-      
-      await this.auditoriaService.registrar({
-        usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-        usuarioNome: usuario?.username || usuario?.nome || usuario?.name || 'Usuário Desconhecido',
-        entidade: 'Pesquisa',
-        entidadeId: id,
-        acao: 'REMOVER_PESQUISA',
-        dadosAnteriores: { titulo: pesquisa.titulo }
-      });
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Pesquisa não encontrada para remoção');
     }
 
-    return { message: 'Pesquisa e dados vinculados removidos.' };
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'REMOVER_PESQUISA',
+      dadosAnteriores: { titulo: pesquisa.titulo }
+    });
+
+    return { message: 'Pesquisa e todos os dados vinculados foram removidos com sucesso.' };
   }
 }
