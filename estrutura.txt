@@ -1,0 +1,212 @@
+Listagem de caminhos de pasta para o volume OS
+O número de série do volume é D029-F9BB
+C:\USERS\MATHE\DOWNLOADS\PESQUISA-E-SATISFACAO-TIME3-MAIN\PESQUISA-E-SATISFACAO-TIME3-MAIN\SRC
+|   app.controller.spec.ts
+|   app.controller.ts
+|   app.module.ts
+|   app.service.ts
+|   main.ts
+|   
++---academic
+|   |   academic.module.ts
+|   |   
+|   +---curso
+|   |   |   curso.controller.spec.ts
+|   |   |   curso.controller.ts
+|   |   |   curso.service.spec.ts
+|   |   |   curso.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-curso.dto.ts
+|   |   |       update-curso.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           curso.entity.ts
+|   |           
+|   +---disciplina
+|   |   |   disciplina.controller.spec.ts
+|   |   |   disciplina.controller.ts
+|   |   |   disciplina.service.spec.ts
+|   |   |   disciplina.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-disciplina.dto.ts
+|   |   |       update-disciplina.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           disciplina.entity.ts
+|   |           
+|   +---matricula
+|   |   |   matricula.controller.spec.ts
+|   |   |   matricula.controller.ts
+|   |   |   matricula.service.spec.ts
+|   |   |   matricula.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-matricula.dto.ts
+|   |   |       update-matricula.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           matricula.entity.ts
+|   |           
+|   +---periodo
+|   |   |   periodo.controller.spec.ts
+|   |   |   periodo.controller.ts
+|   |   |   periodo.service.spec.ts
+|   |   |   periodo.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-periodo.dto.ts
+|   |   |       update-periodo.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           periodo.entity.ts
+|   |           
+|   \---turma
+|       |   turma.controller.spec.ts
+|       |   turma.controller.ts
+|       |   turma.service.spec.ts
+|       |   turma.service.ts
+|       |   
+|       +---dto
+|       |       create-turma.dto.ts
+|       |       update-turma.dto.ts
+|       |       
+|       \---entities
+|               turma.entity.ts
+|               
++---anonymous
+|       anonymous.guard.ts
+|       anonymous.module.ts
+|       anonymous.strategy.ts
+|       
++---auditoria
+|   |   auditoria.controller.ts
+|   |   auditoria.module.ts
+|   |   auditoria.service.ts
+|   |   
+|   \---entities
+|           auditoria.entity.ts
+|           
++---auth
+|   |   auth.controller.ts
+|   |   auth.module.ts
+|   |   auth.service.ts
+|   |   constants.ts
+|   |   jwt.guard.ts
+|   |   jwt.strategy.ts
+|   |   
+|   \---dto
+|           login.dto.ts
+|           
++---common
+|   +---decorators
+|   |       roles.decorator.ts
+|   |       
+|   +---guards
+|   |       roles.guard.ts
+|   |       
+|   \---utils
+|           fingerprint.util.ts
+|           
++---config
+|       config.module.ts
+|       config.service.ts
+|       
++---institutional
+|   |   institutional.module.ts
+|   |   
+|   +---campus
+|   |   |   campus.controller.spec.ts
+|   |   |   campus.controller.ts
+|   |   |   campus.service.spec.ts
+|   |   |   campus.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-campus.dto.ts
+|   |   |       update-campus.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           campus.entity.ts
+|   |           
+|   +---servico
+|   |   |   servico.controller.spec.ts
+|   |   |   servico.controller.ts
+|   |   |   servico.service.spec.ts
+|   |   |   servico.service.ts
+|   |   |   
+|   |   +---dto
+|   |   |       create-servico.dto.ts
+|   |   |       update-servico.dto.ts
+|   |   |       
+|   |   \---entities
+|   |           servico.entity.ts
+|   |           
+|   \---setor
+|       |   setor.controller.spec.ts
+|       |   setor.controller.ts
+|       |   setor.service.spec.ts
+|       |   setor.service.ts
+|       |   
+|       +---dto
+|       |       create-setor.dto.ts
+|       |       update-setor.dto.ts
+|       |       
+|       \---entities
+|               setor.entity.ts
+|               
++---notificacoes
+|       notificacoes.controller.ts
+|       notificacoes.module.ts
+|       notificacoes.service.ts
+|       
++---pesquisas
+|   |   pesquisas.controller.ts
+|   |   pesquisas.module.ts
+|   |   pesquisas.service.ts
+|   |   
+|   +---dto
+|   |       create-pesquisa.dto.ts
+|   |       
+|   \---entities
+|           pesquisa.entity.ts
+|           
++---questoes
+|   |   questoes.controller.ts
+|   |   questoes.module.ts
+|   |   questoes.service.ts
+|   |   
+|   +---dto
+|   |       create-questao.dto.ts
+|   |       
+|   \---entities
+|           questao.entity.ts
+|           
++---relatorios
+|       relatorios.controller.ts
+|       relatorios.module.ts
+|       relatorios.service.ts
+|       
++---respostas
+|   |   respostas.controller.ts
+|   |   respostas.module.ts
+|   |   respostas.service.ts
+|   |   
+|   +---dto
+|   |       enviar-resposta.dto.ts
+|   |       
+|   \---entities
+|           resposta.entity.ts
+|           
+\---users
+    |   user-role.enum.ts
+    |   user.controller.ts
+    |   user.entity.ts
+    |   user.module.ts
+    |   user.service.ts
+    |   
+    \---dto
+            create-user.dto.ts
+            update-password.dto.ts
+            update-user.dto.ts
+            
