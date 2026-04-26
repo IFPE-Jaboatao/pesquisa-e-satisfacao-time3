@@ -28,10 +28,6 @@ export class PesquisasService {
     private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  // -------------------
-  // MÉTODOS DE LEITURA
-  // -------------------
-
   async findAll() {
     return await this.repo.find({ order: { _id: 'DESC' } });
   }
@@ -44,12 +40,17 @@ export class PesquisasService {
   }
 
   async findOne(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
+    if (!id || !ObjectId.isValid(id)) {
+      throw new BadRequestException('ID com formato inválido ou ausente');
     }
-    const pesquisa = await this.repo.findOneBy({ _id: new ObjectId(id) });
+    
+    // Busca flexível: tenta encontrar pelo _id nativo do Mongo
+    const pesquisa = await this.repo.findOne({ 
+      where: { _id: new ObjectId(id) } as any 
+    });
+
     if (!pesquisa) {
-      throw new NotFoundException('Pesquisa não encontrada');
+      throw new NotFoundException(`Pesquisa com ID ${id} não encontrada`);
     }
     return pesquisa;
   }
@@ -74,7 +75,7 @@ export class PesquisasService {
 
       return {
         questaoId: questaoIdStr,
-        enunciado: q.texto || q.enunciado || "Questão sem título",
+        enunciado: q.pergunta || q.enunciado || "Questão sem título",
         tipo: q.tipo,
         totalRespostas: respostasDestaQuestao.length,
         dados: Object.keys(frequencia).map(chave => ({
@@ -96,83 +97,86 @@ export class PesquisasService {
     };
   }
 
-  // -------------------------------------------------------------------------
-  // MÉTODOS DE ESCRITA
-  // -------------------------------------------------------------------------
-
   async create(dto: CreatePesquisaDto) {
     const pesquisa = this.repo.create({
       ...dto,
-      dataInicio: new Date(dto.dataInicio), // Garantindo objeto Date para o Mongo
-      dataFinal: new Date(dto.dataFinal),   // Garantindo objeto Date para o Mongo
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
       publicada: false,
     });
     return await this.repo.save(pesquisa);
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
+    // 1. Garante que a pesquisa existe antes de qualquer lógica
     const pesquisaAtual = await this.findOne(id);
 
-    if (pesquisaAtual.publicada) {
-      const camposProibidos = Object.keys(dto).filter(campo => campo !== 'dataFinal');
-      if (camposProibidos.length > 0) {
+    // 2. Extração segura de campos (Tratando a inconsistência do banco)
+    const isPublicada = pesquisaAtual?.publicada || pesquisaAtual['publicada'];
+    const dataFinalOriginal = pesquisaAtual?.dataFinal || pesquisaAtual['dataFinal'];
+
+    // 3. Validação de bloqueio para pesquisas publicadas
+    if (isPublicada === true) {
+      const camposEditados = Object.keys(dto);
+      const apenasDataFinal = camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
+      
+      if (!apenasDataFinal && camposEditados.length > 0) {
         throw new ForbiddenException(
-          'Esta pesquisa já foi publicada. Apenas o prazo (dataFinal) pode ser editado.'
+          'Pesquisa já publicada. Apenas o prazo final pode ser editado.'
         );
       }
     }
 
-    if (dto.dataFinal) {
-      const tempoNovo = new Date(dto.dataFinal).getTime();
-      const tempoAntigo = new Date(pesquisaAtual.dataFinal).getTime();
+    // 4. Auditoria protegida (Resolve o Erro 500 na comparação de dataFinal)
+    if (dto.dataFinal && dataFinalOriginal) {
+      const novoTempo = new Date(dto.dataFinal).getTime();
+      const antigoTempo = new Date(dataFinalOriginal).getTime();
 
-      if (tempoNovo !== tempoAntigo) {
+      if (novoTempo !== antigoTempo) {
         await this.auditoriaService.registrar({
-          usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-          usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+          usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+          usuarioNome: usuario?.username || 'Admin',
           entidade: 'Pesquisa',
           entidadeId: id,
           acao: 'ALTERACAO_PRAZO',
-          dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
+          dadosAnteriores: { dataFinal: dataFinalOriginal },
           dadosNovos: { dataFinal: dto.dataFinal }
         });
       }
     }
 
-    // Preparando os dados para o $set do MongoDB
+    // 5. Preparação dos dados para o Mongo
     const updateData: any = { ...dto };
     if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
     if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
 
+    // 6. Update usando o _id nativo para garantir consistência
     await this.repo.updateOne(
       { _id: new ObjectId(id) }, 
       { $set: updateData }
     );
     
-    return { 
-      message: 'Pesquisa atualizada com sucesso', 
-      camposAlterados: Object.keys(dto) 
-    };
+    return { message: 'Atualização concluída com sucesso' };
   }
 
   async publicar(id: string, usuario: any) {
-    const result = await this.repo.updateOne(
+    await this.findOne(id);
+
+    await this.repo.updateOne(
       { _id: new ObjectId(id) },
       { $set: { publicada: true } }
     );
 
-    if (result.matchedCount === 0) throw new NotFoundException('Pesquisa não encontrada');
-
     await this.auditoriaService.registrar({
-      usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || 'Admin',
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'PUBLICAR_PESQUISA',
       dadosNovos: { publicada: true }
     });
 
-    return { message: 'Pesquisa publicada com sucesso' };
+    return { message: 'Pesquisa publicada' };
   }
 
   async remove(id: string, usuario: any) {
@@ -180,22 +184,17 @@ export class PesquisasService {
 
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
-    
-    const result = await this.repo.deleteOne({ _id: new ObjectId(id) });
-
-    if (result.deletedCount === 0) {
-      throw new NotFoundException('Pesquisa não encontrada para remoção');
-    }
+    await this.repo.deleteOne({ _id: new ObjectId(id) });
 
     await this.auditoriaService.registrar({
-      usuarioId: String(usuario?.sub || usuario?.userId || usuario?.id || 'null'),
-      usuarioNome: usuario?.username || usuario?.nome || 'Usuário Desconhecido',
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || 'Admin',
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'REMOVER_PESQUISA',
-      dadosAnteriores: { titulo: pesquisa.titulo, turmaId: pesquisa.turmaId }
+      dadosAnteriores: { titulo: pesquisa.titulo }
     });
 
-    return { message: 'Pesquisa e todos os dados vinculados foram removidos com sucesso.' };
+    return { message: 'Pesquisa removida' };
   }
 }

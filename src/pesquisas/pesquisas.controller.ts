@@ -8,7 +8,8 @@ import {
   Delete,
   UseGuards,
   Req,
-  ParseIntPipe, // Adicionado para validar o turmaId
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { PesquisasService } from './pesquisas.service';
@@ -17,15 +18,14 @@ import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { ObjectId } from 'mongodb';
 
 @Controller('pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PesquisasController {
   constructor(private readonly service: PesquisasService) {}
 
-  // --------------------------------
-  // OPERAÇÕES DE CONSULTA (Leitura)
-  // --------------------------------
+  // --- CONSULTA ---
 
   @Get()
   @Roles(Role.GESTOR, Role.ADMIN)
@@ -33,10 +33,6 @@ export class PesquisasController {
     return this.service.findAll();
   }
 
-  /**
-   * NOVA ROTA: Listar pesquisas por Turma (Escopo MySQL)
-   * Alunos precisam desta rota para ver as pesquisas vinculadas à sua turma.
-   */
   @Get('turma/:turmaId')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
   findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
@@ -46,18 +42,18 @@ export class PesquisasController {
   @Get(':id')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
   findOne(@Param('id') id: string) {
+    this.validarObjectId(id);
     return this.service.findOne(id);
   }
 
   @Get(':id/relatorio')
   @Roles(Role.GESTOR, Role.ADMIN)
   getRelatorio(@Param('id') id: string) {
+    this.validarObjectId(id);
     return this.service.getRelatorio(id);
   }
 
-  // ------------------------------------
-  // OPERAÇÕES DE ESCRITA (Com Auditoria)
-  // ------------------------------------
+  // --- ESCRITA ---
 
   @Post()
   @Roles(Role.GESTOR, Role.ADMIN)
@@ -67,27 +63,35 @@ export class PesquisasController {
 
   @Patch(':id')
   @Roles(Role.GESTOR, Role.ADMIN)
-  update(
+  async update(
     @Param('id') id: string, 
     @Body() dto: Partial<CreatePesquisaDto>,
     @Req() req: any 
   ) {
-    return this.service.update(id, dto, req.user);
+    this.validarObjectId(id);
+    // Garante que req.user existe para evitar erro de undefined no Service
+    const usuario = req.user || { userId: 'sistema' };
+    return await this.service.update(id, dto, usuario);
   }
 
   @Patch(':id/publicar')
   @Roles(Role.GESTOR, Role.ADMIN)
-  publicar(@Param('id') id: string, @Req() req: any) {
-    return this.service.publicar(id, req.user);
+  async publicar(@Param('id') id: string, @Req() req: any) {
+    this.validarObjectId(id);
+    return await this.service.publicar(id, req.user);
   }
-
-  // -------------------------------------------------------------------------
-  // OPERAÇÕES DE EXCLUSÃO
-  // -------------------------------------------------------------------------
 
   @Delete(':id')
   @Roles(Role.GESTOR, Role.ADMIN)
-  remove(@Param('id') id: string, @Req() req: any) {
-    return this.service.remove(id, req.user);
+  async remove(@Param('id') id: string, @Req() req: any) {
+    this.validarObjectId(id);
+    return await this.service.remove(id, req.user);
+  }
+
+  // Método auxiliar para evitar que IDs inválidos cheguem ao Service
+  private validarObjectId(id: string) {
+    if (!ObjectId.isValid(id)) {
+      throw new BadRequestException('Formato de ID MongoDB inválido.');
+    }
   }
 }
