@@ -9,8 +9,6 @@ import { Pesquisa } from './entities/pesquisa.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-
-// Importações de Entidades e Serviços Externos
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaService } from '../auditoria/auditoria.service';
@@ -30,12 +28,19 @@ export class PesquisasService {
     private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  // -------------------------------------------------------------------------
+  // -------------------
   // MÉTODOS DE LEITURA
-  // -------------------------------------------------------------------------
+  // -------------------
 
   async findAll() {
     return await this.repo.find({ order: { _id: 'DESC' } });
+  }
+
+  async findAllByTurma(turmaId: number) {
+    return await this.repo.find({ 
+      where: { turmaId: turmaId },
+      order: { _id: 'DESC' } 
+    });
   }
 
   async findOne(id: string) {
@@ -82,6 +87,7 @@ export class PesquisasService {
     return {
       titulo: pesquisa.titulo,
       publicada: pesquisa.publicada,
+      turmaId: pesquisa.turmaId,
       estatisticas: {
         totalQuestoes: questoes.length,
         totalParticipantes: todasRespostas.length,
@@ -91,21 +97,22 @@ export class PesquisasService {
   }
 
   // -------------------------------------------------------------------------
-  // MÉTODOS DE ESCRITA (COM AUDITORIA E TRAVAS)
+  // MÉTODOS DE ESCRITA
   // -------------------------------------------------------------------------
 
   async create(dto: CreatePesquisaDto) {
     const pesquisa = this.repo.create({
       ...dto,
+      dataInicio: new Date(dto.dataInicio), // Garantindo objeto Date para o Mongo
+      dataFinal: new Date(dto.dataFinal),   // Garantindo objeto Date para o Mongo
       publicada: false,
     });
-    return this.repo.save(pesquisa);
+    return await this.repo.save(pesquisa);
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
 
-    // Validação: Se publicada, só permite alterar a dataFinal
     if (pesquisaAtual.publicada) {
       const camposProibidos = Object.keys(dto).filter(campo => campo !== 'dataFinal');
       if (camposProibidos.length > 0) {
@@ -115,7 +122,6 @@ export class PesquisasService {
       }
     }
 
-    // Auditoria de alteração de prazo
     if (dto.dataFinal) {
       const tempoNovo = new Date(dto.dataFinal).getTime();
       const tempoAntigo = new Date(pesquisaAtual.dataFinal).getTime();
@@ -133,7 +139,15 @@ export class PesquisasService {
       }
     }
 
-    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: dto });
+    // Preparando os dados para o $set do MongoDB
+    const updateData: any = { ...dto };
+    if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
+    if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
+
+    await this.repo.updateOne(
+      { _id: new ObjectId(id) }, 
+      { $set: updateData }
+    );
     
     return { 
       message: 'Pesquisa atualizada com sucesso', 
@@ -164,7 +178,6 @@ export class PesquisasService {
   async remove(id: string, usuario: any) {
     const pesquisa = await this.findOne(id);
 
-    // Remoção em cascata (Questões e Respostas vinculadas)
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
     
@@ -180,7 +193,7 @@ export class PesquisasService {
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'REMOVER_PESQUISA',
-      dadosAnteriores: { titulo: pesquisa.titulo }
+      dadosAnteriores: { titulo: pesquisa.titulo, turmaId: pesquisa.turmaId }
     });
 
     return { message: 'Pesquisa e todos os dados vinculados foram removidos com sucesso.' };

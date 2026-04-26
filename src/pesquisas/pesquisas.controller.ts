@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  ParseIntPipe, // Adicionado para validar o turmaId
 } from '@nestjs/common';
 
 import { PesquisasService } from './pesquisas.service';
@@ -18,38 +19,45 @@ import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('pesquisas')
-@UseGuards(JwtAuthGuard, RolesGuard) // Proteção aplicada a todas as rotas da classe
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PesquisasController {
   constructor(private readonly service: PesquisasService) {}
 
-  // -------------------------------------------------------------------------
+  // --------------------------------
   // OPERAÇÕES DE CONSULTA (Leitura)
-  // -------------------------------------------------------------------------
+  // --------------------------------
 
-  // Gestores e Admins listam tudo
   @Get()
   @Roles(Role.GESTOR, Role.ADMIN)
   findAll() {
     return this.service.findAll();
   }
 
-  // Alunos, Gestores e Admins podem ver uma pesquisa específica
+  /**
+   * NOVA ROTA: Listar pesquisas por Turma (Escopo MySQL)
+   * Alunos precisam desta rota para ver as pesquisas vinculadas à sua turma.
+   */
+  @Get('turma/:turmaId')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
+    return this.service.findAllByTurma(turmaId);
+  }
+
   @Get(':id')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  // Apenas Gestores e Admins acessam relatórios de BI
   @Get(':id/relatorio')
   @Roles(Role.GESTOR, Role.ADMIN)
   getRelatorio(@Param('id') id: string) {
     return this.service.getRelatorio(id);
   }
 
-  // -------------------------------------------------------------------------
+  // ------------------------------------
   // OPERAÇÕES DE ESCRITA (Com Auditoria)
-  // -------------------------------------------------------------------------
+  // ------------------------------------
 
   @Post()
   @Roles(Role.GESTOR, Role.ADMIN)
@@ -64,7 +72,6 @@ export class PesquisasController {
     @Body() dto: Partial<CreatePesquisaDto>,
     @Req() req: any 
   ) {
-    // Passa req.user para o service registrar quem alterou
     return this.service.update(id, dto, req.user);
   }
 
@@ -74,7 +81,9 @@ export class PesquisasController {
     return this.service.publicar(id, req.user);
   }
 
+  // -------------------------------------------------------------------------
   // OPERAÇÕES DE EXCLUSÃO
+  // -------------------------------------------------------------------------
 
   @Delete(':id')
   @Roles(Role.GESTOR, Role.ADMIN)
