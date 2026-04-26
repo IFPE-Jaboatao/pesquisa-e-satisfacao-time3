@@ -2,7 +2,11 @@ name: CI Backend
 
 on:
   push:
-    branches: [ main, chore/ci-test] # Adicione aqui o nome da branch que você está usando agora
+    branches: 
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'main'
   pull_request:
     branches: [ main ]
 
