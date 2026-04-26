@@ -1,112 +1,35 @@
-# Documentação Técnica
-
-
-
-## Arquitetura
-
-```
-ADMIN (JWT)
-   ↓
-PESQUISAS (CRUD + PUBLICAÇÃO)
-   ↓
-QUESTÕES
-   ↓
-LINK PÚBLICO
-   ↓
-USUÁRIO ANÔNIMO
-   ↓
-COOKIE (anonId)
-   ↓
-FINGERPRINT (IP + USER-AGENT)
-   ↓
-RATE LIMIT
-   ↓
-RESPOSTAS
-   ↓
-RELATÓRIOS
-```
-
----
-
-## Estrutura de Pastas
-
-```
-src/
-├── app.module.ts
-├── main.ts
-├── config/
-├── common/
-├── auth/
-├── anonymous/
-├── pesquisas/
-├── questoes/
-├── respostas/
-└── relatorios/
-```
-
----
-
-## Autenticação (Admin)
-
-* JWT com `passport-jwt`
-* Header:
-
-```
-Authorization: Bearer TOKEN
-```
-
----
+# Especificações Técnicas
 
 ## Acesso Anônimo
+O sistema identifica respondentes sem login através de um anonId gerado automaticamente e armazenado via cookie. Para segurança, é feito um cruzamento de fingerprint usando o IP e o User-Agent do navegador, evitando que uma mesma pessoa responda várias vezes a mesma pesquisa.
 
-* Geração automática de `anonId` (cookie)
-* Fingerprint com IP + user-agent
-* Usado para impedir respostas duplicadas
-
----
-
-## Segurança Implementada
-
-* Autenticação com JWT
-* Acesso anônimo controlado
-* Rate limit por endpoint
-* Validação de período da pesquisa
-* Validação de ObjectId
-
+## Segurança
+- Autenticação de administradores via JWT.
+- Rate limit ativo em todos os endpoints para evitar sobrecarga.
+- Validação de período: o sistema não aceita respostas se a pesquisa estiver fora da data de validade ou pausada.
+- Validação de integridade de IDs (ObjectId do Mongo e tipos do MySQL).
 
 ## Banco de Dados
+O projeto utiliza uma estrutura de banco híbrida (Multidatabase):
 
-### MongoDB
+1. MongoDB: Utilizado para dados que mudam muito ou são volumosos, como as configurações das Pesquisas, as Questões e as Respostas coletadas.
+2. MySQL: Utilizado para dados relacionais fixos, especificamente a tabela de Usuários e o controle de Autenticação.
 
-* Pesquisas
-* Questões
-* Respostas
+### Modelagem de Entidades
+*Conforme solicitado no Trello:*
 
-### MySQL
+- **Usuário (MySQL):** Armazena as informações de quem acessa o sistema. Atributos: `id`, `nome`, `email`, `senha`, `tipo`.
+- **Pesquisa (MongoDB):** Define o cabeçalho e configurações da pesquisa. Atributos: `id`, `titulo`, `descricao`, `data_criacao`, `escopo`.
+- **Questão (MongoDB):** As perguntas que compõem uma pesquisa. Atributos: `id`, `texto`, `tipo`, `survey_id`.
+- **Resposta (MongoDB):** Registro da participação. Atributos: `id`, `user_id` (ou `anonId`), `survey_id`, `data_envio`.
+- **RespostaItem (MongoDB):** O valor específico dado para cada questão. Atributos: `id`, `response_id`, `question_id`, `valor`.
 
-* Usuários
-* Autenticação
+## Configurações do Projeto
+O backend foi construído em NestJS com as seguintes definições globais:
+- Middleware de cookie-parser para gestão dos IDs anônimos.
+- ValidationPipe para garantir que os dados enviados ao banco estejam no formato correto.
+- CORS habilitado para comunicação com o frontend.
+- TypeORM gerenciando as duas conexões (mongo e mysql) simultaneamente através do InjectRepository.
 
----
-
-## Configurações Globais
-
-### main.ts
-
-* cookie-parser
-* ValidationPipe
-* CORS
-
-### app.module.ts
-
-* ConfigModule global
-* TypeORM (Mongo + MySQL)
-* ThrottlerModule
-
-### Configurações adicionais
-
-* Multi conexão (mongo + mysql)
-* Uso de `@InjectRepository(Entity, 'mongo')`
-* Ordenação por registros mais recentes nas listagens administrativas
-
----
+## Observações Gerais
+As listagens na área administrativa são entregues por padrão em ordem decrescente (registros mais recentes primeiro).
