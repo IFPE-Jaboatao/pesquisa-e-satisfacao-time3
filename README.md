@@ -85,3 +85,4 @@ O gerenciamento das tarefas do projeto está sendo feito através do Trello. Aba
 
 Você pode acompanhar o andamento do projeto no Trello através do link:
 [Pesquisa e Satisfação - Trello](https://trello.com/invite/b/68338502fb3b40d7ad7494c0/ATTI5d771c19374b44a2fdc46b847485d7f96B155811/pesquisa-e-satisfacao)
+.
