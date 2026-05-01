@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -14,13 +14,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false, // Importante para segurança
       secretOrKey: secret, 
     });
   }
 
-  validate(payload: any) {
+  // O que este método retorna vira o "req.user"
+  async validate(payload: any) {
+    // Verificação de segurança: se o payload não tiver os dados básicos, barra o acesso
+    if (!payload.sub || !payload.username) {
+      throw new UnauthorizedException('Token inválido ou malformado.');
+    }
+
     return {
-      userId: payload.sub,
+      id: payload.sub,        // Padronizamos como 'id' para facilitar no Controller
       username: payload.username,
       role: payload.role
     };
