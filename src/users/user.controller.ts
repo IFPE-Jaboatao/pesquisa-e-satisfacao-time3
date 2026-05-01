@@ -24,6 +24,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 
+  // Criar usuário (Apenas Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.ADMIN)
@@ -31,7 +32,7 @@ export class UsersController {
     return this.service.create(dto);
   }
 
-  // 🔒 Listar todos os usuários
+  // Listar todos os usuários (Apenas Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   @Roles(Role.ADMIN)
@@ -39,23 +40,29 @@ export class UsersController {
     return this.service.findAll();
   }
 
-  // ver as próprias informações
+  // Ver as próprias informações
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  findOne(@Req() req) {
-    return this.service.findOne(req.user.userId);
+  findMe(@Req() req) {
+    return this.service.findOne(req.user.id);
   }
 
-  // mudar senha, para qualquer usuário
+  // Buscar usuário por ID
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get(':userId')
+  @Roles(Role.ADMIN)
+  findOne(@Param('userId') userId: string) {
+    return this.service.findOne(userId);
+  }
+
+  // Atualizar própria senha
   @UseGuards(JwtAuthGuard)
   @Patch('me/password')
   updatePassword(@Body() dto: UpdatePasswordDto, @Req() req) {
-  const userId = req.user.userId;
+    return this.service.updatePassword(req.user.id, dto.password);
+  }
 
-  return this.service.updatePassword(userId, dto.password);
-}
-
-  // update de usuários apenas para admin
+  // Atualizar usuário (Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':userId')
   @Roles(Role.ADMIN)
@@ -64,27 +71,27 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Req() req,
   ) {
-    const isOwner = req.user.userId == userId;
+    const isOwner = String(req.user.id) === String(userId);
     const isChangingRole = dto.role && dto.role !== Role.ADMIN;
 
     if (isOwner && isChangingRole) {
       throw new ForbiddenException(
-        'Você não pode alterar o seu role de Admin!',
+        'Você não pode alterar o seu próprio nível de acesso (Role)!',
       );
     }
 
     return this.service.update(userId, dto);
   }
 
-  // 🔒 Deletar
+  // Deletar usuário (Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':userId')
   @Roles(Role.ADMIN)
   delete(@Param('userId') userId: string, @Req() req) {
-    const isOwner = req.user.userId == userId;
+    const isOwner = String(req.user.id) === String(userId);
 
     if (isOwner) {
-      throw new ForbiddenException('Um admin não pode se auto deletar!');
+      throw new ForbiddenException('Um administrador não pode se auto deletar!');
     }
 
     return this.service.delete(userId);

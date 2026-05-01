@@ -1,22 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { 
+  Injectable, 
+  NotFoundException, 
+  ConflictException, 
+  OnModuleInit 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from './user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '../config/config.service';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User, 'mysql')
     private repo: Repository<User>,
 
-    private configService: ConfigService,
+    private configService: AppConfigService,
   ) {}
 
-  // função para seed Admin
+  // -------------------------------------------------------------------------
+  // INICIALIZAÇÃO E SEED
+  // -------------------------------------------------------------------------
 
   async onModuleInit() {
     await this.seedAdmin();
@@ -29,15 +36,13 @@ export class UsersService {
 
     if (adminExists) return;
 
-    const passwordEnv = this.configService.get<string>('SEED_ADMIN_PASSWORD');
+    const passwordEnv = this.configService.seedAdminPassword;
+    const password = (passwordEnv && passwordEnv.trim().length > 0)
+      ? passwordEnv
+      : 'admin123';
 
-    let password: string;
-
-    if (!passwordEnv || passwordEnv.trim().length === 0) {
-      console.warn('⚠️ SEED_ADMIN_PASSWORD inválido, usando default');
-      password = 'admin123';
-    } else {
-      password = passwordEnv;
+    if (!passwordEnv) {
+      console.warn('⚠️ SEED_ADMIN_PASSWORD não configurado, usando padrão "admin123"');
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -49,17 +54,45 @@ export class UsersService {
     });
 
     await this.repo.save(admin);
-
-    console.log('✔ Admin seed criado');
+    console.log('✔ Admin seed criado com sucesso');
   }
 
-  // funções para endpoints
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE BUSCA
+  // -------------------------------------------------------------------------
 
   findByUsername(username: string) {
     return this.repo.findOne({ where: { username } });
   }
 
+  async findAll() {
+    return this.repo.find({
+      select: ['id', 'username', 'role'],
+    });
+  }
+
+  async findOne(userId: string | number) {
+    const id = Number(userId);
+
+    const user = await this.repo.findOne({
+      where: { id },
+      select: ['id', 'username', 'role'],
+    });
+
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+    return user;
+  }
+
+  // -------------------------------------------------------------------------
+  // MÉTODOS DE ESCRITA
+  // -------------------------------------------------------------------------
+
   async create(dto: CreateUserDto) {
+    const userExists = await this.findByUsername(dto.username);
+    if (userExists) {
+      throw new ConflictException('Este nome de usuário já está em uso');
+    }
+
     const hashed = await bcrypt.hash(dto.password, 10);
 
     const user = this.repo.create({
@@ -68,26 +101,20 @@ export class UsersService {
       password: hashed,
     });
 
-    return this.repo.save(user);
+    const savedUser = await this.repo.save(user);
+
+    return {
+      id: savedUser.id,
+      username: savedUser.username,
+      role: savedUser.role,
+    };
   }
 
-  async findAll() {
-    return this.repo.find();
-  }
+  async update(userId: string, dto: Partial<{ username: string; password: string }>) {
+    const id = Number(userId);
 
-  async findOne(userId: string) {
-    const user = await this.repo.findOne({ where: { id: Number(userId) } });
-
+    const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
-
-    return user;
-  }
-
-  async update(
-    userId: string,
-    dto: Partial<{ username: string; password: string }>,
-  ) {
-    const user = await this.findOne(userId);
 
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
@@ -95,27 +122,37 @@ export class UsersService {
 
     Object.assign(user, dto);
 
-    return this.repo.save(user);
+    const updated = await this.repo.save(user);
+
+    return {
+      id: updated.id,
+      username: updated.username,
+      role: updated.role,
+    };
   }
 
-  async updatePassword(
-    userId: string,
-    password: string,
-  ) {
-    const user = await this.findOne(userId);
+  async updatePassword(userId: string, passwordRaw: string) {
+    const id = Number(userId);
 
-    const hash = await bcrypt.hash(password, 10)
+    const user = await this.repo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    user.password = hash;
+    const hashed = await bcrypt.hash(passwordRaw, 10);
+    user.password = hashed;
 
-    Object.assign(user);
+    await this.repo.save(user);
 
-    return this.repo.save(user);
+    return { message: 'Senha atualizada com sucesso' };
   }
 
   async delete(userId: string) {
-    const user = await this.findOne(userId);
+    const id = Number(userId);
 
-    return this.repo.remove(user);
+    const user = await this.repo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    await this.repo.remove(user);
+
+    return { message: `Usuário "${user.username}" removido com sucesso` };
   }
 }
