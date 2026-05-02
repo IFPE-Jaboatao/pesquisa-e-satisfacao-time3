@@ -1,0 +1,78 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateCampusDto } from './dto/create-campus.dto';
+import { UpdateCampusDto } from './dto/update-campus.dto';
+import { In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Campus } from './entities/campus.entity';
+
+@Injectable()
+export class CampusService {
+  constructor(
+    @InjectRepository(Campus, 'mysql')
+    private campusRepo: Repository<Campus>,
+  ) {}
+
+  // criar campus vazio
+  async create(dto: CreateCampusDto) {
+
+    const campus = this.campusRepo.create({
+      nome: dto.nome
+    });
+
+    return this.campusRepo.save(campus);
+  }
+
+  // listar todos os campi
+  async findAll() {
+    return this.campusRepo.find();
+  }
+
+  // buscar um campus
+  async findOne(id: number) {
+    const campus = this.campusRepo.findOne({ where: { id } });
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!")
+
+    return campus;
+  }
+
+  // buscar um campus e seus filhos
+  async findOneFull(id: number) {
+    const campus = this.campusRepo.findOne({ where: { id },
+    relations: {
+      setores: {
+        servicos: true
+      }
+    } });
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!")
+
+    return campus;
+  }
+
+  // atualizar um campus
+  async update(id: number, updateCampusDto: UpdateCampusDto) {
+    await this.campusRepo.update(id, updateCampusDto)
+
+    const updated = await this.campusRepo.findOne({where:{id}})
+
+    if (!updated) {
+      throw new NotFoundException("Campus não encontrado!")
+    }
+
+    return updated;
+  }
+
+  // remover um campus
+  async remove(id: number) {
+    const campus = await this.campusRepo.findOne({where: {id}});
+
+    if (!campus) throw new NotFoundException("Campus não encontrado!");
+
+    const result = await this.campusRepo.delete(id);
+
+    if (result.affected === 0) throw new NotFoundException("Campus não encontrado!");
+
+    return {"success": true, "message": "Campus deletado com sucesso!"};
+  }
+}
