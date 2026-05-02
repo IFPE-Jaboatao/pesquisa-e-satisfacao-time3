@@ -18,18 +18,23 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 export class QuestoesController {
   constructor(private readonly service: QuestoesService) {}
 
-  // Gestor cria questão
+  /**
+   * CRIAÇÃO DE QUESTÕES
+   * Liberado para ADMIN e GESTOR para evitar o erro 403 que você recebeu.
+   */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
-  @Roles(Role.GESTOR)
+  @Roles(Role.ADMIN, Role.GESTOR) 
   create(@Body() dto: CreateQuestaoDto) {
     return this.service.create(dto);
   }
 
-  // Aluno e gestor buscam questões da pesquisa
+  /**
+   * BUSCA DE QUESTÕES POR PESQUISA
+   */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get(':pesquisaId')
-  @Roles(Role.GESTOR, Role.ALUNO)
+  @Get('pesquisa/:pesquisaId')
+  @Roles(Role.ADMIN, Role.GESTOR, Role.ALUNO)
   findByPesquisa(@Param('pesquisaId') pesquisaId: string) {
     return this.service.findByPesquisa(pesquisaId);
   }
