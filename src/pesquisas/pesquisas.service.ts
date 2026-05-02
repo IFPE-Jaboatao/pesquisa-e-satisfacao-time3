@@ -1,13 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { 
+  Injectable, 
+  BadRequestException, 
+  NotFoundException, 
+  ForbiddenException 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-
-// Importação das entidades para os repositórios injetados
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
+import { AuditoriaService } from '../auditoria/auditoria.service'; // adcionar import de auditoria
 
 @Injectable()
 export class PesquisasService {
@@ -20,108 +24,160 @@ export class PesquisasService {
 
     @InjectRepository(Resposta, 'mongo')
     private readonly respostaRepo: MongoRepository<Resposta>,
+
+    private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  // Criar nova pesquisa (Admin)
-  async create(dto: CreatePesquisaDto) {
-    const pesquisa = this.repo.create({
-      ...dto,
-      publicada: false,
-    });
-    return this.repo.save(pesquisa);
-  }
-
-  // Listar todas as pesquisas (Admin)
   async findAll() {
-    return await this.repo.find({
-      order: { _id: 'DESC' },
+    return await this.repo.find({ order: { _id: 'DESC' } });
+  }
+
+  /**
+   * CORREÇÃO: Adicionado método para resolver erro no Controller
+   */
+  async findAllByTurma(turmaId: number) {
+    return await this.repo.find({ 
+      where: { turmaId: turmaId },
+      order: { _id: 'DESC' } 
     });
   }
 
-  // Buscar uma pesquisa específica (Público/Admin)
-  async findOne(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
+ async findOne(id: string) {
+    if (!id || !ObjectId.isValid(id)) {
+      throw new BadRequestException('ID com formato inválido ou ausente');
     }
-
-    const pesquisa = await this.repo.findOneBy({
-      _id: new ObjectId(id),
+    
+    const pesquisa = await this.repo.findOne({ 
+      where: { _id: new ObjectId(id) } as any 
     });
 
     if (!pesquisa) {
-      throw new NotFoundException('Pesquisa não encontrada');
+      throw new NotFoundException(`Pesquisa com ID ${id} não encontrada`);
     }
     return pesquisa;
   }
 
-  // 🟢 NOVO: Atualizar pesquisa (Admin) - Com Trava de Segurança
-  async update(id: string, dto: Partial<CreatePesquisaDto>) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
+  /**
+   * Retorna os dados da pesquisa e suas respostas vinculadas.
+   * Modificado para ser compatível com RelatoriosService e RelatoriosController.
+   */
+  async getRelatorio(id: string) {
+    const pesquisa = await this.findOne(id);
+    
+    const questoes = await this.questaoRepo.find({ where: { pesquisaId: id } });
+    const todasRespostas = await this.respostaRepo.find({ where: { pesquisaId: id } });
+
+    // Mapa para substituir IDs de questões por enunciados
+    const mapaQuestoes = questoes.reduce((acc, q) => {
+      const qId = q.id ? q.id.toString() : (q as any)._id?.toString();
+      acc[qId] = q.pergunta || (q as any).enunciado || "Questão sem título";
+      return acc;
+    }, {});
+
+    const respostasFormatadas = todasRespostas.map(participacao => ({
+      respostas: participacao.respostas?.map(item => ({
+        questaoId: mapaQuestoes[item.questaoId] || item.questaoId,
+        valor: item.valor
+      })) || []
+    }));
+
+    return {
+      id: pesquisa.id,
+      titulo: pesquisa.titulo,
+      estatisticas: {
+        totalQuestoes: questoes.length,
+        totalParticipantes: todasRespostas.length,
+      },
+      respostas: respostasFormatadas 
+    };
+  }
+
+  async create(dto: CreatePesquisaDto) {
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
+      publicada: false,
+    });
+    return await this.repo.save(pesquisa);
+  }
+
+  async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
+    const pesquisaAtual = await this.findOne(id);
+    const isPublicada = pesquisaAtual?.publicada;
+    const dataFinalOriginal = pesquisaAtual?.dataFinal;
+
+    if (isPublicada === true) {
+      const camposEditados = Object.keys(dto);
+      const apenasDataFinal = camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
+      
+      if (!apenasDataFinal && camposEditados.length > 0) {
+        throw new ForbiddenException('Apenas o prazo final de pesquisas publicadas pode ser editado.');
+      }
     }
 
-    const pesquisaAtual = await this.repo.findOneBy({ _id: new ObjectId(id) });
-
-    if (!pesquisaAtual) {
-      throw new NotFoundException('Pesquisa não encontrada');
+    if (dto.dataFinal && dataFinalOriginal) {
+      if (new Date(dto.dataFinal).getTime() !== new Date(dataFinalOriginal).getTime()) {
+        await this.auditoriaService.registrar({
+          usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+          usuarioNome: usuario?.username || 'Admin',
+          entidade: 'Pesquisa',
+          entidadeId: id,
+          acao: 'ALTERACAO_PRAZO',
+          dadosAnteriores: { dataFinal: dataFinalOriginal },
+          dadosNovos: { dataFinal: dto.dataFinal }
+        });
+      }
     }
 
-    // Dica de Ouro: Bloqueia edição se já estiver publicada
-    if (pesquisaAtual.publicada) {
-      throw new BadRequestException(
-        'Esta pesquisa já foi publicada e não pode mais ser editada para garantir a integridade dos dados coletados.',
-      );
-    }
+    const updateData: any = { ...dto };
+    if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
+    if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
+
+    await this.repo.updateOne(
+      { _id: new ObjectId(id) }, 
+      { $set: updateData }
+    );
+    
+    return { message: 'Atualização concluída com sucesso' };
+  }
+
+  async publicar(id: string, usuario: any) {
+    await this.findOne(id);
 
     await this.repo.updateOne(
       { _id: new ObjectId(id) },
-      { $set: dto },
+      { $set: { publicada: true } }
     );
 
-    return { 
-      message: 'Pesquisa atualizada com sucesso',
-      camposAlterados: Object.keys(dto)
-    };
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'PUBLICAR_PESQUISA',
+      dadosNovos: { publicada: true }
+    });
+
+    return { message: 'Pesquisa publicada' };
   }
 
-  // Publicar uma pesquisa (Admin)
-  async publicar(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID inválido');
-    }
-
-    const result = await this.repo.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { publicada: true } },
-    );
-
-    if (result.matchedCount === 0) {
-      throw new NotFoundException('Pesquisa não encontrada');
-    }
-
-    return { message: 'Pesquisa publicada com sucesso' };
-  }
-
-  // Deletar pesquisa com cascata (Admin)
-  async remove(id: string) {
-    if (!ObjectId.isValid(id)) {
-      throw new BadRequestException('ID da pesquisa inválido');
-    }
+  async remove(id: string, usuario: any) {
+    const pesquisa = await this.findOne(id);
 
     await this.respostaRepo.deleteMany({ pesquisaId: id });
     await this.questaoRepo.deleteMany({ pesquisaId: id });
+    await this.repo.deleteOne({ _id: new ObjectId(id) });
 
-    const result = await this.repo.deleteOne({
-      _id: new ObjectId(id),
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'REMOVER_PESQUISA',
+      dadosAnteriores: { titulo: pesquisa.titulo }
     });
 
-    if (result.deletedCount === 0) {
-      throw new NotFoundException('Pesquisa não encontrada para remover');
-    }
-
-    return {
-      message: 'Pesquisa e todos os dados vinculados removidos com sucesso.',
-      idDeletado: id,
-    };
+    return { message: 'Pesquisa removida' };
   }
 }

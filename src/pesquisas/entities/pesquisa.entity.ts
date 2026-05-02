@@ -1,4 +1,4 @@
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
 
 @Entity('pesquisas')
@@ -16,8 +16,15 @@ export class Pesquisa {
   dataFinal!: Date;
 
   @Column()
-  tipo!: string;
+  tipo!: string; // Ex: 'INSTITUCIONAL', 'ACADEMICO'
 
-  @Column()
+  @Column({ default: false })
   publicada!: boolean;
+
+  
+  @Column()
+  turmaId!: number; 
+
+  @CreateDateColumn()
+  createdAt!: Date;
 }

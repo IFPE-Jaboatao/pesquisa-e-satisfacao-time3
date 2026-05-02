@@ -4,23 +4,29 @@ import { PesquisasService } from './pesquisas.service';
 import { PesquisasController } from './pesquisas.controller';
 import { Pesquisa } from './entities/pesquisa.entity';
 
-// Importe as entidades que agora fazem parte da lógica de exclusão
+// Entidades vinculadas para operações em cascata e relatórios
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
+
+// Importação necessária para o AuditoriaService injetado no PesquisasService
+import { AuditoriaModule } from '../auditoria/auditoria.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature(
       [
         Pesquisa, 
-        Questao,  //  Adicionado para permitir o deleteMany no Service
-        Resposta  //  Adicionado para permitir o deleteMany no Service
+        Questao,  
+        Resposta  
       ],
       'mongo',
     ),
+    // Adicionado para suportar a lógica de logs de alteração e exclusão
+    AuditoriaModule, 
   ],
   providers: [PesquisasService],
   controllers: [PesquisasController],
-  exports: [PesquisasService], // Exportar caso precise usar em outros módulos no futuro
+  // Exportamos o service para que RelatoriosModule possa utilizá-lo se necessário
+  exports: [PesquisasService], 
 })
 export class PesquisasModule {}
