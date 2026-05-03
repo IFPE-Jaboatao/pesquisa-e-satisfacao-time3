@@ -1,13 +1,21 @@
 import { Turma } from "src/academic/turma/entities/turma.entity";
 import { User } from "src/users/user.entity";
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 
 @Entity()
-@Unique(['aluno', 'turma'])
 export class Matricula {
 
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date;
+
+    @DeleteDateColumn({ type: 'timestamp', nullable: true })
+    deletedAt?: Date;
 
     @ManyToOne(() => User, {
         nullable: false,
