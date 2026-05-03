@@ -8,10 +8,11 @@ import {
   Delete,
   UseGuards,
   Req,
+  Res,
   ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
-
+import { Response } from 'express';
 import { PesquisasService } from './pesquisas.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
@@ -46,11 +47,22 @@ export class PesquisasController {
     return this.service.findOne(id);
   }
 
+  /**
+   * Endpoint de Relatório corrigido com log de auditoria para debugar o erro "Ref:"
+   */
   @Get(':id/relatorio')
   @Roles(Role.GESTOR, Role.ADMIN)
-  getRelatorio(@Param('id') id: string) {
+  async getRelatorio(@Param('id') id: string) {
     this.validarObjectId(id);
-    return this.service.getRelatorio(id);
+
+    // Busca os dados que serão enviados ao RelatoriosService
+    const dadosRelatorio = await this.service.getRelatorio(id);
+
+    // LOG DE DEBUG: Verifique no terminal se 'questoes' está preenchido e com o campo 'pergunta'
+    console.log('--- DEBUG RELATÓRIO ---');
+    console.log('Pesquisa encontrada:', JSON.stringify(dadosRelatorio, null, 2));
+    
+    return dadosRelatorio;
   }
 
   // --- ESCRITA ---
@@ -69,7 +81,6 @@ export class PesquisasController {
     @Req() req: any 
   ) {
     this.validarObjectId(id);
-    // Garante que req.user existe para evitar erro de undefined no Service
     const usuario = req.user || { userId: 'sistema' };
     return await this.service.update(id, dto, usuario);
   }
@@ -88,9 +99,10 @@ export class PesquisasController {
     return await this.service.remove(id, req.user);
   }
 
-  // Método auxiliar para evitar que IDs inválidos cheguem ao Service
+  // --- AUXILIARES ---
+
   private validarObjectId(id: string) {
-    if (!ObjectId.isValid(id)) {
+    if (!id || !ObjectId.isValid(id)) {
       throw new BadRequestException('Formato de ID MongoDB inválido.');
     }
   }

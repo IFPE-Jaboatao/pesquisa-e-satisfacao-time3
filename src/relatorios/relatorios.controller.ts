@@ -1,11 +1,19 @@
-import { Controller, Get, Param, UseGuards, Res, HttpStatus, NotFoundException } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Param, 
+  UseGuards, 
+  Res, 
+  HttpStatus, 
+  NotFoundException 
+} from '@nestjs/common';
 import type { Response } from 'express'; 
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { PesquisasService } from '../pesquisas/pesquisas.service';
 import { RelatoriosService } from './relatorios.service';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user-role.enum';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../users/user-role.enum';
 
 @Controller('relatorios')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,52 +23,68 @@ export class RelatoriosController {
     private readonly relatoriosService: RelatoriosService,
   ) {}
 
+  /**
+   * Retorna os dados em JSON para gráficos ou conferência rápida
+   */
   @Get(':pesquisaId/resumo')
   @Roles(Role.ADMIN, Role.GESTOR)
   async resumo(@Param('pesquisaId') id: string) {
     const dados = await this.pesquisasService.getRelatorio(id);
     if (!dados) throw new NotFoundException('Pesquisa não encontrada');
+    
     return dados;
   }
 
+  /**
+   * Exportação em CSV
+   */
   @Get(':pesquisaId/csv')
   @Roles(Role.ADMIN, Role.GESTOR)
   async exportarCSV(@Param('pesquisaId') id: string, @Res() res: Response) {
     try {
-      const dados = await this.pesquisasService.getRelatorio(id);
-      const respostasBrutas = (dados as any)?.respostas || [];
-      const csv = await this.relatoriosService.exportarResumoCSV(respostasBrutas);
+      const { pesquisa, respostas } = await this.pesquisasService.getRelatorio(id);
+      const csv = await this.relatoriosService.exportarResumoCSV(pesquisa, respostas);
 
-      res.status(HttpStatus.OK);
-      res.header('Content-Type', 'text/csv; charset=utf-8');
-      res.attachment(`relatorio-pesquisa-${id}.csv`);
-      return res.send(csv);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename=relatorio-${id}.csv`);
+      
+      return res.status(HttpStatus.OK).send(csv);
     } catch (error) {
-      // Correção do erro da imagem:
-      const msg = error instanceof Error ? error.message : 'Erro interno';
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Erro ao gerar CSV', error: msg });
+      console.error('[ERRO FATAL CSV]:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+        statusCode: 500,
+        message: 'Erro ao gerar exportação CSV', 
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
     }
   }
 
+  /**
+   * Exportação em PDF
+   */
   @Get(':pesquisaId/pdf')
   @Roles(Role.ADMIN, Role.GESTOR)
   async exportarPDF(@Param('pesquisaId') id: string, @Res() res: Response) {
     try {
-      const dados = await this.pesquisasService.getRelatorio(id);
-      const respostasBrutas = (dados as any)?.respostas || [];
-      const buffer = await this.relatoriosService.exportarResumoPDF(respostasBrutas);
+      const { pesquisa, respostas } = await this.pesquisasService.getRelatorio(id);
+
+      const buffer = await this.relatoriosService.exportarResumoPDF(pesquisa, respostas);
 
       res.set({
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=relatorio-pesquisa-${id}.pdf`,
+        'Content-Disposition': `attachment; filename=relatorio-${id}.pdf`,
         'Content-Length': buffer.length,
+        'Cache-Control': 'no-cache',
       });
 
-      return res.end(buffer);
+      return res.status(HttpStatus.OK).end(buffer);
     } catch (error) {
-      // Correção do erro da imagem:
-      const msg = error instanceof Error ? error.message : 'Erro interno';
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Erro ao gerar PDF', error: msg });
+      console.error('[ERRO FATAL PDF]:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+        statusCode: 500,
+        message: 'Erro ao gerar exportação PDF', 
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
     }
   }
 }
