@@ -2,80 +2,117 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { EventEmitterModule } from '@nestjs/event-emitter'; // Adicionado para suportar @OnEvent
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
-// Módulos de Domínio
+// Módulos de Infraestrutura e Segurança
 import { UsersModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
+import { AnonymousModule } from './anonymous/anonymous.module'; 
+import { AuditoriaModule } from './auditoria/auditoria.module';
+import { NotificacoesModule } from './notificacoes/notificacoes.module';
+import { RelatoriosModule } from './relatorios/relatorios.module';
+
+// Módulos de Negócio (Pesquisas)
 import { PesquisasModule } from './pesquisas/pesquisas.module';
 import { QuestoesModule } from './questoes/questoes.module';
 import { RespostasModule } from './respostas/respostas.module';
-import { AnonymousModule } from './anonymous/anonymous.module'; 
-import { AuditoriaModule } from './auditoria/auditoria.module';
-import { NotificacoesModule } from './notificacoes/notificacoes.module'; // Adicionado o novo módulo
+
+// Módulos Institucionais e Acadêmicos
 import { InstitutionalModule } from './institutional/institutional.module';
 import { AcademicModule } from './academic/academic.module';
-import { RelatoriosModule } from './relatorios/relatorios.module';
 
-import { AppService } from './app.service';
+// Entidades MySQL
+import { User } from './users/user.entity';
+import { Campus } from './institutional/campus/entities/campus.entity';
+import { Servico } from './institutional/servico/entities/servico.entity';
+import { Setor } from './institutional/setor/entities/setor.entity';
+import { Curso } from './academic/curso/entities/curso.entity';
+import { Disciplina } from './academic/disciplina/entities/disciplina.entity';
+import { Matricula } from './academic/matricula/entities/matricula.entity';
+import { Periodo } from './academic/periodo/entities/periodo.entity';
+import { Turma } from './academic/turma/entities/turma.entity';
+
+// Entidades MongoDB
+import { Pesquisa } from './pesquisas/entities/pesquisa.entity';
+import { Questao } from './questoes/entities/questao.entity';
+import { Resposta } from './respostas/entities/resposta.entity';
+import { Auditoria } from './auditoria/entities/auditoria.entity';
+
+// Controllers e Services Base (Necessários para a rota raiz '/')
 import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
-    // 1. CONFIGURAÇÃO GLOBAL (Carrega .env de teste ou padrão)
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.env.test', '.env'], 
-    }),
-
-    // 2. MOTOR DE EVENTOS (Necessário para a comunicação entre Auditoria e Notificações)
+    // 1. SUPORTE A EVENTOS (Notificações e Auditoria)
     EventEmitterModule.forRoot(),
 
-    // 3. CONEXÃO MONGODB (Pesquisas, Questões, Respostas e Auditoria)
+    // 2. CONFIGURAÇÃO GLOBAL
+    // Priorizamos o .env da pasta test para garantir que os testes e2e não retornem 404
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['test/.env', '.env.test', '.env'], 
+    }),
+
+    // 3. CONEXÃO MONGODB
     TypeOrmModule.forRootAsync({
       name: 'mongo',
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'mongodb',
-        url: config.get<string>('MONGO_URL'),
-        autoLoadEntities: true, // Automatiza a detecção de entidades Mongo
-        synchronize: true,
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        connectTimeoutMS: 10000, // Estabilidade para conexões remotas
-      }),
+      useFactory: (config: ConfigService) => {
+        const url = config.get<string>('MONGO_URL');
+        if (!url) throw new Error('MONGO_URL não definido no .env');
+
+        return {
+          type: 'mongodb',
+          url,
+          entities: [Pesquisa, Questao, Resposta, Auditoria],
+          synchronize: true, 
+          connectTimeoutMS: 10000,
+        };
+      },
     }),
 
-    // 4. CONEXÃO MYSQL (Usuários, Auth, Acadêmico e Institucional)
+    // 4. CONEXÃO MYSQL
     TypeOrmModule.forRootAsync({
       name: 'mysql',
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'mysql',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 3306),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASS'),
-        database: config.get<string>('DB_NAME'),
-        autoLoadEntities: true, // Automatiza a detecção de entidades MySQL
-        synchronize: true,
-        // Proteções críticas para estabilidade no CI/CD
-        connectTimeout: 10000, 
-        retryAttempts: 2,      
-        retryDelay: 3000,
-        keepConnectionAlive: true,
-      }),
+      useFactory: (config: ConfigService) => {
+        const host = config.get<string>('DB_HOST');
+        const user = config.get<string>('DB_USER');
+        const db = config.get<string>('DB_NAME');
+
+        if (!host || !user || !db) {
+          throw new Error('Variáveis do MySQL não definidas no .env');
+        }
+
+        return {
+          type: 'mysql',
+          host,
+          port: config.get<number>('DB_PORT', 3306),
+          username: user,
+          password: config.get<string>('DB_PASS'),
+          database: db,
+          entities: [
+            User, Campus, Setor, Servico, 
+            Curso, Disciplina, Matricula, Periodo, Turma
+          ],
+          synchronize: true,
+          connectTimeout: 10000, 
+          retryAttempts: 2,      
+          keepConnectionAlive: true,
+        };
+      },
     }),
 
-    // 5. SEGURANÇA: RATE LIMIT (Proteção contra força bruta/DoS)
+    // 5. RATE LIMIT
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 15,
     }]),
 
-    // 6. MÓDULOS DO SISTEMA
+    // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
-    NotificacoesModule, // Registrado para ativar o Listener de eventos
+    NotificacoesModule,
     UsersModule,
     AuthModule,
     PesquisasModule,
@@ -86,7 +123,7 @@ import { AppController } from './app.controller';
     InstitutionalModule,
     AcademicModule,
   ],
-  providers: [AppService],
-  controllers: [AppController]
+  controllers: [AppController], // Adicionado para resolver o 404 em GET /
+  providers: [AppService],      // Adicionado para suportar o AppController
 })
 export class AppModule {}
