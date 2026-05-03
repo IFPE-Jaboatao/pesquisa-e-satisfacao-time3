@@ -38,18 +38,23 @@ import { Questao } from './questoes/entities/questao.entity';
 import { Resposta } from './respostas/entities/resposta.entity';
 import { Auditoria } from './auditoria/entities/auditoria.entity';
 
+// Controllers e Services Base (Necessários para a rota raiz '/')
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
 @Module({
   imports: [
-    // 1. SUPORTE A EVENTOS (Notificações assíncronas)
+    // 1. SUPORTE A EVENTOS (Notificações e Auditoria)
     EventEmitterModule.forRoot(),
 
-    // 2. CONFIGURAÇÃO GLOBAL (.env)
+    // 2. CONFIGURAÇÃO GLOBAL
+    // Priorizamos o .env da pasta test para garantir que os testes e2e não retornem 404
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.test', '.env'], // Suporte a múltiplos ambientes
+      envFilePath: ['test/.env', '.env.test', '.env'], 
     }),
 
-    // 3. CONEXÃO MONGODB (Pesquisas e Auditoria)
+    // 3. CONEXÃO MONGODB
     TypeOrmModule.forRootAsync({
       name: 'mongo',
       inject: [ConfigService],
@@ -62,13 +67,12 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
           url,
           entities: [Pesquisa, Questao, Resposta, Auditoria],
           synchronize: true, 
-          useUnifiedTopology: true,
-          connectTimeoutMS: 10000, // Estabilidade para conexões remotas
+          connectTimeoutMS: 10000,
         };
       },
     }),
 
-    // 4. CONEXÃO MYSQL (Usuários, Acadêmico e Institucional)
+    // 4. CONEXÃO MYSQL
     TypeOrmModule.forRootAsync({
       name: 'mysql',
       inject: [ConfigService],
@@ -93,7 +97,6 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
             Curso, Disciplina, Matricula, Periodo, Turma
           ],
           synchronize: true,
-          // Proteções para estabilidade (Baseado no GitHub)
           connectTimeout: 10000, 
           retryAttempts: 2,      
           keepConnectionAlive: true,
@@ -107,7 +110,9 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
       limit: 15,
     }]),
 
-    // 6. REGISTRO DE MÓDULOS
+    // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
+    AuditoriaModule,
+    NotificacoesModule,
     UsersModule,
     AuthModule,
     PesquisasModule,
@@ -115,10 +120,10 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
     RespostasModule,
     AnonymousModule,
     RelatoriosModule,
-    AuditoriaModule,
-    NotificacoesModule,
     InstitutionalModule,
     AcademicModule,
   ],
+  controllers: [AppController], // Adicionado para resolver o 404 em GET /
+  providers: [AppService],      // Adicionado para suportar o AppController
 })
 export class AppModule {}
