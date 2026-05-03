@@ -34,16 +34,18 @@ export class TurmaService {
   ) {}
 
   async create(createTurmaDto: CreateTurmaDto) {
-    const { nome, disciplinaId, periodoId, docenteId } = createTurmaDto;
+    const { nome, turno, disciplinaId, periodoId, docenteId } = createTurmaDto;
 
     // validação de duplicidade
     const exists = await this.turmaRepo.findOne({
       where: {
         nome,
+        turno,
         disciplina: { id: disciplinaId },
         periodo: { id: periodoId },
         docente: { id: docenteId },
       },
+      withDeleted: false
     });
 
     if (exists) {
@@ -52,9 +54,9 @@ export class TurmaService {
 
     // busca paralela
     const [disciplina, periodo, docente] = await Promise.all([
-      this.disciplinaRepo.findOne({ where: { id: disciplinaId } }),
-      this.periodoRepo.findOne({ where: { id: periodoId } }),
-      this.usersRepo.findOne({ where: { id: docenteId } }),
+      this.disciplinaRepo.findOne({ where: { id: disciplinaId }, withDeleted: false }),
+      this.periodoRepo.findOne({ where: { id: periodoId }, withDeleted: false }),
+      this.usersRepo.findOne({ where: { id: docenteId }, withDeleted: false }),
     ]);
 
     // validações
@@ -79,6 +81,7 @@ export class TurmaService {
     // criando entidade
     const turma = this.turmaRepo.create({
       nome,
+      turno,
       disciplina,
       periodo,
       docente,
@@ -89,12 +92,15 @@ export class TurmaService {
     return {
       id: savedTurma.id,
       nome: savedTurma.nome,
+      turno: savedTurma.turno,
       disciplina: savedTurma.disciplina,
       periodo: savedTurma.periodo,
       docente: {
         id: savedTurma.docente.id,
         username: savedTurma.docente.username,
       },
+      createdAt: savedTurma.createdAt,
+      updatedAt: savedTurma.updatedAt
     };
   }
 
@@ -102,11 +108,13 @@ export class TurmaService {
     const turmas = await this.turmaRepo.find({
       where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
       relations: { disciplina: true, periodo: true, docente: true },
+      withDeleted: false
     });
 
     return turmas.map((turma) => ({
       id: turma?.id,
       nome: turma?.nome,
+      turno: turma?.turno,
       disciplina: turma?.disciplina,
       periodo: turma?.periodo,
       docente: { id: turma.docente?.id, username: turma.docente?.username },
@@ -114,7 +122,7 @@ export class TurmaService {
   }
 
   async findAllProfessor(docenteId: number) {
-    const docente = await this.usersRepo.findOne({ where: { id: docenteId } });
+    const docente = await this.usersRepo.findOne({ where: { id: docenteId }, withDeleted: false });
 
     if (!docente) throw new NotFoundException('Docente não encontrado!');
 
@@ -130,6 +138,7 @@ export class TurmaService {
         periodo: true,
         disciplina: true,
       },
+      withDeleted: false
     });
 
     // informações do docente não se repetem
@@ -139,6 +148,7 @@ export class TurmaService {
       turmas: turmas?.map((turma) => ({
         id: turma?.id,
         nome: turma?.nome,
+        turno: turma?.turno,
         disciplina: {
           id: turma?.disciplina.id,
           nome: turma?.disciplina.nome,
@@ -154,6 +164,7 @@ export class TurmaService {
     const turma = await this.turmaRepo.findOne({
       where: { id },
       relations: { disciplina: true, periodo: true, docente: true },
+      withDeleted: false
     });
 
     if (!turma) throw new NotFoundException('Turma não encontrada!');
@@ -161,9 +172,12 @@ export class TurmaService {
     return {
       id: turma.id,
       nome: turma.nome,
+      turno: turma.turno,
       disciplina: turma.disciplina,
       periodo: turma.periodo,
       docente: { id: turma.docente.id, username: turma.docente.username },
+      createdAt: turma.createdAt,
+      updatedAt: turma.updatedAt
     };
   }
 
@@ -175,6 +189,7 @@ export class TurmaService {
         periodo: true,
         docente: true,
       },
+      withDeleted: false
     });
 
     if (!turma) {
@@ -185,10 +200,12 @@ export class TurmaService {
     const exists = await this.turmaRepo.findOne({
       where: {
         nome: updateTurmaDto.nome ?? turma.nome,
+        turno: updateTurmaDto.turno ?? turma.turno,
         disciplina: { id: updateTurmaDto.disciplinaId ?? turma.disciplina.id },
         periodo: { id: updateTurmaDto.periodoId ?? turma.periodo.id },
         docente: { id: updateTurmaDto.docenteId ?? turma.docente.id },
       },
+      withDeleted: false
     });
 
     if (exists && exists.id !== id) {
@@ -198,6 +215,7 @@ export class TurmaService {
     // valida disciplina
     const disciplina = await this.disciplinaRepo.findOne({
       where: { id: updateTurmaDto.disciplinaId ?? turma.disciplina.id },
+      withDeleted: false
     });
 
     if (!disciplina) {
@@ -207,6 +225,7 @@ export class TurmaService {
     // valida periodo
     const periodo = await this.periodoRepo.findOne({
       where: { id: updateTurmaDto.periodoId ?? turma.periodo.id },
+      withDeleted: false
     });
 
     if (!periodo) {
@@ -219,6 +238,7 @@ export class TurmaService {
     if (updateTurmaDto.docenteId) {
       const found = await this.usersRepo.findOne({
         where: { id: updateTurmaDto.docenteId },
+        withDeleted: false
       });
 
       if (!found) {
@@ -236,6 +256,7 @@ export class TurmaService {
 
     // aplica update manual
     turma.nome = updateTurmaDto.nome ?? turma.nome;
+    turma.turno = updateTurmaDto.turno ?? turma.turno;
     turma.disciplina = disciplina;
     turma.periodo = periodo;
     turma.docente = docente;
@@ -249,22 +270,26 @@ export class TurmaService {
         periodo: true,
         docente: true,
       },
+      withDeleted: false
     });
 
     return {
       id: updated?.id,
       nome: updated?.nome,
+      turno: updated?.turno,
       disciplina: updated?.disciplina,
       periodo: updated?.periodo,
       docente: {
         id: updated?.docente?.id,
         username: updated?.docente?.username,
       },
+      createdAt: updated?.createdAt,
+      updatedAt: updated?.updatedAt
     };
   }
 
   async remove(id: number) {
-    const result = await this.turmaRepo.delete(id);
+    const result = await this.turmaRepo.softDelete(id);
 
     if (result.affected === 0)
       throw new NotFoundException('Turma não encontrada!');
