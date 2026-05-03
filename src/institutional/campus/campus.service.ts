@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
-import { In, Not, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Campus } from './entities/campus.entity';
 
@@ -35,6 +35,11 @@ export class CampusService {
   // listar todos os campi
   async findAll() {
     return this.campusRepo.find();
+  }
+
+  // listar todos os campi deletados
+  async findAllDeleted() {
+    return this.campusRepo.find({ where: { deletedAt: Not(IsNull()) }, withDeleted: true });
   }
 
   // buscar um campus

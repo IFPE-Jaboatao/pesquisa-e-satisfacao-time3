@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { CampusService } from './campus.service';
 import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
@@ -26,23 +26,30 @@ export class CampusController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('/deleted')
+  @Roles(Role.ADMIN)
+  findAllDeleted() {
+    return this.campusService.findAllDeleted();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.campusService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/full')
   @Roles(Role.ADMIN)
-  findOneFull(@Param('id') id: string) {
+  findOneFull(@Param('id', ParseIntPipe) id: string) {
     return this.campusService.findOneFull(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateCampusDto: UpdateCampusDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateCampusDto: UpdateCampusDto) {
     if (Object.keys(updateCampusDto).length === 0) {
       throw new BadRequestException('Não foram fornecidos dados para atualização.');
     }
@@ -53,7 +60,7 @@ export class CampusController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.campusService.remove(+id);
   }
 }
