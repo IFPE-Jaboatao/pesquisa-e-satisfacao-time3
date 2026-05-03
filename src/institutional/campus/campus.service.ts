@@ -15,9 +15,9 @@ export class CampusService {
   // criar campus vazio
   async create(dto: CreateCampusDto) {
 
-    // verificar se já existe um campus com a mesma cidade
+    // verificar se já existe um campus com a mesma cidade (não inclui deletados)
     if (dto.cidade) {
-      const existing = await this.campusRepo.findOne({ where: { cidade: dto.cidade } });
+      const existing = await this.campusRepo.findOne({ where: { cidade: dto.cidade }, withDeleted: false });
       
       if (existing) {
         throw new ConflictException("Já existe um campus com essa cidade!");
@@ -63,9 +63,9 @@ export class CampusService {
   // atualizar um campus
   async update(id: number, updateCampusDto: UpdateCampusDto) {
 
-    // verificar se a cidade já existe em outro campus
+    // verificar se a cidade já existe em outro campus (não inclui deletados)
     if (updateCampusDto.cidade) {
-      const existing = await this.campusRepo.findOne({ where: { cidade: updateCampusDto.cidade, id: Not(id) } })
+      const existing = await this.campusRepo.findOne({ where: { cidade: updateCampusDto.cidade, id: Not(id) }, withDeleted: false });
       
       if (existing) {
         throw new ConflictException("Já existe um campus com essa cidade!");
@@ -89,7 +89,7 @@ export class CampusService {
 
     if (!campus) throw new NotFoundException("Campus não encontrado!");
 
-    const result = await this.campusRepo.delete(id);
+    const result = await this.campusRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Campus não encontrado!");
 

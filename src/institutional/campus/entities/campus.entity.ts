@@ -1,7 +1,7 @@
 import { MinLength } from "class-validator";
 import { Curso } from "src/academic/curso/entities/curso.entity";
 import { Setor } from "src/institutional/setor/entities/setor.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Cidades } from "../campus-cidades.enum";
 
 @Entity()
@@ -13,8 +13,17 @@ export class Campus {
     @Column()
     nome!: string;
 
-    @Column({ type: 'enum', enum: Cidades, unique: true })
+    @Column({ type: 'enum', enum: Cidades })
     cidade?: Cidades
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date;
+
+    @DeleteDateColumn({ type: 'timestamp', nullable: true })
+    deletedAt?: Date;
 
     @OneToMany(() => Setor, setor => setor.campus)
     setores?: Setor[]
@@ -23,12 +32,3 @@ export class Campus {
     cursos?: Curso[]
 
 }
-
-// ( 
-//  id INT PRIMARY KEY AUTO_INCREMENT,  
-//  nome VARCHAR NOT NULL,  
-//  cidade ENUM(‘cidades de pernambuco’) NOT NULL,   
-//  createdAt DATETIME NOT NULL,  
-//  updatedAt DATETIME NOT NULL,
-//  deletedAt DATETIME DEFAULT NULL, 
-// ); 
