@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { DisciplinaService } from './disciplina.service';
 import { CreateDisciplinaDto } from './dto/create-disciplina.dto';
 import { UpdateDisciplinaDto } from './dto/update-disciplina.dto';
@@ -28,21 +28,25 @@ export class DisciplinaController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN, Role.GESTOR)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.disciplinaService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateDisciplinaDto: UpdateDisciplinaDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateDisciplinaDto: UpdateDisciplinaDto) {
+    if (Object.keys(updateDisciplinaDto).length === 0) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização.');
+    }
+
     return this.disciplinaService.update(+id, updateDisciplinaDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.disciplinaService.remove(+id);
   }
 }
