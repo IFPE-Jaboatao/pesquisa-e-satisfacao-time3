@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { EventEmitterModule } from '@nestjs/event-emitter'; // Adicionado para suportar @OnEvent
 
 // Módulos de Domínio
 import { UsersModule } from './users/user.module';
@@ -11,6 +12,7 @@ import { QuestoesModule } from './questoes/questoes.module';
 import { RespostasModule } from './respostas/respostas.module';
 import { AnonymousModule } from './anonymous/anonymous.module'; 
 import { AuditoriaModule } from './auditoria/auditoria.module';
+import { NotificacoesModule } from './notificacoes/notificacoes.module'; // Adicionado o novo módulo
 import { InstitutionalModule } from './institutional/institutional.module';
 import { AcademicModule } from './academic/academic.module';
 import { RelatoriosModule } from './relatorios/relatorios.module';
@@ -26,7 +28,10 @@ import { AppController } from './app.controller';
       envFilePath: ['.env.test', '.env'], 
     }),
 
-    // 2. CONEXÃO MONGODB (Pesquisas, Questões, Respostas e Auditoria)
+    // 2. MOTOR DE EVENTOS (Necessário para a comunicação entre Auditoria e Notificações)
+    EventEmitterModule.forRoot(),
+
+    // 3. CONEXÃO MONGODB (Pesquisas, Questões, Respostas e Auditoria)
     TypeOrmModule.forRootAsync({
       name: 'mongo',
       inject: [ConfigService],
@@ -37,10 +42,11 @@ import { AppController } from './app.controller';
         synchronize: true,
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        connectTimeoutMS: 10000, // Estabilidade para conexões remotas
       }),
     }),
 
-    // 3. CONEXÃO MYSQL (Usuários, Auth, Acadêmico e Institucional)
+    // 4. CONEXÃO MYSQL (Usuários, Auth, Acadêmico e Institucional)
     TypeOrmModule.forRootAsync({
       name: 'mysql',
       inject: [ConfigService],
@@ -61,21 +67,22 @@ import { AppController } from './app.controller';
       }),
     }),
 
-    // 4. SEGURANÇA: RATE LIMIT (Proteção contra força bruta/DoS)
+    // 5. SEGURANÇA: RATE LIMIT (Proteção contra força bruta/DoS)
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 15,
     }]),
 
-    // 5. MÓDULOS DO SISTEMA
+    // 6. MÓDULOS DO SISTEMA
     AuditoriaModule,
+    NotificacoesModule, // Registrado para ativar o Listener de eventos
     UsersModule,
     AuthModule,
     PesquisasModule,
     QuestoesModule,
     RespostasModule,
     AnonymousModule,
-    RelatoriosModule, // Módulo de exportação integrado
+    RelatoriosModule,
     InstitutionalModule,
     AcademicModule,
   ],
