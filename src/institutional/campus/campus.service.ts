@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
 import { In, Repository } from 'typeorm';
@@ -15,8 +15,18 @@ export class CampusService {
   // criar campus vazio
   async create(dto: CreateCampusDto) {
 
+    // verificar se já existe um campus com a mesma cidade
+    if (dto.cidade) {
+      const existing = await this.campusRepo.findOne({ where: { cidade: dto.cidade } });
+      
+      if (existing) {
+        throw new ConflictException("Já existe um campus com essa cidade!");
+      }
+    }
+
     const campus = this.campusRepo.create({
-      nome: dto.nome
+      nome: dto.nome,
+      cidade: dto.cidade
     });
 
     return this.campusRepo.save(campus);
