@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 import { Role } from './user-role.enum';
 
 @Entity('users')
@@ -6,13 +6,13 @@ export class User {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ unique: true })
+  @Column()
   matricula!: string;
 
   @Column()
   nome!: string;
 
-  @Column({ unique: true })
+  @Column()
   email!: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.ALUNO })
@@ -20,4 +20,13 @@ export class User {
 
   @Column()
   password!: string;
+
+  @CreateDateColumn({type: 'timestamp'})
+  createdAt!: Date;
+
+  @UpdateDateColumn({type: 'timestamp'})
+  updatedAt!: Date;
+
+  @DeleteDateColumn({type: 'timestamp'})
+  deletedAt!: Date;
 }

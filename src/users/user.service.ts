@@ -32,6 +32,7 @@ export class UsersService implements OnModuleInit {
   private async seedAdmin() {
     const adminExists = await this.repo.findOne({
       where: { role: Role.ADMIN },
+      withDeleted: false
     });
 
     if (adminExists) return;
@@ -64,12 +65,13 @@ export class UsersService implements OnModuleInit {
   // -------------------------------------------------------------------------
 
   findByMatricula(matricula: string) {
-    return this.repo.findOne({ where: { matricula } });
+    return this.repo.findOne({ where: { matricula }, withDeleted: false });
   }
 
   async findAll() {
     return this.repo.find({
       select: ['id', 'matricula', 'nome', 'email', 'role'],
+      withDeleted: false
     });
   }
 
@@ -79,6 +81,7 @@ export class UsersService implements OnModuleInit {
     const user = await this.repo.findOne({
       where: { id },
       select: ['id', 'matricula', 'nome', 'email', 'role'],
+      withDeleted: false
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -96,7 +99,7 @@ export class UsersService implements OnModuleInit {
     }
 
     // verifica se o email já está em uso
-    const emailExists = await this.repo.findOne({ where: { email: dto.email } });
+    const emailExists = await this.repo.findOne({ where: { email: dto.email }, withDeleted: false });
     if (emailExists) {
       throw new ConflictException('Este email já está em uso');
     }
@@ -125,12 +128,12 @@ export class UsersService implements OnModuleInit {
   async update(userId: string, dto: Partial<{ matricula: string; password: string, email: string; nome: string; role: Role }>) {
     const id = Number(userId);
     
-    const user = await this.repo.findOne({ where: { id } });
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
     if (!user) throw new NotFoundException('Usuário não encontrado');
     
     // verifica se o email já está em uso por outro usuário
     if (dto.email && dto.email !== user.email) {
-      const emailExists = await this.repo.findOne({ where: { email: dto.email } });
+      const emailExists = await this.repo.findOne({ where: { email: dto.email }, withDeleted: false });
 
       if (emailExists) {
         throw new ConflictException('Este email já está em uso.');
@@ -157,7 +160,7 @@ export class UsersService implements OnModuleInit {
   async updatePassword(userId: string, passwordRaw: string) {
     const id = Number(userId);
 
-    const user = await this.repo.findOne({ where: { id } });
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     const hashed = await bcrypt.hash(passwordRaw, 10);
@@ -170,12 +173,14 @@ export class UsersService implements OnModuleInit {
 
   async delete(userId: string) {
     const id = Number(userId);
+    // verifica se o usuário existe sem considerar os deletados
+    
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
 
-    const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    await this.repo.remove(user);
+    await this.repo.softDelete(userId);
 
-    return { message: `Usuário "${user.matricula}" removido com sucesso` };
+    return { message: `Usuário de matrícula "${user.matricula}" removido com sucesso` };
   }
 }
