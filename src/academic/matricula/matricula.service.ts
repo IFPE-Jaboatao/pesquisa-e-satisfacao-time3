@@ -91,7 +91,9 @@ export class MatriculaService {
       id: outputMatricula?.id,
       aluno: {
         id: outputMatricula?.aluno.id,
-        username: outputMatricula?.aluno.username,
+        matricula: outputMatricula?.aluno.matricula,
+        nome: outputMatricula?.aluno.nome,
+        email: outputMatricula?.aluno.email,
       },
       turma: {
         id: outputMatricula?.turma.id,
@@ -99,7 +101,9 @@ export class MatriculaService {
         disciplina: outputMatricula?.turma.disciplina,
         docente: {
           id: outputMatricula?.turma.docente?.id,
-          username: outputMatricula?.turma.docente?.username,
+          matricula: outputMatricula?.turma.docente?.matricula,
+          nome: outputMatricula?.turma.docente?.nome,
+          email: outputMatricula?.turma.docente?.email,
         },
         periodo: outputMatricula?.turma.periodo,
       },
@@ -129,13 +133,17 @@ export class MatriculaService {
         turmaDisciplina: matriculas[0]?.turma.disciplina,
         turmaDocente: {
           id: matriculas[0]?.turma.docente.id,
-          username: matriculas[0]?.turma.docente.username,
+          matricula: matriculas[0]?.turma.docente.matricula,
+          nome: matriculas[0]?.turma.docente.nome,
+          email: matriculas[0]?.turma.docente.email,
         },
         matriculas: matriculas?.map((matricula) => ({
           id: matricula?.id,
           aluno: {
             id: matricula?.aluno.id,
-            username: matricula?.aluno.username,
+            matricula: matricula?.aluno.matricula,
+            nome: matricula?.aluno.nome,
+            email: matricula?.aluno.email,
           },
         })),
       };
@@ -151,10 +159,12 @@ export class MatriculaService {
         periodo: matricula?.turma.periodo,
         docente: {
           id: matricula?.turma.docente.id,
-          username: matricula?.turma.docente.username,
+          matricula: matricula?.turma.docente.matricula,
+          nome: matricula?.turma.docente.nome,
+          email: matricula?.turma.docente.email,
         },
       },
-      aluno: { id: matricula?.aluno?.id, username: matricula?.aluno?.username },
+      aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
     }));
   }
 
@@ -184,7 +194,9 @@ export class MatriculaService {
     // informações do aluno não se repetem
     return {
       alunoId: matriculas[0]?.aluno.id,
-      alunoUsername: matriculas[0]?.aluno.username,
+      alunoMatricula: matriculas[0]?.aluno.matricula,
+      alunoNome: matriculas[0]?.aluno.nome,
+      alunoEmail: matriculas[0]?.aluno.email,
       matriculas: matriculas?.map((matricula) => ({
         id: matricula?.id,
         turma: {
@@ -197,7 +209,9 @@ export class MatriculaService {
           periodo: matricula?.turma.periodo,
           docente: {
             id: matricula?.turma.docente.id,
-            username: matricula?.turma.docente.username,
+            matricula: matricula?.turma.docente.matricula,
+            nome: matricula?.turma.docente.nome,
+            email: matricula?.turma.docente.email,
           },
         },
       })),
@@ -232,10 +246,12 @@ export class MatriculaService {
         periodo: matricula?.turma.periodo,
         docente: {
           id: matricula?.turma.docente.id,
-          username: matricula?.turma.docente.username,
+          matricula: matricula?.turma.docente.matricula,
+          nome: matricula?.turma.docente.nome,
+          email: matricula?.turma.docente.email,
         },
       },
-      aluno: { id: matricula?.aluno?.id, username: matricula?.aluno?.username },
+      aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
     };
   }
 
@@ -327,12 +343,16 @@ export class MatriculaService {
         disciplina: updated?.turma.disciplina,
         docente: {
           id: updated?.turma.docente.id,
-          username: updated?.turma.docente.username,
+          matricula: updated?.turma.docente.matricula,
+          nome: updated?.turma.docente.nome,
+          email: updated?.turma.docente.email,
         },
       },
       aluno: {
         id: updated?.aluno?.id,
-        username: updated?.aluno?.username,
+        matricula: updated?.aluno?.matricula,
+        nome: updated?.aluno?.nome,
+        email: updated?.aluno?.email,
       },
     };
   }

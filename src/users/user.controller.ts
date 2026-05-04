@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { UsersService } from './user.service';
@@ -47,11 +49,19 @@ export class UsersController {
     return this.service.findOne(req.user.id);
   }
 
+  // Ver usuários deletados (Apenas Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('deleted')
+  findDeleted() {
+    return this.service.findDeleted();
+  }
+
   // Buscar usuário por ID
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':userId')
   @Roles(Role.ADMIN)
-  findOne(@Param('userId') userId: string) {
+  findOne(@Param('userId', ParseIntPipe) userId: string) {
     return this.service.findOne(userId);
   }
 
@@ -67,10 +77,15 @@ export class UsersController {
   @Patch(':userId')
   @Roles(Role.ADMIN)
   update(
-    @Param('userId') userId: string,
+    @Param('userId', ParseIntPipe) userId: string,
     @Body() dto: UpdateUserDto,
     @Req() req,
   ) {
+    // impede patch com body vazio
+    if (dto.matricula === undefined && dto.password === undefined && dto.email === undefined && dto.nome === undefined && dto.role === undefined) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização!');
+    }
+
     const isOwner = String(req.user.id) === String(userId);
     const isChangingRole = dto.role && dto.role !== Role.ADMIN;
 
@@ -87,7 +102,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':userId')
   @Roles(Role.ADMIN)
-  delete(@Param('userId') userId: string, @Req() req) {
+  delete(@Param('userId', ParseIntPipe) userId: string, @Req() req) {
     const isOwner = String(req.user.id) === String(userId);
 
     if (isOwner) {

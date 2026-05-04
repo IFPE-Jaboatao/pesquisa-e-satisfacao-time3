@@ -12,11 +12,11 @@ export class AuthService {
 
   /**
    * Valida as credenciais do usuário comparando o hash da senha no MySQL.
-   * @param username Nome de usuário vindo do DTO de login
+   * @param matricula Matrícula do usuário vindo do DTO de login
    * @param password Senha em texto puro vindo do DTO de login
    */
-  async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.usersService.findByUsername(username);
+  async validateUser(matricula: string, password: string): Promise<any> {
+    const user = await this.usersService.findByMatricula(matricula);
 
     // Se o usuário não existir, lança erro 401
     if (!user) {
@@ -43,7 +43,7 @@ export class AuthService {
     // Payload sincronizado com os Guards e logs de auditoria
     const payload = {
       sub: user.id,          // ID do usuário (usado como 'sub' no padrão JWT)
-      username: user.username,
+      matricula: user.matricula,
       role: user.role        // Necessário para o RolesGuard
     };
 
