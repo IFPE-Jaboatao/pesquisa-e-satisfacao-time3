@@ -95,6 +95,12 @@ export class UsersService implements OnModuleInit {
       throw new ConflictException('Esta matrícula já está em uso');
     }
 
+    // verifica se o email já está em uso
+    const emailExists = await this.repo.findOne({ where: { email: dto.email } });
+    if (emailExists) {
+      throw new ConflictException('Este email já está em uso');
+    }
+
     const hashed = await bcrypt.hash(dto.password, 10);
 
     const user = this.repo.create({
@@ -116,11 +122,20 @@ export class UsersService implements OnModuleInit {
     };
   }
 
-  async update(userId: string, dto: Partial<{ matricula: string; password: string }>) {
+  async update(userId: string, dto: Partial<{ matricula: string; password: string, email: string; nome: string; role: Role }>) {
     const id = Number(userId);
-
+    
     const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
+    
+    // verifica se o email já está em uso por outro usuário
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.repo.findOne({ where: { email: dto.email } });
+
+      if (emailExists) {
+        throw new ConflictException('Este email já está em uso.');
+      }
+    }
 
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
