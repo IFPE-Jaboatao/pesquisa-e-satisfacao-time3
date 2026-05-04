@@ -37,6 +37,7 @@ export class MatriculaService {
         turma: { id: turmaId },
         aluno: { id: alunoId },
       },
+      withDeleted: false
     });
 
     if (exists) {
@@ -45,8 +46,8 @@ export class MatriculaService {
 
     // busca paralela
     const [turma, aluno] = await Promise.all([
-      this.turmaRepo.findOne({ where: { id: turmaId } }),
-      this.usersRepo.findOne({ where: { id: alunoId } }),
+      this.turmaRepo.findOne({ where: { id: turmaId }, withDeleted: false }),
+      this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false }),
     ]);
 
     // validações
@@ -217,6 +218,7 @@ export class MatriculaService {
           disciplina: true,
         },
       },
+      withDeleted: false
     });
 
     if (!matricula) throw new NotFoundException('Matrícula não encontrada!');
@@ -245,10 +247,11 @@ export class MatriculaService {
         aluno: true,
         turma: true,
       },
+      withDeleted: false
     });
 
     if (!matricula) {
-      throw new NotFoundException('Turma não encontrada!');
+      throw new NotFoundException('Matrícula não encontrada!');
     }
 
     // validação de duplicidade (excluindo ela mesma)
@@ -257,6 +260,7 @@ export class MatriculaService {
         aluno: { id: updateMatriculaDTO.alunoId ?? matricula.aluno.id },
         turma: { id: updateMatriculaDTO.turmaId ?? matricula.turma.id },
       },
+      withDeleted: false
     });
 
     if (exists && exists.id !== id) {
@@ -266,6 +270,7 @@ export class MatriculaService {
     // valida turma
     const turma = await this.turmaRepo.findOne({
       where: { id: updateMatriculaDTO.turmaId ?? matricula.turma.id },
+      withDeleted: false
     });
 
     if (!turma) {
@@ -278,6 +283,7 @@ export class MatriculaService {
     if (updateMatriculaDTO.alunoId) {
       const found = await this.usersRepo.findOne({
         where: { id: updateMatriculaDTO.alunoId },
+        withDeleted: false
       });
 
       if (!found) {
@@ -309,6 +315,7 @@ export class MatriculaService {
           periodo: true,
         },
       },
+      withDeleted: false
     });
 
     return {
@@ -332,7 +339,7 @@ export class MatriculaService {
 
   // deletar matrícula
   async remove(id: number) {
-    const result = await this.matriculaRepo.delete(id);
+    const result = await this.matriculaRepo.softDelete(id);
 
     if (result.affected === 0)
       throw new NotFoundException('Matrícula não encontrada!');

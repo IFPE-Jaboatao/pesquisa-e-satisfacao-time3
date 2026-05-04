@@ -3,10 +3,10 @@ import { Disciplina } from "src/academic/disciplina/entities/disciplina.entity";
 import { Matricula } from "src/academic/matricula/entities/matricula.entity";
 import { Periodo } from "src/academic/periodo/entities/periodo.entity";
 import { User } from "src/users/user.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Turnos } from "../turma-turnos.enum";
 
 @Entity()
-@Unique(['nome','disciplina', 'periodo', 'docente'])
 export class Turma {
 
     @PrimaryGeneratedColumn()
@@ -14,6 +14,18 @@ export class Turma {
 
     @Column()
     nome!: string;
+
+    @Column({type: 'enum', enum: Turnos})
+    turno!: Turnos;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date;
+
+    @DeleteDateColumn({ type: 'timestamp', nullable: true })
+    deletedAt?: Date;
 
     @ManyToOne(() => Disciplina)
     disciplina!: Disciplina;

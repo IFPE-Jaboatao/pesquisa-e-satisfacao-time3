@@ -17,14 +17,29 @@ export class DisciplinaService {
   ) {}
 
   async create(createDisciplinaDto: CreateDisciplinaDto) {
-    const curso = await this.cursoRepo.findOne({ where: { id: createDisciplinaDto.cursoId } });
+    const curso = await this.cursoRepo.findOne({ where: { id: createDisciplinaDto.cursoId }, withDeleted: false });
 
    if (!curso) {
       throw new NotFoundException('Curso não encontrado!');
     }
 
+    // verifica se já existe um curso com o mesmo nome, código e curso (não inclui deletados)
+    const existing = await this.disciplinaRepo.findOne(
+      { where: 
+        { nome: createDisciplinaDto.nome,
+          codigo: createDisciplinaDto.codigo,
+          curso: { 
+            id: createDisciplinaDto.cursoId 
+          } },
+          withDeleted: false });
+
+    if (existing) {
+      throw new NotFoundException("Já existe uma disciplina com esse nome e código nesse curso!");
+    }
+
     const disciplina = this.disciplinaRepo.create({
       nome: createDisciplinaDto.nome,
+      codigo: createDisciplinaDto.codigo,
       curso: curso
     });
 
@@ -35,12 +50,16 @@ export class DisciplinaService {
     const disciplinas = await this.disciplinaRepo.find({
       where: cursoId ? { curso: { id: cursoId } } : {},
       relations: { curso: true },
+      withDeleted: false
     });
 
   return disciplinas.map((disciplina) => ({
       id: disciplina.id,
       nome: disciplina.nome,
-      cursoId: disciplina.curso?.id
+      codigo: disciplina.codigo,
+      cursoId: disciplina.curso?.id,
+      createdAt: disciplina.createdAt,
+      updatedAt: disciplina.updatedAt
     }));
   }
 
@@ -52,14 +71,33 @@ export class DisciplinaService {
     return {
       id: disciplina.id,
       nome: disciplina.nome,
-      cursoId: disciplina.curso?.id
+      codigo: disciplina.codigo,
+      cursoId: disciplina.curso?.id,
+      createdAt: disciplina.createdAt,
+      updatedAt: disciplina.updatedAt
     };
   }
 
   async update(id: number, updateDisciplinaDto: UpdateDisciplinaDto) {
-    const disciplina = await this.disciplinaRepo.findOne({where: {id}});
+    const disciplina = await this.disciplinaRepo.findOne({where: {id}, withDeleted: false});
 
-    if (!disciplina) throw new NotFoundException("Disciplina não encontrado!")
+    if (!disciplina) throw new NotFoundException("Disciplina não encontrada!")
+
+    // verifica se já existe uma disciplina com o mesmo nome, código e curso (não inclui deletados)
+    if (updateDisciplinaDto.nome || updateDisciplinaDto.codigo || updateDisciplinaDto.cursoId) {
+      const existing = await this.disciplinaRepo.findOne({
+        where: {
+          nome: updateDisciplinaDto.nome,
+          codigo: updateDisciplinaDto.codigo,
+          curso: { id: updateDisciplinaDto.cursoId }
+        },
+        withDeleted: false
+      });
+
+      if (existing) {
+        throw new NotFoundException("Já existe uma disciplina com esse nome e/ou código nesse curso!");
+      }
+    }
 
     const { cursoId, ...rest} = updateDisciplinaDto;
 
@@ -69,19 +107,22 @@ export class DisciplinaService {
       curso: cursoId ? {id: cursoId} : disciplina.curso,
     });
 
-    const updated = await this.disciplinaRepo.findOne({where: {id}, relations: {
+    const updated = await this.disciplinaRepo.findOne({where: {id}, withDeleted: false, relations: {
       curso: true
     }});
 
     return {
       id: updated?.id,
       nome: updated?.nome,
-      cursoId: updated?.curso?.id
+      codigo: updated?.codigo,
+      cursoId: updated?.curso?.id,
+      createdAt: updated?.createdAt,
+      updatedAt: updated?.updatedAt
     };
   }
 
   async remove(id: number) {
-    const result = await this.disciplinaRepo.delete(id);
+    const result = await this.disciplinaRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Disciplina não encontrada!")
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { MatriculaService } from './matricula.service';
 import { CreateMatriculaDto } from './dto/create-matricula.dto';
 import { UpdateMatriculaDto } from './dto/update-matricula.dto';
@@ -28,28 +28,32 @@ export class MatriculaController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('/aluno/:id')
   @Roles(Role.ADMIN, Role.ALUNO)
-  findAllStudent(@Param('id') alunoId: string) {
+  findAllStudent(@Param('id', ParseIntPipe) alunoId: string) {
     return this.matriculaService.findAllStudent(+alunoId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.matriculaService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateMatriculaDto: UpdateMatriculaDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateMatriculaDto: UpdateMatriculaDto) {
+    if (Object.keys(updateMatriculaDto).length === 0) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização.');
+    }
+
     return this.matriculaService.update(+id, updateMatriculaDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.matriculaService.remove(+id);
   }
 }

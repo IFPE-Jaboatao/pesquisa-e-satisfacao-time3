@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { CursoService } from './curso.service';
 import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
@@ -28,21 +28,25 @@ export class CursoController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN, Role.GESTOR)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.cursoService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateCursoDto: UpdateCursoDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateCursoDto: UpdateCursoDto) {
+    if (Object.keys(updateCursoDto).length === 0) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização.');
+    }
+
     return this.cursoService.update(+id, updateCursoDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.cursoService.remove(+id);
   }
 }

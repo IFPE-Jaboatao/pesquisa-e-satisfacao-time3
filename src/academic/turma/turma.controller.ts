@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { TurmaService } from './turma.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
@@ -28,28 +28,32 @@ export class TurmaController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('/docente/:id')
   @Roles(Role.ADMIN, Role.DOCENTE)
-  findAllProfessor(@Param('id') docenteId: string) {
+  findAllProfessor(@Param('id', ParseIntPipe) docenteId: string) {
     return this.turmaService.findAllProfessor(+docenteId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.turmaService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateTurmaDto: UpdateTurmaDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateTurmaDto: UpdateTurmaDto) {
+    if (Object.keys(updateTurmaDto).length === 0) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização.');
+    }
+
     return this.turmaService.update(+id, updateTurmaDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.turmaService.remove(+id);
   }
 }

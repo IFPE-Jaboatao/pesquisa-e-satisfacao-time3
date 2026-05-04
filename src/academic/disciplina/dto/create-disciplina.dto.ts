@@ -9,4 +9,7 @@ export class CreateDisciplinaDto {
     @IsNumber()
     cursoId!: number
 
+    @IsString()
+    @MinLength(2)
+    codigo!: string;
 }
