@@ -1,5 +1,5 @@
 import { Setor } from "src/institutional/setor/entities/setor.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Servico {
@@ -9,6 +9,15 @@ export class Servico {
 
     @Column()
     nome!: string;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date;
+
+    @DeleteDateColumn({ type: 'timestamp' })
+    deletedAt!: Date;
 
     @ManyToOne(() => Setor, (setor) => setor.servicos, {
         onDelete: "CASCADE"
