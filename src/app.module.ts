@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { AnonymousModule } from './anonymous/anonymous.module'; 
 import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacoesModule } from './notificacoes/notificacoes.module';
+import { MailModule } from './mail/mail.module'; // ADICIONADO: Nova pasta mail
 import { RelatoriosModule } from './relatorios/relatorios.module';
 
 // Módulos de Negócio (Pesquisas)
@@ -38,17 +39,16 @@ import { Questao } from './questoes/entities/questao.entity';
 import { Resposta } from './respostas/entities/resposta.entity';
 import { Auditoria } from './auditoria/entities/auditoria.entity';
 
-// Controllers e Services Base (Necessários para a rota raiz '/')
+// Controllers e Services Base
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
   imports: [
-    // 1. SUPORTE A EVENTOS (Notificações e Auditoria)
+    // 1. SUPORTE A EVENTOS
     EventEmitterModule.forRoot(),
 
     // 2. CONFIGURAÇÃO GLOBAL
-    // Priorizamos o .env da pasta test para garantir que os testes e2e não retornem 404
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['test/.env', '.env.test', '.env'], 
@@ -112,7 +112,8 @@ import { AppService } from './app.service';
 
     // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
-    NotificacoesModule,
+    MailModule,          // ADICIONADO: Registra o novo módulo de e-mail
+    NotificacoesModule,  // MANTIDO: Importado de './notificacoes/notificacoes.module'
     UsersModule,
     AuthModule,
     PesquisasModule,
@@ -123,7 +124,7 @@ import { AppService } from './app.service';
     InstitutionalModule,
     AcademicModule,
   ],
-  controllers: [AppController], // Adicionado para resolver o 404 em GET /
-  providers: [AppService],      // Adicionado para suportar o AppController
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

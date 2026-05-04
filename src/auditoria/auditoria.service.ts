@@ -31,7 +31,7 @@ export class AuditoriaService {
     console.log('[PASSO 5] AuditoriaService: Log salvo no MongoDB com sucesso.');
 
     // Dispara o evento para o NotificacoesService
-    // O retorno do emit indica se houve algum ouvinte ativo (true/false)
+    // Passamos o objeto 'salvo' que já contém o ID gerado pelo MongoDB e os dados da pesquisa
     const temOuvinte = this.eventEmitter.emit('notificacao.criada', salvo);
 
     console.log(`[PASSO 6] AuditoriaService: Evento "notificacao.criada" disparado.`);

@@ -9,6 +9,7 @@ import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreateQuestaoDto } from './dto/create-questao.dto';
+import { AuditoriaService } from '../auditoria/auditoria.service'; // IMPORTANTE
 
 @Injectable()
 export class QuestoesService {
@@ -18,10 +19,12 @@ export class QuestoesService {
 
     @InjectRepository(Pesquisa, 'mongo')
     private readonly pesquisaRepo: MongoRepository<Pesquisa>,
+
+    private readonly auditoriaService: AuditoriaService, // INJEÇÃO NECESSÁRIA
   ) {}
 
-  async create(dto: CreateQuestaoDto) {
-    //  valida pesquisaId
+  async create(dto: CreateQuestaoDto, usuario: any) { // RECEBE O USUÁRIO
+    // valida pesquisaId
     if (!ObjectId.isValid(dto.pesquisaId)) {
       throw new BadRequestException('ID da pesquisa inválido');
     }
@@ -35,12 +38,23 @@ export class QuestoesService {
     }
 
     const questao = this.repo.create(dto);
+    const salvo = await this.repo.save(questao);
 
-    return this.repo.save(questao);
+    // DISPARO DA AUDITORIA (Ativa o NotificacoesService e o e-mail)
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'sistema'),
+      usuarioNome: usuario?.username || 'Admin',
+      entidade: 'Questao',
+      entidadeId: (salvo as any)._id?.toString(),
+      acao: 'CRIACAO_QUESTAO',
+      dadosNovos: salvo,
+    });
+
+    return salvo;
   }
 
   async findByPesquisa(pesquisaId: string) {
-    //  valida ID
+    // valida ID
     if (!ObjectId.isValid(pesquisaId)) {
       throw new BadRequestException('ID inválido');
     }

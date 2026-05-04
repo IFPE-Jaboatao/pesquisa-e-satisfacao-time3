@@ -12,6 +12,7 @@ import { ObjectId } from 'mongodb';
 import { Resposta } from './entities/resposta.entity';
 import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
 import { EnviarRespostaDto } from './dto/enviar-resposta.dto';
+import { AuditoriaService } from '../auditoria/auditoria.service'; // ADICIONADO
 
 @Injectable()
 export class RespostasService {
@@ -21,12 +22,16 @@ export class RespostasService {
 
     @InjectRepository(Pesquisa, 'mongo')
     private readonly pesquisaRepo: MongoRepository<Pesquisa>,
+
+    private readonly auditoriaService: AuditoriaService, // INJEÇÃO ADICIONADA
   ) {}
 
   /**
    * Registra a resposta vinculando ao ID numérico do aluno (proveniente do MySQL/JWT).
    */
-  async registrarIdentificado(dto: EnviarRespostaDto, alunoId: any) {
+  async registrarIdentificado(dto: EnviarRespostaDto, usuario: any) { // ALTERADO PARA RECEBER USUARIO COMPLETO
+    const alunoId = usuario?.userId || usuario?.id;
+
     // 1. Validação preventiva de identidade
     if (alunoId === undefined || alunoId === null) {
       throw new BadRequestException('Identificação do aluno ausente.');
@@ -44,7 +49,6 @@ export class RespostasService {
     await this.validarPesquisaEPrazo(pesquisaIdNormalizada);
 
     // 3. Verificação de Duplicidade
-    // Busca um registro que combine exatamente a pesquisa E o aluno
     const jaRespondeu = await this.repo.findOne({
       where: {
         pesquisaId: pesquisaIdNormalizada,
@@ -66,7 +70,19 @@ export class RespostasService {
       enviadoEm: new Date(),
     });
 
-    return await this.repo.save(novaResposta);
+    const salvo = await this.repo.save(novaResposta);
+
+    // 5. DISPARO DA AUDITORIA (Ativa o e-mail detalhado)
+    await this.auditoriaService.registrar({
+      usuarioId: String(alunoIdNumerico),
+      usuarioNome: usuario?.username || 'Aluno',
+      entidade: 'Resposta',
+      entidadeId: (salvo as any)._id?.toString(),
+      acao: 'SUBMISSAO_RESPOSTA',
+      dadosNovos: salvo,
+    });
+
+    return salvo;
   }
 
   /**
@@ -93,7 +109,6 @@ export class RespostasService {
     const dataInicio = new Date(pesquisa.dataInicio);
     const dataFinal = new Date(pesquisa.dataFinal);
 
-    // Verifica se as datas no banco são válidas
     if (isNaN(dataInicio.getTime()) || isNaN(dataFinal.getTime())) {
       throw new BadRequestException('Erro na configuração de datas da pesquisa.');
     }
@@ -101,14 +116,14 @@ export class RespostasService {
     if (agora < dataInicio) {
       throw new ForbiddenException({
         error: 'Prazo não iniciado',
-        message: `Esta avaliação estará disponível apenas em ${dataInicio.toLocaleString()}`,
+        message: `Esta avaliação estará disponível apenas em ${dataInicio.toLocaleString('pt-BR')}`,
       });
     }
 
     if (agora > dataFinal) {
       throw new ForbiddenException({
         error: 'Prazo encerrado',
-        message: `O período de participação encerrou em ${dataFinal.toLocaleString()}`,
+        message: `O período de participação encerrou em ${dataFinal.toLocaleString('pt-BR')}`,
       });
     }
 
