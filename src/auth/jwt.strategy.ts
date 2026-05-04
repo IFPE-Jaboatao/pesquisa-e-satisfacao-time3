@@ -22,13 +22,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // O que este método retorna vira o "req.user"
   async validate(payload: any) {
     // Verificação de segurança: se o payload não tiver os dados básicos, barra o acesso
-    if (!payload.sub || !payload.username) {
+    if (!payload.sub || !payload.matricula) {
       throw new UnauthorizedException('Token inválido ou malformado.');
     }
 
     return {
       id: payload.sub,        // Padronizamos como 'id' para facilitar no Controller
-      username: payload.username,
+      matricula: payload.matricula,
       role: payload.role
     };
   }

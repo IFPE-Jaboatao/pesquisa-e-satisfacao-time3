@@ -7,7 +7,13 @@ export class User {
   id!: number;
 
   @Column({ unique: true })
-  username!: string;
+  matricula!: string;
+
+  @Column()
+  nome!: string;
+
+  @Column({ unique: true })
+  email!: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.ALUNO })
   role?: Role

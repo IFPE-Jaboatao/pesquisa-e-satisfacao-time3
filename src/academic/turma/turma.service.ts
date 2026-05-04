@@ -16,6 +16,7 @@ import { User } from 'src/users/user.entity';
 import { Role } from 'src/users/user-role.enum';
 import { Matricula } from '../matricula/entities/matricula.entity';
 import { isNumber } from 'class-validator';
+import e from 'express';
 
 @Injectable()
 export class TurmaService {
@@ -97,7 +98,9 @@ export class TurmaService {
       periodo: savedTurma.periodo,
       docente: {
         id: savedTurma.docente.id,
-        username: savedTurma.docente.username,
+        matricula: savedTurma.docente.matricula,
+        nome: savedTurma.docente.nome,
+        email: savedTurma.docente.email,
       },
       createdAt: savedTurma.createdAt,
       updatedAt: savedTurma.updatedAt
@@ -117,7 +120,7 @@ export class TurmaService {
       turno: turma?.turno,
       disciplina: turma?.disciplina,
       periodo: turma?.periodo,
-      docente: { id: turma.docente?.id, username: turma.docente?.username },
+      docente: { id: turma.docente?.id, matricula: turma.docente?.matricula, nome: turma.docente?.nome, email: turma.docente?.email },
     }));
   }
 
@@ -144,7 +147,9 @@ export class TurmaService {
     // informações do docente não se repetem
     return {
       docenteId: turmas[0]?.docente.id,
-      docenteUsername: turmas[0]?.docente.username,
+      docenteMatricula: turmas[0]?.docente.matricula,
+      docenteNome: turmas[0]?.docente.nome,
+      docenteEmail: turmas[0]?.docente.email,
       turmas: turmas?.map((turma) => ({
         id: turma?.id,
         nome: turma?.nome,
@@ -175,7 +180,7 @@ export class TurmaService {
       turno: turma.turno,
       disciplina: turma.disciplina,
       periodo: turma.periodo,
-      docente: { id: turma.docente.id, username: turma.docente.username },
+      docente: { id: turma.docente.id, matricula: turma.docente.matricula, nome: turma.docente.nome, email: turma.docente.email },
       createdAt: turma.createdAt,
       updatedAt: turma.updatedAt
     };
@@ -281,7 +286,9 @@ export class TurmaService {
       periodo: updated?.periodo,
       docente: {
         id: updated?.docente?.id,
-        username: updated?.docente?.username,
+        matricula: updated?.docente?.matricula,
+        nome: updated?.docente?.nome,
+        email: updated?.docente?.email,
       },
       createdAt: updated?.createdAt,
       updatedAt: updated?.updatedAt
