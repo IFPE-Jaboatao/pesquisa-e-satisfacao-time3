@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from './user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -63,6 +63,14 @@ export class UsersService implements OnModuleInit {
   // -------------------------------------------------------------------------
   // MÉTODOS DE BUSCA
   // -------------------------------------------------------------------------
+
+  async findDeleted() {
+    return await this.repo.find({
+      where: { deletedAt: Not(IsNull()) },
+      withDeleted: true,
+      select: ['id', 'matricula', 'nome', 'email', 'role', 'createdAt', 'updatedAt', 'deletedAt']
+    });
+  }
 
   findByMatricula(matricula: string) {
     return this.repo.findOne({ where: { matricula }, withDeleted: false });

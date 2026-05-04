@@ -49,6 +49,14 @@ export class UsersController {
     return this.service.findOne(req.user.id);
   }
 
+  // Ver usuários deletados (Apenas Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('deleted')
+  findDeleted() {
+    return this.service.findDeleted();
+  }
+
   // Buscar usuário por ID
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':userId')
