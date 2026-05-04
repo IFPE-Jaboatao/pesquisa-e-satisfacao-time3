@@ -11,7 +11,7 @@ import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
-import { AuditoriaService } from '../auditoria/auditoria.service'; // adcionar import de auditoria
+import { AuditoriaService } from '../auditoria/auditoria.service';
 
 @Injectable()
 export class PesquisasService {
@@ -32,9 +32,6 @@ export class PesquisasService {
     return await this.repo.find({ order: { _id: 'DESC' } });
   }
 
-  /**
-   * CORREÇÃO: Adicionado método para resolver erro no Controller
-   */
   async findAllByTurma(turmaId: number) {
     return await this.repo.find({ 
       where: { turmaId: turmaId },
@@ -42,7 +39,7 @@ export class PesquisasService {
     });
   }
 
- async findOne(id: string) {
+  async findOne(id: string) {
     if (!id || !ObjectId.isValid(id)) {
       throw new BadRequestException('ID com formato inválido ou ausente');
     }
@@ -58,37 +55,50 @@ export class PesquisasService {
   }
 
   /**
-   * Retorna os dados da pesquisa e suas respostas vinculadas.
-   * Modificado para ser compatível com RelatoriosService e RelatoriosController.
+   * CORREÇÃO CRÍTICA: Busca questões e respostas garantindo compatibilidade de tipos de ID.
    */
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
+    const objId = new ObjectId(id);
     
-    const questoes = await this.questaoRepo.find({ where: { pesquisaId: id } });
-    const todasRespostas = await this.respostaRepo.find({ where: { pesquisaId: id } });
+    // Busca questões na coleção 'questoes' (conforme imagem do banco)
+    // Usamos $or para cobrir casos onde o pesquisaId foi salvo como string ou como ObjectId
+    const questoes = await this.questaoRepo.find({ 
+      where: { 
+        $or: [
+          { pesquisaId: id },
+          { pesquisaId: objId as any },
+          { pesquisaId: String(id) }
+        ]
+      } as any
+    });
 
-    // Mapa para substituir IDs de questões por enunciados
-    const mapaQuestoes = questoes.reduce((acc, q) => {
-      const qId = q.id ? q.id.toString() : (q as any)._id?.toString();
-      acc[qId] = q.pergunta || (q as any).enunciado || "Questão sem título";
-      return acc;
-    }, {});
+    // Busca respostas na coleção 'Respostas'
+    const respostas = await this.respostaRepo.find({ 
+      where: { 
+        $or: [
+          { pesquisaId: id },
+          { pesquisaId: objId as any },
+          { pesquisaId: String(id) }
+        ]
+      } as any
+    });
 
-    const respostasFormatadas = todasRespostas.map(participacao => ({
-      respostas: participacao.respostas?.map(item => ({
-        questaoId: mapaQuestoes[item.questaoId] || item.questaoId,
-        valor: item.valor
-      })) || []
-    }));
+    // IMPORTANTE: Montamos o objeto exatamente como o RelatoriosService espera
+    // Injetamos o array de questões dentro do objeto pesquisa
+    const pesquisaCompleta = {
+      ...pesquisa,
+      questoes: questoes 
+    };
 
     return {
-      id: pesquisa.id,
+      pesquisa: pesquisaCompleta, // RelatoriosService usará isso para o mapaQuestoes
+      respostas: respostas,       // RelatoriosService usará isso para os valores
       titulo: pesquisa.titulo,
       estatisticas: {
         totalQuestoes: questoes.length,
-        totalParticipantes: todasRespostas.length,
-      },
-      respostas: respostasFormatadas 
+        totalParticipantes: respostas.length,
+      }
     };
   }
 
@@ -97,7 +107,7 @@ export class PesquisasService {
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
-      publicada: false,
+      publicada: false, 
     });
     return await this.repo.save(pesquisa);
   }
@@ -116,6 +126,7 @@ export class PesquisasService {
       }
     }
 
+    // Auditoria de alteração de prazo
     if (dto.dataFinal && dataFinalOriginal) {
       if (new Date(dto.dataFinal).getTime() !== new Date(dataFinalOriginal).getTime()) {
         await this.auditoriaService.registrar({
@@ -164,10 +175,18 @@ export class PesquisasService {
 
   async remove(id: string, usuario: any) {
     const pesquisa = await this.findOne(id);
+    const objId = new ObjectId(id);
 
-    await this.respostaRepo.deleteMany({ pesquisaId: id });
-    await this.questaoRepo.deleteMany({ pesquisaId: id });
-    await this.repo.deleteOne({ _id: new ObjectId(id) });
+    // Remove dependências em outras coleções
+    await this.respostaRepo.deleteMany({ 
+      $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] 
+    } as any);
+
+    await this.questaoRepo.deleteMany({ 
+      $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] 
+    } as any);
+
+    await this.repo.deleteOne({ _id: objId });
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
