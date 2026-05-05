@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ScheduleModule } from '@nestjs/schedule'; // ADICIONADO: Para suporte ao @Cron
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Módulos de Infraestrutura e Segurança
 import { UsersModule } from './users/user.module';
@@ -48,12 +48,13 @@ import { AppService } from './app.service';
   imports: [
     // 1. SUPORTE A EVENTOS E AGENDAMENTO
     EventEmitterModule.forRoot(),
-    ScheduleModule.forRoot(), // ADICIONADO: Ativa o motor de agendamentos do NestJS
+    // CORREÇÃO: Uso de Spread para evitar erro de tipagem no array de imports
+    ...(process.env.NODE_ENV !== 'test' ? [ScheduleModule.forRoot()] : []),
 
     // 2. CONFIGURAÇÃO GLOBAL
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['test/.env', '.env.test', '.env'], 
+      envFilePath: ['.env', '.env.test', 'test/.env'], 
     }),
 
     // 3. CONEXÃO MONGODB
@@ -68,7 +69,8 @@ import { AppService } from './app.service';
           type: 'mongodb',
           url,
           entities: [Pesquisa, Questao, Resposta, Auditoria],
-          synchronize: true, 
+          synchronize: true, // Manter true apenas em desenvolvimento
+          useUnifiedTopology: true,
           connectTimeoutMS: 10000,
         };
       },
@@ -98,7 +100,7 @@ import { AppService } from './app.service';
             User, Campus, Setor, Servico, 
             Curso, Disciplina, Matricula, Periodo, Turma
           ],
-          synchronize: true,
+          synchronize: true, // Manter true apenas em desenvolvimento
           connectTimeout: 10000, 
           retryAttempts: 2,      
           keepConnectionAlive: true,
@@ -114,8 +116,8 @@ import { AppService } from './app.service';
 
     // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
-    MailModule,          
-    NotificacoesModule,  
+    MailModule,          
+    NotificacoesModule,  
     UsersModule,
     AuthModule,
     PesquisasModule,
