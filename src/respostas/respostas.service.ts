@@ -12,7 +12,7 @@ import { ObjectId } from 'mongodb';
 import { Resposta } from './entities/resposta.entity';
 import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
 import { EnviarRespostaDto } from './dto/enviar-resposta.dto';
-import { AuditoriaService } from '../auditoria/auditoria.service'; // ADICIONADO
+import { AuditoriaService } from '../auditoria/auditoria.service';
 
 @Injectable()
 export class RespostasService {
@@ -23,21 +23,19 @@ export class RespostasService {
     @InjectRepository(Pesquisa, 'mongo')
     private readonly pesquisaRepo: MongoRepository<Pesquisa>,
 
-    private readonly auditoriaService: AuditoriaService, // INJEÇÃO ADICIONADA
+    private readonly auditoriaService: AuditoriaService,
   ) {}
 
   /**
-   * Registra a resposta vinculando ao ID numérico do aluno (proveniente do MySQL/JWT).
+   * Registra a resposta vinculando ao ID numérico do aluno e dispara auditoria.
    */
-  async registrarIdentificado(dto: EnviarRespostaDto, usuario: any) { // ALTERADO PARA RECEBER USUARIO COMPLETO
+  async registrarIdentificado(dto: EnviarRespostaDto, usuario: any) {
     const alunoId = usuario?.userId || usuario?.id;
 
-    // 1. Validação preventiva de identidade
     if (alunoId === undefined || alunoId === null) {
       throw new BadRequestException('Identificação do aluno ausente.');
     }
 
-    // Normalização para garantir que o MongoDB compare os tipos corretos
     const pesquisaIdNormalizada = dto.pesquisaId.toString();
     const alunoIdNumerico = Number(alunoId);
 
@@ -45,15 +43,17 @@ export class RespostasService {
       throw new BadRequestException('ID do aluno em formato inválido.');
     }
 
-    // 2. Valida se a pesquisa existe, está publicada e dentro do prazo
+    // 1. Valida se a pesquisa existe e está aberta
     await this.validarPesquisaEPrazo(pesquisaIdNormalizada);
 
-    // 3. Verificação de Duplicidade
+    // 2. Verificação de Duplicidade com busca flexível
     const jaRespondeu = await this.repo.findOne({
       where: {
-        pesquisaId: pesquisaIdNormalizada,
-        alunoId: alunoIdNumerico,
-      },
+        $or: [
+          { pesquisaId: pesquisaIdNormalizada, alunoId: alunoIdNumerico },
+          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoId: alunoIdNumerico }
+        ]
+      } as any,
     });
 
     if (jaRespondeu) {
@@ -62,7 +62,7 @@ export class RespostasService {
       );
     }
 
-    // 4. Persistência dos dados
+    // 3. Persistência
     const novaResposta = this.repo.create({
       pesquisaId: pesquisaIdNormalizada,
       respostas: dto.respostas,
@@ -72,12 +72,12 @@ export class RespostasService {
 
     const salvo = await this.repo.save(novaResposta);
 
-    // 5. DISPARO DA AUDITORIA (Ativa o e-mail detalhado)
+    // 4. Auditoria Silenciosa (Conforme novo protocolo)
     await this.auditoriaService.registrar({
       usuarioId: String(alunoIdNumerico),
       usuarioNome: usuario?.username || 'Aluno',
       entidade: 'Resposta',
-      entidadeId: (salvo as any)._id?.toString(),
+      entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
       acao: 'SUBMISSAO_RESPOSTA',
       dadosNovos: salvo,
     });
@@ -86,7 +86,7 @@ export class RespostasService {
   }
 
   /**
-   * Encapsula toda a lógica de validação de estado e tempo da pesquisa.
+   * Validação de estado, prazo e bloqueio de pesquisas encerradas.
    */
   private async validarPesquisaEPrazo(pesquisaId: string): Promise<Pesquisa> {
     if (!ObjectId.isValid(pesquisaId)) {
@@ -105,25 +105,23 @@ export class RespostasService {
       throw new ForbiddenException('Esta pesquisa ainda não está aberta para participação.');
     }
 
-    const agora = new Date();
-    const dataInicio = new Date(pesquisa.dataInicio);
-    const dataFinal = new Date(pesquisa.dataFinal);
-
-    if (isNaN(dataInicio.getTime()) || isNaN(dataFinal.getTime())) {
-      throw new BadRequestException('Erro na configuração de datas da pesquisa.');
+    // Bloqueia respostas se o Cron já marcou como encerrada (RF-300)
+    if (pesquisa.encerrada) {
+      throw new ForbiddenException('O período de coleta de dados para esta pesquisa já foi finalizado.');
     }
 
-    if (agora < dataInicio) {
+    const agora = new Date();
+    if (agora < new Date(pesquisa.dataInicio)) {
       throw new ForbiddenException({
         error: 'Prazo não iniciado',
-        message: `Esta avaliação estará disponível apenas em ${dataInicio.toLocaleString('pt-BR')}`,
+        message: `Esta avaliação estará disponível apenas em ${new Date(pesquisa.dataInicio).toLocaleString('pt-BR')}`,
       });
     }
 
-    if (agora > dataFinal) {
+    if (agora > new Date(pesquisa.dataFinal)) {
       throw new ForbiddenException({
         error: 'Prazo encerrado',
-        message: `O período de participação encerrou em ${dataFinal.toLocaleString('pt-BR')}`,
+        message: `O período de participação encerrou em ${new Date(pesquisa.dataFinal).toLocaleString('pt-BR')}`,
       });
     }
 
@@ -139,7 +137,12 @@ export class RespostasService {
     }
 
     return await this.repo.find({
-      where: { pesquisaId: pesquisaId.toString() },
+      where: {
+        $or: [
+          { pesquisaId: pesquisaId.toString() },
+          { pesquisaId: new ObjectId(pesquisaId) as any }
+        ]
+      } as any,
       order: { enviadoEm: 'DESC' },
     });
   }

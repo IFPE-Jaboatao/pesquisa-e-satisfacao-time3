@@ -3,13 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PesquisasService } from './pesquisas.service';
 import { PesquisasController } from './pesquisas.controller';
 import { Pesquisa } from './entities/pesquisa.entity';
+import { PesquisasCronService } from './pesquisa.cron.service'; // Novo Service de Agendamento
 
 // Entidades vinculadas para operações em cascata e relatórios
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 
-// Importação necessária para o AuditoriaService injetado no PesquisasService
+// Importações necessárias para Auditoria e Notificações (RF-300)
 import { AuditoriaModule } from '../auditoria/auditoria.module';
+import { MailModule } from '../mail/mail.module'; // Importado para permitir o envio de e-mails
 
 @Module({
   imports: [
@@ -21,12 +23,14 @@ import { AuditoriaModule } from '../auditoria/auditoria.module';
       ],
       'mongo',
     ),
-    // Adicionado para suportar a lógica de logs de alteração e exclusão
     AuditoriaModule, 
+    MailModule, // Adicionado para que o PesquisasCronService possa injetar o MailService
   ],
-  providers: [PesquisasService],
+  providers: [
+    PesquisasService, 
+    PesquisasCronService // Registrado como provider para ativar o @Cron
+  ],
   controllers: [PesquisasController],
-  // Exportamos o service para que RelatoriosModule possa utilizá-lo se necessário
   exports: [PesquisasService], 
 })
 export class PesquisasModule {}

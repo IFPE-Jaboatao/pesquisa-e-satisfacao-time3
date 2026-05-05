@@ -6,7 +6,6 @@ import { MailService } from './mail.service';
 
 @Module({
   imports: [
-    // Importamos o seu ConfigModule para ter acesso aos getters do AppConfigService
     ConfigModule, 
     MailerModule.forRootAsync({
       imports: [ConfigModule],
@@ -14,7 +13,7 @@ import { MailService } from './mail.service';
         transport: {
           host: config.mailHost,
           port: config.mailPort,
-          secure: config.mailPort === 465, // Dinâmico: true para 465, false para outras
+          secure: config.mailPort === 465,
           auth: {
             user: config.mailUser,
             pass: config.mailPass,
@@ -28,6 +27,6 @@ import { MailService } from './mail.service';
     }),
   ],
   providers: [MailService],
-  exports: [MailService], // Essencial para resolver o erro de dependência no NotificacoesService
+  exports: [MailService], // Exportação mantida para uso no PesquisasModule/CronService
 })
 export class MailModule {}

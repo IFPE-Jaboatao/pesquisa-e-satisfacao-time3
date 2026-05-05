@@ -9,7 +9,7 @@ import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreateQuestaoDto } from './dto/create-questao.dto';
-import { AuditoriaService } from '../auditoria/auditoria.service'; // IMPORTANTE
+import { AuditoriaService } from '../auditoria/auditoria.service';
 
 @Injectable()
 export class QuestoesService {
@@ -20,17 +20,16 @@ export class QuestoesService {
     @InjectRepository(Pesquisa, 'mongo')
     private readonly pesquisaRepo: MongoRepository<Pesquisa>,
 
-    private readonly auditoriaService: AuditoriaService, // INJEÇÃO NECESSÁRIA
+    private readonly auditoriaService: AuditoriaService,
   ) {}
 
-  async create(dto: CreateQuestaoDto, usuario: any) { // RECEBE O USUÁRIO
-    // valida pesquisaId
+  async create(dto: CreateQuestaoDto, usuario: any) {
     if (!ObjectId.isValid(dto.pesquisaId)) {
       throw new BadRequestException('ID da pesquisa inválido');
     }
 
-    const pesquisa = await this.pesquisaRepo.findOneBy({
-      _id: new ObjectId(dto.pesquisaId),
+    const pesquisa = await this.pesquisaRepo.findOne({
+      where: { _id: new ObjectId(dto.pesquisaId) } as any,
     });
 
     if (!pesquisa) {
@@ -40,12 +39,12 @@ export class QuestoesService {
     const questao = this.repo.create(dto);
     const salvo = await this.repo.save(questao);
 
-    // DISPARO DA AUDITORIA (Ativa o NotificacoesService e o e-mail)
+    // Auditoria silenciosa para rastreabilidade no MongoDB
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'sistema'),
       usuarioNome: usuario?.username || 'Admin',
       entidade: 'Questao',
-      entidadeId: (salvo as any)._id?.toString(),
+      entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
       acao: 'CRIACAO_QUESTAO',
       dadosNovos: salvo,
     });
@@ -54,19 +53,20 @@ export class QuestoesService {
   }
 
   async findByPesquisa(pesquisaId: string) {
-    // valida ID
     if (!ObjectId.isValid(pesquisaId)) {
       throw new BadRequestException('ID inválido');
     }
 
+    // Busca flexível para garantir que encontre a questão independente do formato do ID salvo
     const questoes = await this.repo.find({
-      where: { pesquisaId },
+      where: {
+        $or: [
+          { pesquisaId: pesquisaId },
+          { pesquisaId: new ObjectId(pesquisaId) as any }
+        ]
+      } as any,
     });
 
-    if (!questoes.length) {
-      throw new NotFoundException('Nenhuma questão encontrada');
-    }
-
-    return questoes;
+    return questoes; // Removido o throw para permitir que relatórios venham vazios sem quebrar o fluxo
   }
 }

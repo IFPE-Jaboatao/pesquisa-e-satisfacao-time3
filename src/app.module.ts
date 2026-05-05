@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule'; // ADICIONADO: Para suporte ao @Cron
 
 // Módulos de Infraestrutura e Segurança
 import { UsersModule } from './users/user.module';
@@ -10,7 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { AnonymousModule } from './anonymous/anonymous.module'; 
 import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacoesModule } from './notificacoes/notificacoes.module';
-import { MailModule } from './mail/mail.module'; // ADICIONADO: Nova pasta mail
+import { MailModule } from './mail/mail.module'; 
 import { RelatoriosModule } from './relatorios/relatorios.module';
 
 // Módulos de Negócio (Pesquisas)
@@ -45,8 +46,9 @@ import { AppService } from './app.service';
 
 @Module({
   imports: [
-    // 1. SUPORTE A EVENTOS
+    // 1. SUPORTE A EVENTOS E AGENDAMENTO
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(), // ADICIONADO: Ativa o motor de agendamentos do NestJS
 
     // 2. CONFIGURAÇÃO GLOBAL
     ConfigModule.forRoot({
@@ -112,8 +114,8 @@ import { AppService } from './app.service';
 
     // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
-    MailModule,          // ADICIONADO: Registra o novo módulo de e-mail
-    NotificacoesModule,  // MANTIDO: Importado de './notificacoes/notificacoes.module'
+    MailModule,          
+    NotificacoesModule,  
     UsersModule,
     AuthModule,
     PesquisasModule,
