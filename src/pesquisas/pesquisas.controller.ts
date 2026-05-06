@@ -69,8 +69,10 @@ export class PesquisasController {
 
   @Post()
   @Roles(Role.GESTOR, Role.ADMIN)
-  create(@Body() dto: CreatePesquisaDto) {
-    return this.service.create(dto);
+  async create(@Body() dto: CreatePesquisaDto, @Req() req: any) {
+    // Captura o usuário da requisição para alimentar a auditoria
+    const usuario = req.user;
+    return await this.service.create(dto, usuario);
   }
 
   @Patch(':id')

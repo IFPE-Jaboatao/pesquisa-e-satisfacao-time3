@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 
 import { QuestoesService } from './questoes.service';
@@ -25,8 +26,9 @@ export class QuestoesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.ADMIN, Role.GESTOR) 
-  create(@Body() dto: CreateQuestaoDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateQuestaoDto, @Req() req: any) {
+    // Passamos o req.user para o service para disparar o e-mail de auditoria
+    return this.service.create(dto, req.user);
   }
 
   /**

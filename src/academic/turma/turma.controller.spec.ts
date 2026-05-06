@@ -8,7 +8,18 @@ describe('TurmaController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TurmaController],
-      providers: [TurmaService],
+      providers: [
+        {
+          provide: TurmaService,
+          useValue: {
+            create: jest.fn(),
+            findAll: jest.fn(),
+            findOne: jest.fn(),
+            update: jest.fn(),
+            remove: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<TurmaController>(TurmaController);

@@ -80,6 +80,14 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦       anonymous.module.ts
 ¦       anonymous.strategy.ts
 ¦       
++---auditoria
+¦   ¦   auditoria.controller.ts
+¦   ¦   auditoria.module.ts
+¦   ¦   auditoria.service.ts
+¦   ¦   
+¦   +---entities
+¦           auditoria.entity.ts
+¦           
 +---auth
 ¦   ¦   auth.controller.ts
 ¦   ¦   auth.module.ts
@@ -147,7 +155,16 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦       +---entities
 ¦               setor.entity.ts
 ¦               
++---mail
+¦       mail.module.ts
+¦       mail.service.ts
+¦       
++---notificacoes
+¦       notificacoes.module.ts
+¦       notificacoes.service.ts
+¦       
 +---pesquisas
+¦   ¦   pesquisa.cron.service.ts
 ¦   ¦   pesquisas.controller.ts
 ¦   ¦   pesquisas.module.ts
 ¦   ¦   pesquisas.service.ts
@@ -171,6 +188,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦           
 +---relatorios
 ¦       relatorios.controller.ts
+¦       relatorios.module.ts
 ¦       relatorios.service.ts
 ¦       
 +---respostas

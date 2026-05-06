@@ -32,16 +32,16 @@ export class RespostasController {
     @Req() req: any, 
     @Body() dto: EnviarRespostaDto
   ) {
-    // Sincronizado com a JwtStrategy que retorna 'id'
-    const alunoId = req.user?.id;
-
-    if (!alunoId) {
+    // Verificamos se o usuário existe no request (preenchido pelo JwtAuthGuard)
+    if (!req.user) {
       throw new UnauthorizedException(
-        'Falha na identificação: ID do usuário ausente no token.'
+        'Falha na identificação: Usuário não autenticado.'
       );
     }
 
-    return this.service.registrarIdentificado(dto, alunoId);
+    // Passamos o objeto req.user completo para o service.
+    // Isso permite que o service extraia o ID para o banco e o Nome para o e-mail.
+    return this.service.registrarIdentificado(dto, req.user);
   }
 
   /**

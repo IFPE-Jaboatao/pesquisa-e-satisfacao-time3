@@ -54,46 +54,17 @@ export class PesquisasService {
     return pesquisa;
   }
 
-  /**
-   * CORREÇÃO CRÍTICA: Busca questões e respostas garantindo compatibilidade de tipos de ID.
-   */
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
     const objId = new ObjectId(id);
     
-    // Busca questões na coleção 'questoes' (conforme imagem do banco)
-    // Usamos $or para cobrir casos onde o pesquisaId foi salvo como string ou como ObjectId
-    const questoes = await this.questaoRepo.find({ 
-      where: { 
-        $or: [
-          { pesquisaId: id },
-          { pesquisaId: objId as any },
-          { pesquisaId: String(id) }
-        ]
-      } as any
-    });
-
-    // Busca respostas na coleção 'Respostas'
-    const respostas = await this.respostaRepo.find({ 
-      where: { 
-        $or: [
-          { pesquisaId: id },
-          { pesquisaId: objId as any },
-          { pesquisaId: String(id) }
-        ]
-      } as any
-    });
-
-    // IMPORTANTE: Montamos o objeto exatamente como o RelatoriosService espera
-    // Injetamos o array de questões dentro do objeto pesquisa
-    const pesquisaCompleta = {
-      ...pesquisa,
-      questoes: questoes 
-    };
+    const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }, { pesquisaId: String(id) }] };
+    const questoes = await this.questaoRepo.find({ where: filter as any });
+    const respostas = await this.respostaRepo.find({ where: filter as any });
 
     return {
-      pesquisa: pesquisaCompleta, // RelatoriosService usará isso para o mapaQuestoes
-      respostas: respostas,       // RelatoriosService usará isso para os valores
+      pesquisa: { ...pesquisa, questoes },
+      respostas,
       titulo: pesquisa.titulo,
       estatisticas: {
         totalQuestoes: questoes.length,
@@ -102,40 +73,57 @@ export class PesquisasService {
     };
   }
 
-  async create(dto: CreatePesquisaDto) {
+  async create(dto: CreatePesquisaDto, usuario: any) {
     const pesquisa = this.repo.create({
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
       publicada: false, 
+      finalizada: false, // ATUALIZADO: Alinhado ao seu CreatePesquisaDto
     });
-    return await this.repo.save(pesquisa);
+    
+    const salvo = await this.repo.save(pesquisa);
+
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
+      acao: 'CRIACAO_PESQUISA',
+      dadosNovos: salvo
+    });
+
+    return salvo;
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
-    const isPublicada = pesquisaAtual?.publicada;
-    const dataFinalOriginal = pesquisaAtual?.dataFinal;
+    
+    // Proteção contra body vazio ou nulo
+    const camposEditados = Object.keys(dto || {});
+    if (camposEditados.length === 0) {
+      return { message: 'Nenhuma alteração detectada' };
+    }
 
-    if (isPublicada === true) {
-      const camposEditados = Object.keys(dto);
+    if (pesquisaAtual.publicada) {
       const apenasDataFinal = camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
       
-      if (!apenasDataFinal && camposEditados.length > 0) {
+      if (!apenasDataFinal) {
         throw new ForbiddenException('Apenas o prazo final de pesquisas publicadas pode ser editado.');
       }
     }
 
-    // Auditoria de alteração de prazo
-    if (dto.dataFinal && dataFinalOriginal) {
-      if (new Date(dto.dataFinal).getTime() !== new Date(dataFinalOriginal).getTime()) {
+    // Auditoria de prazo com proteção adicional de nulidade
+    if (dto.dataFinal && pesquisaAtual.dataFinal) {
+      const novaData = new Date(dto.dataFinal).getTime();
+      const dataAntiga = new Date(pesquisaAtual.dataFinal).getTime();
+
+      if (novaData !== dataAntiga) {
         await this.auditoriaService.registrar({
           usuarioId: String(usuario?.userId || usuario?.id || 'system'),
-          usuarioNome: usuario?.username || 'Admin',
-          entidade: 'Pesquisa',
           entidadeId: id,
           acao: 'ALTERACAO_PRAZO',
-          dadosAnteriores: { dataFinal: dataFinalOriginal },
+          dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
           dadosNovos: { dataFinal: dto.dataFinal }
         });
       }
@@ -155,16 +143,10 @@ export class PesquisasService {
 
   async publicar(id: string, usuario: any) {
     await this.findOne(id);
-
-    await this.repo.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { publicada: true } }
-    );
+    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: { publicada: true } });
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
-      usuarioNome: usuario?.username || 'Admin',
-      entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'PUBLICAR_PESQUISA',
       dadosNovos: { publicada: true }
@@ -176,22 +158,14 @@ export class PesquisasService {
   async remove(id: string, usuario: any) {
     const pesquisa = await this.findOne(id);
     const objId = new ObjectId(id);
+    const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] };
 
-    // Remove dependências em outras coleções
-    await this.respostaRepo.deleteMany({ 
-      $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] 
-    } as any);
-
-    await this.questaoRepo.deleteMany({ 
-      $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] 
-    } as any);
-
+    await this.respostaRepo.deleteMany(filter as any);
+    await this.questaoRepo.deleteMany(filter as any);
     await this.repo.deleteOne({ _id: objId });
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
-      usuarioNome: usuario?.username || 'Admin',
-      entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'REMOVER_PESQUISA',
       dadosAnteriores: { titulo: pesquisa.titulo }
