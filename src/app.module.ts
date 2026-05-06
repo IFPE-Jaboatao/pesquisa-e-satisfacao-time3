@@ -48,13 +48,14 @@ import { AppService } from './app.service';
   imports: [
     // 1. SUPORTE A EVENTOS E AGENDAMENTO
     EventEmitterModule.forRoot(),
-    // CORREÇÃO: Uso de Spread para evitar erro de tipagem no array de imports
+    // MANTIDO: Lógica de branch para evitar disparos de Cron em ambiente de teste
     ...(process.env.NODE_ENV !== 'test' ? [ScheduleModule.forRoot()] : []),
 
     // 2. CONFIGURAÇÃO GLOBAL
+    // RECOMENDADO: Ordem da Main para proteger o banco de produção no CI
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '.env.test', 'test/.env'], 
+      envFilePath: ['test/.env', '.env.test', '.env'], 
     }),
 
     // 3. CONEXÃO MONGODB
@@ -69,7 +70,7 @@ import { AppService } from './app.service';
           type: 'mongodb',
           url,
           entities: [Pesquisa, Questao, Resposta, Auditoria],
-          synchronize: true, // Manter true apenas em desenvolvimento
+          synchronize: true, 
           useUnifiedTopology: true,
           connectTimeoutMS: 10000,
         };
@@ -100,7 +101,8 @@ import { AppService } from './app.service';
             User, Campus, Setor, Servico, 
             Curso, Disciplina, Matricula, Periodo, Turma
           ],
-          synchronize: true, // Manter true apenas em desenvolvimento
+          // MANTIDO: Sincronização para refletir o Soft Delete da Adila
+          synchronize: true, 
           connectTimeout: 10000, 
           retryAttempts: 2,      
           keepConnectionAlive: true,
@@ -116,7 +118,8 @@ import { AppService } from './app.service';
 
     // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
-    MailModule,          
+    // ADICIONADO: MailModule da sua branch para a automação funcionar
+    MailModule,           
     NotificacoesModule,  
     UsersModule,
     AuthModule,
@@ -128,6 +131,7 @@ import { AppService } from './app.service';
     InstitutionalModule,
     AcademicModule,
   ],
+  // MANTIDO: Estrutura da Main para evitar o erro 404 na rota '/'
   controllers: [AppController],
   providers: [AppService],
 })

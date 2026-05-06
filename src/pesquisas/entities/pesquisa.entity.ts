@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 @Entity('pesquisas')
 export class Pesquisa {
   @ObjectIdColumn()
-  id!: ObjectId;
+  id!: ObjectId; // Identificador nativo do MongoDB
 
   @Column()
   titulo!: string;
@@ -16,36 +16,17 @@ export class Pesquisa {
   dataFinal!: Date;
 
   @Column()
-  tipo!: string; 
+  tipo!: string; // Ex: 'INSTITUCIONAL', 'ACADEMICO'
 
   @Column({ default: false })
-  publicada: boolean = false; 
-
-  @Column({ default: false })
-  finalizada: boolean = false; 
-
-  @Column({ default: false })
-  encerrada: boolean = false; 
-
-  @Column({ default: false })
-  notificacaoAberturaEnviada: boolean = false;
-
-  // NOVO: Armazena a data do último envio de lembretes para evitar loops no mesmo dia
-  @Column({ nullable: true })
-  dataUltimoLembrete?: Date;
+  publicada: boolean = false; // Valor padrão para evitar campos 'undefined'
 
   @Column()
-  emailDocente!: string;
-
-  @Column({ nullable: true })
-  assunto?: string; 
-
-  @Column()
-  turmaId!: number; 
+  turmaId!: number; // Usado pelo método findAllByTurma no service
 
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt!: Date; 
+  updatedAt!: Date; // Útil para auditoria e controle de alterações
 }
