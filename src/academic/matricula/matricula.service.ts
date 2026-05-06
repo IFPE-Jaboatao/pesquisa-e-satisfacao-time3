@@ -37,6 +37,7 @@ export class MatriculaService {
         turma: { id: turmaId },
         aluno: { id: alunoId },
       },
+      withDeleted: false
     });
 
     if (exists) {
@@ -45,8 +46,8 @@ export class MatriculaService {
 
     // busca paralela
     const [turma, aluno] = await Promise.all([
-      this.turmaRepo.findOne({ where: { id: turmaId } }),
-      this.usersRepo.findOne({ where: { id: alunoId } }),
+      this.turmaRepo.findOne({ where: { id: turmaId }, withDeleted: false }),
+      this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false }),
     ]);
 
     // validações
@@ -90,7 +91,9 @@ export class MatriculaService {
       id: outputMatricula?.id,
       aluno: {
         id: outputMatricula?.aluno.id,
-        username: outputMatricula?.aluno.username,
+        matricula: outputMatricula?.aluno.matricula,
+        nome: outputMatricula?.aluno.nome,
+        email: outputMatricula?.aluno.email,
       },
       turma: {
         id: outputMatricula?.turma.id,
@@ -98,7 +101,9 @@ export class MatriculaService {
         disciplina: outputMatricula?.turma.disciplina,
         docente: {
           id: outputMatricula?.turma.docente?.id,
-          username: outputMatricula?.turma.docente?.username,
+          matricula: outputMatricula?.turma.docente?.matricula,
+          nome: outputMatricula?.turma.docente?.nome,
+          email: outputMatricula?.turma.docente?.email,
         },
         periodo: outputMatricula?.turma.periodo,
       },
@@ -128,13 +133,17 @@ export class MatriculaService {
         turmaDisciplina: matriculas[0]?.turma.disciplina,
         turmaDocente: {
           id: matriculas[0]?.turma.docente.id,
-          username: matriculas[0]?.turma.docente.username,
+          matricula: matriculas[0]?.turma.docente.matricula,
+          nome: matriculas[0]?.turma.docente.nome,
+          email: matriculas[0]?.turma.docente.email,
         },
         matriculas: matriculas?.map((matricula) => ({
           id: matricula?.id,
           aluno: {
             id: matricula?.aluno.id,
-            username: matricula?.aluno.username,
+            matricula: matricula?.aluno.matricula,
+            nome: matricula?.aluno.nome,
+            email: matricula?.aluno.email,
           },
         })),
       };
@@ -150,10 +159,12 @@ export class MatriculaService {
         periodo: matricula?.turma.periodo,
         docente: {
           id: matricula?.turma.docente.id,
-          username: matricula?.turma.docente.username,
+          matricula: matricula?.turma.docente.matricula,
+          nome: matricula?.turma.docente.nome,
+          email: matricula?.turma.docente.email,
         },
       },
-      aluno: { id: matricula?.aluno?.id, username: matricula?.aluno?.username },
+      aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
     }));
   }
 
@@ -183,7 +194,9 @@ export class MatriculaService {
     // informações do aluno não se repetem
     return {
       alunoId: matriculas[0]?.aluno.id,
-      alunoUsername: matriculas[0]?.aluno.username,
+      alunoMatricula: matriculas[0]?.aluno.matricula,
+      alunoNome: matriculas[0]?.aluno.nome,
+      alunoEmail: matriculas[0]?.aluno.email,
       matriculas: matriculas?.map((matricula) => ({
         id: matricula?.id,
         turma: {
@@ -196,7 +209,9 @@ export class MatriculaService {
           periodo: matricula?.turma.periodo,
           docente: {
             id: matricula?.turma.docente.id,
-            username: matricula?.turma.docente.username,
+            matricula: matricula?.turma.docente.matricula,
+            nome: matricula?.turma.docente.nome,
+            email: matricula?.turma.docente.email,
           },
         },
       })),
@@ -217,6 +232,7 @@ export class MatriculaService {
           disciplina: true,
         },
       },
+      withDeleted: false
     });
 
     if (!matricula) throw new NotFoundException('Matrícula não encontrada!');
@@ -230,10 +246,12 @@ export class MatriculaService {
         periodo: matricula?.turma.periodo,
         docente: {
           id: matricula?.turma.docente.id,
-          username: matricula?.turma.docente.username,
+          matricula: matricula?.turma.docente.matricula,
+          nome: matricula?.turma.docente.nome,
+          email: matricula?.turma.docente.email,
         },
       },
-      aluno: { id: matricula?.aluno?.id, username: matricula?.aluno?.username },
+      aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
     };
   }
 
@@ -245,10 +263,11 @@ export class MatriculaService {
         aluno: true,
         turma: true,
       },
+      withDeleted: false
     });
 
     if (!matricula) {
-      throw new NotFoundException('Turma não encontrada!');
+      throw new NotFoundException('Matrícula não encontrada!');
     }
 
     // validação de duplicidade (excluindo ela mesma)
@@ -257,6 +276,7 @@ export class MatriculaService {
         aluno: { id: updateMatriculaDTO.alunoId ?? matricula.aluno.id },
         turma: { id: updateMatriculaDTO.turmaId ?? matricula.turma.id },
       },
+      withDeleted: false
     });
 
     if (exists && exists.id !== id) {
@@ -266,6 +286,7 @@ export class MatriculaService {
     // valida turma
     const turma = await this.turmaRepo.findOne({
       where: { id: updateMatriculaDTO.turmaId ?? matricula.turma.id },
+      withDeleted: false
     });
 
     if (!turma) {
@@ -278,6 +299,7 @@ export class MatriculaService {
     if (updateMatriculaDTO.alunoId) {
       const found = await this.usersRepo.findOne({
         where: { id: updateMatriculaDTO.alunoId },
+        withDeleted: false
       });
 
       if (!found) {
@@ -309,6 +331,7 @@ export class MatriculaService {
           periodo: true,
         },
       },
+      withDeleted: false
     });
 
     return {
@@ -320,19 +343,23 @@ export class MatriculaService {
         disciplina: updated?.turma.disciplina,
         docente: {
           id: updated?.turma.docente.id,
-          username: updated?.turma.docente.username,
+          matricula: updated?.turma.docente.matricula,
+          nome: updated?.turma.docente.nome,
+          email: updated?.turma.docente.email,
         },
       },
       aluno: {
         id: updated?.aluno?.id,
-        username: updated?.aluno?.username,
+        matricula: updated?.aluno?.matricula,
+        nome: updated?.aluno?.nome,
+        email: updated?.aluno?.email,
       },
     };
   }
 
   // deletar matrícula
   async remove(id: number) {
-    const result = await this.matriculaRepo.delete(id);
+    const result = await this.matriculaRepo.softDelete(id);
 
     if (result.affected === 0)
       throw new NotFoundException('Matrícula não encontrada!');

@@ -1,7 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Delete } from "@nestjs/common";
+import { CreateDisciplinaDto } from "src/academic/disciplina/dto/create-disciplina.dto";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 
 @Entity()
-@Unique(['ano', 'semestre'])
 export class Periodo {
 
     @PrimaryGeneratedColumn()
@@ -12,5 +13,20 @@ export class Periodo {
 
     @Column()
     semestre!: number
+
+    @Column({ type: 'date' })
+    startDate!: string;
+
+    @Column({ type: 'date' })
+    endDate!: string;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date;
+
+    @DeleteDateColumn({ type: 'timestamp', nullable: true })
+    deletedAt?: Date;
 
 }

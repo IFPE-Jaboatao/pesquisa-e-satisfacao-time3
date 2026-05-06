@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from './user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,6 +32,7 @@ export class UsersService implements OnModuleInit {
   private async seedAdmin() {
     const adminExists = await this.repo.findOne({
       where: { role: Role.ADMIN },
+      withDeleted: false
     });
 
     if (adminExists) return;
@@ -48,7 +49,9 @@ export class UsersService implements OnModuleInit {
     const hashed = await bcrypt.hash(password, 10);
 
     const admin = this.repo.create({
-      username: 'admin',
+      matricula: 'admin',
+      nome: 'Administrador',
+      email: 'admin@example.com',
       password: hashed,
       role: Role.ADMIN,
     });
@@ -61,13 +64,22 @@ export class UsersService implements OnModuleInit {
   // MÉTODOS DE BUSCA
   // -------------------------------------------------------------------------
 
-  findByUsername(username: string) {
-    return this.repo.findOne({ where: { username } });
+  async findDeleted() {
+    return await this.repo.find({
+      where: { deletedAt: Not(IsNull()) },
+      withDeleted: true,
+      select: ['id', 'matricula', 'nome', 'email', 'role', 'createdAt', 'updatedAt', 'deletedAt']
+    });
+  }
+
+  findByMatricula(matricula: string) {
+    return this.repo.findOne({ where: { matricula }, withDeleted: false });
   }
 
   async findAll() {
     return this.repo.find({
-      select: ['id', 'username', 'role'],
+      select: ['id', 'matricula', 'nome', 'email', 'role'],
+      withDeleted: false
     });
   }
 
@@ -76,7 +88,8 @@ export class UsersService implements OnModuleInit {
 
     const user = await this.repo.findOne({
       where: { id },
-      select: ['id', 'username', 'role'],
+      select: ['id', 'matricula', 'nome', 'email', 'role'],
+      withDeleted: false
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -88,15 +101,23 @@ export class UsersService implements OnModuleInit {
   // -------------------------------------------------------------------------
 
   async create(dto: CreateUserDto) {
-    const userExists = await this.findByUsername(dto.username);
+    const userExists = await this.findByMatricula(dto.matricula);
     if (userExists) {
-      throw new ConflictException('Este nome de usuário já está em uso');
+      throw new ConflictException('Esta matrícula já está em uso');
+    }
+
+    // verifica se o email já está em uso
+    const emailExists = await this.repo.findOne({ where: { email: dto.email }, withDeleted: false });
+    if (emailExists) {
+      throw new ConflictException('Este email já está em uso');
     }
 
     const hashed = await bcrypt.hash(dto.password, 10);
 
     const user = this.repo.create({
-      username: dto.username,
+      matricula: dto.matricula,
+      nome: dto.nome,
+      email: dto.email,
       role: dto.role ?? Role.ALUNO,
       password: hashed,
     });
@@ -105,16 +126,27 @@ export class UsersService implements OnModuleInit {
 
     return {
       id: savedUser.id,
-      username: savedUser.username,
+      matricula: savedUser.matricula,
+      nome: savedUser.nome,
+      email: savedUser.email,
       role: savedUser.role,
     };
   }
 
-  async update(userId: string, dto: Partial<{ username: string; password: string }>) {
+  async update(userId: string, dto: Partial<{ matricula: string; password: string, email: string; nome: string; role: Role }>) {
     const id = Number(userId);
-
-    const user = await this.repo.findOne({ where: { id } });
+    
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
     if (!user) throw new NotFoundException('Usuário não encontrado');
+    
+    // verifica se o email já está em uso por outro usuário
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.repo.findOne({ where: { email: dto.email }, withDeleted: false });
+
+      if (emailExists) {
+        throw new ConflictException('Este email já está em uso.');
+      }
+    }
 
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
@@ -126,7 +158,9 @@ export class UsersService implements OnModuleInit {
 
     return {
       id: updated.id,
-      username: updated.username,
+      matricula: updated.matricula,
+      nome: updated.nome,
+      email: updated.email,
       role: updated.role,
     };
   }
@@ -134,7 +168,7 @@ export class UsersService implements OnModuleInit {
   async updatePassword(userId: string, passwordRaw: string) {
     const id = Number(userId);
 
-    const user = await this.repo.findOne({ where: { id } });
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     const hashed = await bcrypt.hash(passwordRaw, 10);
@@ -147,12 +181,14 @@ export class UsersService implements OnModuleInit {
 
   async delete(userId: string) {
     const id = Number(userId);
+    // verifica se o usuário existe sem considerar os deletados
+    
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
 
-    const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    await this.repo.remove(user);
+    await this.repo.softDelete(userId);
 
-    return { message: `Usuário "${user.username}" removido com sucesso` };
+    return { message: `Usuário de matrícula "${user.matricula}" removido com sucesso` };
   }
 }

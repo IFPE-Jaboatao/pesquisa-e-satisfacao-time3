@@ -1,10 +1,14 @@
-import { IsNumber, IsString, MinLength } from "class-validator";
+import { IsEnum, IsNumber, IsString, MinLength } from "class-validator";
+import { Turnos } from "../turma-turnos.enum";
 
 export class CreateTurmaDto {
 
     @IsString()
     @MinLength(2)
     nome!: string;
+
+    @IsEnum(Turnos)
+    turno!: Turnos;
 
     @IsNumber()
     disciplinaId!: number

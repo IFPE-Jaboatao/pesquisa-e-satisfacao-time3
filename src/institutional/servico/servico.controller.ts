@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { ServicoService } from './servico.service';
 import { CreateServicoDto } from './dto/create-servico.dto';
 import { UpdateServicoDto } from './dto/update-servico.dto';
@@ -28,21 +28,25 @@ export class ServicoController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.ADMIN)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.servicoService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateServicoDto: UpdateServicoDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateServicoDto: UpdateServicoDto) {
+    if (Object.keys(updateServicoDto).length === 0) {
+      throw new BadRequestException('Não foram fornecidos dados para atualização.');
+    }
+
     return this.servicoService.update(+id, updateServicoDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.servicoService.remove(+id);
   }
 }

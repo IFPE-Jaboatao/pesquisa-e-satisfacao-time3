@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,9 +20,22 @@ export class CursoService {
 
   async create(createCursoDto: CreateCursoDto) {
 
-    const campus = await this.campusRepo.findOne({where:{id: createCursoDto.campusId}});
+    const campus = await this.campusRepo.findOne({where:{id: createCursoDto.campusId}, withDeleted: false});
 
-    if (!campus) throw new NotFoundException("Campus não encontrado!")
+    if (!campus) throw new NotFoundException("Campus não encontrado!");
+
+    // verificar se já existe um curso com o mesmo nome nesse campus (não inclui deletados)
+    const existing = await this.cursoRepo.findOne(
+      { where: 
+        { nome: createCursoDto.nome,
+          campus: { 
+            id: createCursoDto.campusId 
+          } },
+          withDeleted: false });
+
+    if (existing) {
+      throw new ConflictException("Já existe um curso com esse nome nesse campus!");
+    }
 
     const curso = this.cursoRepo.create({
       nome: createCursoDto.nome,
@@ -37,18 +50,21 @@ export class CursoService {
     const cursos = await this.cursoRepo.find({
       where: campusId ? { campus: { id:campusId } } : {},
       relations: { campus: true },
+        withDeleted: false
     })
 
     return cursos.map((curso) => ({
       id: curso.id,
       nome: curso.nome,
       campusId: curso.campus?.id,
+      createdAt: curso.createdAt,
+      updatedAt: curso.updatedAt,
       disciplinas: curso.disciplinas
     }));
   }
 
   async findOne(id: number) {
-    const curso = await this.cursoRepo.findOne({where: {id}, relations: {campus: true}})
+    const curso = await this.cursoRepo.findOne({where: {id}, withDeleted: false, relations: {campus: true}})
 
     if (!curso) throw new NotFoundException("Curso não encontrado!")
 
@@ -56,12 +72,14 @@ export class CursoService {
       id: curso.id,
       nome: curso.nome,
       campusId: curso.campus?.id,
+      createdAt: curso.createdAt,
+      updatedAt: curso.updatedAt,
       disciplinas: curso.disciplinas
     };
   }
 
   async update(id: number, updateCursoDto: UpdateCursoDto) {
-    const curso = await this.cursoRepo.findOne({where: {id}})
+    const curso = await this.cursoRepo.findOne({where: {id}, withDeleted: false})
 
     if (!curso) throw new NotFoundException("Curso não encontrado!")
 
@@ -78,16 +96,18 @@ export class CursoService {
     return {
       id: updated?.id,
       nome: updated?.nome,
-      campusId: updated?.campus?.id
+      campusId: updated?.campus?.id,
+      createdAt: updated?.createdAt,
+      updatedAt: updated?.updatedAt
     };
   }
 
   async remove(id: number) {
-    const curso = await this.cursoRepo.findOne({where: {id}})
+    const curso = await this.cursoRepo.findOne({where: {id}, withDeleted: false});
 
     if (!curso) throw new NotFoundException("Curso não encontrado!")
 
-    const result = await this.cursoRepo.delete(id);
+    const result = await this.cursoRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Curso não encontrado!")
 

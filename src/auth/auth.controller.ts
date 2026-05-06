@@ -19,14 +19,14 @@ export class AuthController {
       throw new BadRequestException('Body não enviado');
     }
 
-    const { username, password } = body;
+    const { matricula, password } = body;
 
     // validação dos campos
-    if (!username || !password) {
-      throw new BadRequestException('Username e password são obrigatórios');
+    if (!matricula || !password) {
+      throw new BadRequestException('Matrícula e password são obrigatórios');
     }
 
-    const user = await this.authService.validateUser(username, password);
+    const user = await this.authService.validateUser(matricula, password);
 
     // validação de credenciais
     if (!user) {
