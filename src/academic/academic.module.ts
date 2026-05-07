@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Injectable, Module } from '@nestjs/common';
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 
 import { CursoController } from './curso/curso.controller';
 import { DisciplinaController } from './disciplina/disciplina.controller';
@@ -20,6 +20,10 @@ import { Periodo } from './periodo/entities/periodo.entity';
 import { Matricula } from './matricula/entities/matricula.entity';
 import { Campus } from 'src/institutional/campus/entities/campus.entity';
 import { User } from 'src/users/user.entity';
+import { CampusDeletedHandler } from './handlers/campus-deleted.handler';
+import { CursoDeletedHandler } from './handlers/curso-deleted.handler';
+import { DisciplinaDeletedHandler } from './handlers/disciplina-deleted.handler';
+import { TurmaDeletedHandler } from './handlers/turma-deleted.handler';
 
 @Module({
   imports: [
@@ -37,14 +41,19 @@ import { User } from 'src/users/user.entity';
         DisciplinaService,
         TurmaService,
         PeriodoService,
-        MatriculaService
+        MatriculaService,
+        CampusDeletedHandler,
+        CursoDeletedHandler,
+        DisciplinaDeletedHandler,
+        TurmaDeletedHandler,
     ],
     exports: [
         CursoService,
         DisciplinaService,
         TurmaService,
         PeriodoService,
-        MatriculaService
+        MatriculaService,
     ],
 })
+
 export class AcademicModule {}

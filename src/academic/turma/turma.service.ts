@@ -17,6 +17,8 @@ import { Role } from 'src/users/user-role.enum';
 import { Matricula } from '../matricula/entities/matricula.entity';
 import { isNumber } from 'class-validator';
 import e from 'express';
+import { TurmaDeletedEvent } from 'src/shared/events/turma-deleted.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TurmaService {
@@ -32,6 +34,8 @@ export class TurmaService {
 
     @InjectRepository(User, 'mysql')
     private usersRepo: Repository<User>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createTurmaDto: CreateTurmaDto) {
@@ -186,6 +190,15 @@ export class TurmaService {
     };
   }
 
+  // função auxiliar para soft delete cascade vindo de disciplina
+  async findByDisciplina(disciplinaId?: number) {
+      const todasTurmas = await this.turmaRepo.find({
+      where: { disciplina: { id:disciplinaId } }, withDeleted: true })
+
+      // retorna apenas disciplinas que não foram deletados
+    return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
   async update(id: number, updateTurmaDto: UpdateTurmaDto) {
     const turma = await this.turmaRepo.findOne({
       where: { id },
@@ -296,10 +309,20 @@ export class TurmaService {
   }
 
   async remove(id: number) {
+    const turma = await this.turmaRepo.findOne({where: {id}, withDeleted: false});
+
+    if (!turma) throw new NotFoundException("Turma não encontrada!")
+
     const result = await this.turmaRepo.softDelete(id);
 
     if (result.affected === 0)
       throw new NotFoundException('Turma não encontrada!');
+
+    // evento emitado para deletar matriculas e pesquisas da turma
+    this.eventEmitter.emit(
+      'turma.deleted',
+      new TurmaDeletedEvent(turma.id)
+    )
 
     return { success: true, message: 'Turma deletada com sucesso!' };
   }

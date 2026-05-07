@@ -3,9 +3,11 @@ import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Campus } from 'src/institutional/campus/entities/campus.entity';
 import { Disciplina } from '../disciplina/entities/disciplina.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CursoDeletedEvent } from 'src/shared/events/curso-deleted.event';
 
 @Injectable()
 export class CursoService {
@@ -14,7 +16,9 @@ export class CursoService {
     private cursoRepo: Repository<Curso>,
 
     @InjectRepository(Campus, 'mysql')
-    private campusRepo: Repository<Campus>
+    private campusRepo: Repository<Campus>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
 
@@ -78,6 +82,16 @@ export class CursoService {
     };
   }
 
+  // função auxiliar para soft delete cascade vindo de campus
+  async findByCampus(campusId: number) {
+    // retorna os cursos do campus deletado
+    const todosCursos = await this.cursoRepo.find({
+      where: { campus: { id:campusId } }, withDeleted: true })
+
+      // retorna apenas cursos que não foram deletados
+    return todosCursos.filter((c) => c.deletedAt === null)
+  }
+
   async update(id: number, updateCursoDto: UpdateCursoDto) {
     const curso = await this.cursoRepo.findOne({where: {id}, withDeleted: false})
 
@@ -110,6 +124,12 @@ export class CursoService {
     const result = await this.cursoRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Curso não encontrado!")
+
+    // evento emitado para deletar disciplinas do curso
+    this.eventEmitter.emit(
+      'curso.deleted',
+      new CursoDeletedEvent(curso.id)
+    )
 
     return {"success": true, "message": "Curso deletado com sucesso!"};
   }

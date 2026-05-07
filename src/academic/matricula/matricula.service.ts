@@ -255,6 +255,16 @@ export class MatriculaService {
     };
   }
 
+  // função auxiliar para soft delete cascade vindo de turma
+  async findByTurma(turmaId: number) {
+    // retorna os matriculas da turma deletada
+    const todasTurmas = await this.matriculaRepo.find({
+      where: { turma: { id:turmaId } }, withDeleted: true })
+
+      // retorna apenas matriculas que não foram deletadas
+    return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
   // atualizar matrícula
   async update(id: number, updateMatriculaDTO: UpdateMatriculaDto) {
     const matricula = await this.matriculaRepo.findOne({
@@ -359,6 +369,10 @@ export class MatriculaService {
 
   // deletar matrícula
   async remove(id: number) {
+    const matricula = await this.matriculaRepo.findOne({where: {id}, withDeleted: false});
+
+    if (!matricula) throw new NotFoundException("Matrícula não encontrada!")
+
     const result = await this.matriculaRepo.softDelete(id);
 
     if (result.affected === 0)
