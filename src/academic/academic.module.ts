@@ -24,6 +24,7 @@ import { CampusDeletedHandler } from './handlers/campus-deleted.handler';
 import { CursoDeletedHandler } from './handlers/curso-deleted.handler';
 import { DisciplinaDeletedHandler } from './handlers/disciplina-deleted.handler';
 import { TurmaDeletedHandler } from './handlers/turma-deleted.handler';
+import { PeriodoDeletedHandler } from './handlers/periodo-deleted.handler';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { TurmaDeletedHandler } from './handlers/turma-deleted.handler';
         CursoDeletedHandler,
         DisciplinaDeletedHandler,
         TurmaDeletedHandler,
+        PeriodoDeletedHandler
     ],
     exports: [
         CursoService,
