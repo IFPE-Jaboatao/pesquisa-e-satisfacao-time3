@@ -56,7 +56,10 @@ export class CampusService {
     const campus = this.campusRepo.findOne({ where: { id },
     relations: {
       setores: {
-        servicos: true
+        servicos: true,
+      },
+      cursos: {
+        disciplinas: true
       }
     } });
 
