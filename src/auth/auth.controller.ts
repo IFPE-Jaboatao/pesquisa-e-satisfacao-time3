@@ -3,7 +3,9 @@ import {
   Post, 
   Body, 
   HttpCode, 
-  HttpStatus 
+  HttpStatus, 
+  BadRequestException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -32,6 +34,25 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     // Chama o serviço de autenticação para validar o usuário
-    return this.authService.login(loginDto);
+     if (!loginDto) {
+      throw new BadRequestException('Body não enviado');
+    }
+
+    const { username, password } = loginDto;
+
+    // validação dos campos
+    if (!username || !password) {
+      throw new BadRequestException('Username e password são obrigatórios');
+    }
+
+    // retorna user após confirmação validação da senha enviada com a senha armazenada do usuário
+    const user = await this.authService.validateUser(username, password);
+
+    // validação de credenciais
+    if (!user) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    return this.authService.login(user);
   }
 }
