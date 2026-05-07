@@ -12,6 +12,10 @@ import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { Questao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaService } from '../auditoria/auditoria.service';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { Tipo } from './pesquisa-tipo.enum';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
+import { TurmaService } from 'src/academic/turma/turma.service';
 
 @Injectable()
 export class PesquisasService {
@@ -26,6 +30,8 @@ export class PesquisasService {
     private readonly respostaRepo: MongoRepository<Resposta>,
 
     private readonly auditoriaService: AuditoriaService,
+
+    private readonly turmaService: TurmaService
   ) {}
 
   async findAll() {
@@ -94,6 +100,43 @@ export class PesquisasService {
     });
 
     return salvo;
+  }
+
+  // função para criar pesquisa de satisfação sobre serviço
+  async createSatisfacao(dto: CreateSatisfacaoDto) {
+
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: new Date(dto.dataFinal),
+      publicada: false, 
+      tipo: Tipo.SATISFACAO,
+      tipoId: dto.servicoId
+    });
+    return await this.repo.save(pesquisa);
+  }
+
+  // função para criar Avaliação Docente manualmente
+  async createAvaliacao(dto: CreateAvaliacaoDto) {
+    // verifica se a turma existe
+    const turma = await this.turmaService.findOne(dto.turmaId);
+
+    if (!turma) throw new NotFoundException("Turma não encontrada!")
+
+    // cria data final como {fim do periodo + 180 dias}
+    const dataFinal = new Date(turma?.periodo?.endDate);
+
+    dataFinal.setDate(dataFinal.getDate() + 180)
+
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dataFinal,
+      publicada: false, 
+      tipo: Tipo.AVALIACAO,
+      tipoId: dto.turmaId
+    });
+    return await this.repo.save(pesquisa);
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {

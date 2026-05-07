@@ -20,6 +20,9 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ObjectId } from 'mongodb';
+import { CreatePesquisaPeriodoDto } from './dto/create-pesquisa-periodo.dto';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
 
 @Controller('surveys/pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -96,6 +99,24 @@ export class PesquisasController {
     const usuario = req.user;
     return await this.service.create(dto, usuario);
   }
+
+  @Post('/satisfacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  createSatisfacao(@Body() dto: CreateSatisfacaoDto) {
+    return this.service.createSatisfacao(dto);
+  }
+
+  @Post('/avaliacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  createAvaliacao(@Body() dto: CreateAvaliacaoDto) {
+    return this.service.createAvaliacao(dto);
+  }
+
+  // @Post('/avaliacao/periodo')
+  // @Roles(Role.GESTOR, Role.ADMIN)
+  // createAvaliacaoPeriodo(@Body() dto: CreatePesquisaPeriodoDto) {
+  //   return this.service.createAvaliacaoPeriodo(dto);
+  // }
 
   @Patch(':id')
   @Roles(Role.GESTOR, Role.ADMIN)

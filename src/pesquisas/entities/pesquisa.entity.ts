@@ -10,6 +10,9 @@ export class Pesquisa {
   titulo!: string;
 
   @Column()
+  descricao!: string;
+
+  @Column()
   dataInicio!: Date;
 
   @Column()
@@ -41,7 +44,7 @@ export class Pesquisa {
   assunto?: string; 
 
   @Column()
-  turmaId!: number; // Usado pelo método findAllByTurma no service
+  tipoId!: number; // Usado pelo método findAllByTurma no service
 
   @CreateDateColumn()
   createdAt!: Date;
