@@ -9,7 +9,7 @@ export class TurmaDeletedHandler {
     private readonly matriculaService: MatriculaService,
   ) {}
 
-  @OnEvent('disciplina.deleted')
+  @OnEvent('turma.deleted')
   async handle(event: TurmaDeletedEvent) {
     // retorna todas as matriculas não deletadas daquela turma
     const matriculas = await this.matriculaService.findByTurma(event.turmaId);
