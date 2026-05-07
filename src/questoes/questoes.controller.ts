@@ -13,15 +13,18 @@ import { CreateQuestaoDto } from './dto/create-questao.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+// IMPORTAÇÕES DO SWAGGER
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 
+@ApiTags('Questões') // Organiza na categoria "Questões" no Swagger
+@ApiBearerAuth('JWT-auth') // Habilita o uso do Token JWT na interface
 @Controller('questoes')
 export class QuestoesController {
   constructor(private readonly service: QuestoesService) {}
 
-  /**
-   * CRIAÇÃO DE QUESTÕES
-   * Liberado para ADMIN e GESTOR para evitar o erro 403 que você recebeu.
-   */
+  @ApiOperation({ summary: 'Criar uma nova questão para uma pesquisa (Admin/Gestor)' })
+  @ApiResponse({ status: 201, description: 'Questão vinculada à pesquisa com sucesso.' })
+  @ApiResponse({ status: 403, description: 'Proibido: Usuário sem permissão de Gestor/Admin.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.ADMIN, Role.GESTOR) 
@@ -29,9 +32,9 @@ export class QuestoesController {
     return this.service.create(dto);
   }
 
-  /**
-   * BUSCA DE QUESTÕES POR PESQUISA
-   */
+  @ApiOperation({ summary: 'Listar todas as questões de uma pesquisa específica' })
+  @ApiParam({ name: 'pesquisaId', description: 'ID da pesquisa no MongoDB (HexString)' })
+  @ApiResponse({ status: 200, description: 'Lista de questões retornada com sucesso.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('pesquisa/:pesquisaId')
   @Roles(Role.ADMIN, Role.GESTOR, Role.ALUNO)

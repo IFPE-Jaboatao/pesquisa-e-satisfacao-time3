@@ -19,12 +19,18 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from './user-role.enum';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+// IMPORTAÇÕES DO SWAGGER
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Users') // Organiza todas as rotas abaixo na seção "Users" do Swagger
+@ApiBearerAuth('JWT-auth') // Ativa o cadeado de segurança para este controller
 @Controller('users')
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 
-  // Criar usuário (Apenas Admin)
+  @ApiOperation({ summary: 'Criar usuário (Apenas Admin)' })
+  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
+  @ApiResponse({ status: 403, description: 'Proibido: Sem permissão de Admin.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.ADMIN)
@@ -32,7 +38,7 @@ export class UsersController {
     return this.service.create(dto);
   }
 
-  // Listar todos os usuários (Apenas Admin)
+  @ApiOperation({ summary: 'Listar todos os usuários (Apenas Admin)' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   @Roles(Role.ADMIN)
@@ -40,14 +46,14 @@ export class UsersController {
     return this.service.findAll();
   }
 
-  // Ver as próprias informações
+  @ApiOperation({ summary: 'Ver as próprias informações (Token logado)' })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   findMe(@Req() req) {
     return this.service.findOne(req.user.id);
   }
 
-  // Buscar usuário por ID
+  @ApiOperation({ summary: 'Buscar usuário por ID (Apenas Admin)' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':userId')
   @Roles(Role.ADMIN)
@@ -55,14 +61,14 @@ export class UsersController {
     return this.service.findOne(userId);
   }
 
-  // Atualizar própria senha
+  @ApiOperation({ summary: 'Atualizar própria senha' })
   @UseGuards(JwtAuthGuard)
   @Patch('me/password')
   updatePassword(@Body() dto: UpdatePasswordDto, @Req() req) {
     return this.service.updatePassword(req.user.id, dto.password);
   }
 
-  // Atualizar usuário (Admin)
+  @ApiOperation({ summary: 'Atualizar usuário (Apenas Admin)' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':userId')
   @Roles(Role.ADMIN)
@@ -83,7 +89,7 @@ export class UsersController {
     return this.service.update(userId, dto);
   }
 
-  // Deletar usuário (Admin)
+  @ApiOperation({ summary: 'Deletar usuário (Apenas Admin)' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':userId')
   @Roles(Role.ADMIN)
