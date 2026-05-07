@@ -26,6 +26,7 @@ import { DisciplinaDeletedHandler } from './handlers/disciplina-deleted.handler'
 import { TurmaDeletedHandler } from './handlers/turma-deleted.handler';
 import { PeriodoDeletedHandler } from './handlers/periodo-deleted.handler';
 import { DocenteDeletedHandler } from './handlers/docente-deleted.handler';
+import { AlunoDeletedHandler } from './handlers/aluno-deleted.handler';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { DocenteDeletedHandler } from './handlers/docente-deleted.handler';
         DisciplinaDeletedHandler,
         TurmaDeletedHandler,
         PeriodoDeletedHandler,
-        DocenteDeletedHandler
+        DocenteDeletedHandler,
+        AlunoDeletedHandler
     ],
     exports: [
         CursoService,

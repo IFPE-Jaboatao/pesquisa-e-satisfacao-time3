@@ -170,7 +170,7 @@ export class MatriculaService {
 
   // listar todas as matrículas de um aluno
   async findAllStudent(alunoId?: number) {
-    const aluno = await this.usersRepo.findOne({ where: { id: alunoId } });
+    const aluno = await this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false });
 
     if (!aluno) throw new NotFoundException('Aluno não encontrado!');
 
@@ -180,7 +180,7 @@ export class MatriculaService {
       );
 
     const matriculas = await this.matriculaRepo.find({
-      where: {aluno: aluno},
+      where: { aluno: { id: aluno?.id }},
       relations: {
         turma: {
           docente: true,
@@ -197,21 +197,25 @@ export class MatriculaService {
       alunoMatricula: matriculas[0]?.aluno.matricula,
       alunoNome: matriculas[0]?.aluno.nome,
       alunoEmail: matriculas[0]?.aluno.email,
-      matriculas: matriculas?.map((matricula) => ({
-        id: matricula?.id,
+      matriculas: matriculas?.map((m?) => ({
+        id: m?.id,
         turma: {
-          id: matricula?.turma.id,
-          nome: matricula?.turma.nome,
+          id: m?.turma?.id,
+          nome: m?.turma?.nome,
           disciplina: {
-            id: matricula?.turma.disciplina.id,
-            nome: matricula?.turma.disciplina.nome,
+            id: m?.turma?.disciplina?.id,
+            nome: m?.turma?.disciplina?.nome,
           },
-          periodo: matricula?.turma.periodo,
+          periodo: {
+            id: m?.turma?.periodo?.id,
+            ano: m?.turma?.periodo?.ano,
+            semestre: m?.turma?.periodo?.semestre
+          },
           docente: {
-            id: matricula?.turma.docente.id,
-            matricula: matricula?.turma.docente.matricula,
-            nome: matricula?.turma.docente.nome,
-            email: matricula?.turma.docente.email,
+            id: m?.turma?.docente?.id,
+            matricula: m?.turma.docente?.matricula,
+            nome: m?.turma?.docente?.nome,
+            email: m?.turma?.docente?.email,
           },
         },
       })),
@@ -263,6 +267,16 @@ export class MatriculaService {
 
       // retorna apenas matriculas que não foram deletadas
     return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
+  // função auxiliar para soft delete cascade vindo de aluno
+  async findByAluno(alunoId: number) {
+    // retorna os matriculas do aluno deletado
+    const todasMatriculas = await this.matriculaRepo.find({
+      where: { aluno: { id:alunoId } }, withDeleted: true })
+
+      // retorna apenas matriculas que não foram deletadas
+    return todasMatriculas.filter((c) => c.deletedAt === null)
   }
 
   // atualizar matrícula

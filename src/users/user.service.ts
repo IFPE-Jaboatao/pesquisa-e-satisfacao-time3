@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { AppConfigService } from '../config/config.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DocenteDeletedEvent } from 'src/shared/events/docente-deleted.event';
+import { AlunoDeletedEvent } from 'src/shared/events/aluno-deleted.event';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -198,6 +199,14 @@ export class UsersService implements OnModuleInit {
           this.eventEmitter.emit(
             'docente.deleted',
             new DocenteDeletedEvent(user.id)
+          )
+    }
+
+    if (user.role === Role.ALUNO){
+          // evento emitado para deletar matriculas daquele aluno
+          this.eventEmitter.emit(
+            'aluno.deleted',
+            new AlunoDeletedEvent(user.id)
           )
     }
 
