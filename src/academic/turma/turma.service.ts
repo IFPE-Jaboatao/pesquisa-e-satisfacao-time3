@@ -139,7 +139,7 @@ export class TurmaService {
       );
 
     const turmas = await this.turmaRepo.find({
-      where: { docente: docente },
+      where: { docente: {id: docente.id} },
       relations: {
         docente: true,
         periodo: true,
@@ -203,6 +203,15 @@ export class TurmaService {
   async findByPeriodo(periodoId?: number) {
       const todasTurmas = await this.turmaRepo.find({
       where: { periodo: { id:periodoId } }, withDeleted: true })
+
+      // retorna apenas turmas que não foram deletados
+    return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
+  // função auxiliar para soft delete cascade vindo de docente deletado
+  async findByDocente(docenteId?: number) {
+      const todasTurmas = await this.turmaRepo.find({
+      where: { docente: { id:docenteId } }, withDeleted: true })
 
       // retorna apenas turmas que não foram deletados
     return todasTurmas.filter((c) => c.deletedAt === null)
