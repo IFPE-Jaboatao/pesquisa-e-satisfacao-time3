@@ -14,6 +14,8 @@ import { AppConfigService } from '../config/config.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DocenteDeletedEvent } from 'src/shared/events/docente-deleted.event';
 import { AlunoDeletedEvent } from 'src/shared/events/aluno-deleted.event';
+import { MatriculaService } from 'src/academic/matricula/matricula.service';
+import { PesquisasService } from 'src/pesquisas/pesquisas.service';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -23,7 +25,11 @@ export class UsersService implements OnModuleInit {
 
     private configService: AppConfigService,
 
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+
+    private readonly matriculaService: MatriculaService,
+
+    private readonly pesquisaService: PesquisasService
   ) {}
 
   // -------------------------------------------------------------------------
@@ -99,6 +105,40 @@ export class UsersService implements OnModuleInit {
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
     return user;
+  }
+
+  // DASHBOARDS
+
+  async getDashboardAluno(userId: number) {
+    // 1. Pega as matrículas do aluno no MySQL
+    const matriculas = await this.matriculaService.findAllStudent(userId);
+
+    // 2. Extrai apenas os IDs das turmas para facilitar a busca no Mongo
+    const turmaIds = matriculas.matriculas
+      .map(m => m.turma?.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    // 3. Se o aluno não tiver turmas, evitamos uma busca vazia ou erro
+    if (turmaIds.length === 0) {
+      return {
+        avaliacoesDocente: [],
+        pesquisasSatisfacao: await this.pesquisaService.findAll()
+      };
+    }
+
+    // 4. Busca todas as pesquisas relevantes
+    const { avaliacoesDocente, pesquisasSatisfacao } = await this.pesquisaService.findByAluno(userId, turmaIds);
+
+    // Retorno formatado para o dashboard do Front-end
+    return {
+      alunoId: userId,
+      resumo: {
+        avaliacoes: avaliacoesDocente.length,
+        satisfacoes: pesquisasSatisfacao.length
+      },
+      avaliacoesDocente,
+      pesquisasSatisfacao
+    };
   }
 
   // -------------------------------------------------------------------------

@@ -293,6 +293,31 @@ export class PesquisasService {
     return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
   }
 
+  // DASHBOARD - funções auxiliares
+  async findByAluno(alunoId: number, turmaIds: number[]) {
+    // avaliações docente
+    const avaliacoesDocente = await this.repo.find({
+      where: {
+        tipoId: { $in: turmaIds }, 
+        tipo: Tipo.AVALIACAO, 
+      }
+    });
+
+    // pesquisas de satisfação
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO,
+        publicada: true,
+        // aqui entrará a lógica de "não respondidas" futuramente
+      }
+    });
+
+    return {
+      avaliacoesDocente,
+      pesquisasSatisfacao
+    };
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
     
