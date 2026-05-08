@@ -318,6 +318,26 @@ export class PesquisasService {
     };
   }
 
+  // No PesquisasService
+  async findByDocente(docenteId: number) {
+    const turmasDocente = await this.turmaService.findAllProfessor(docenteId);
+
+    const turmaIds = turmasDocente.turmas
+      .map(t => t.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    if (turmaIds.length === 0) {
+      return { avaliacoes: [] };
+    }
+
+    return await this.repo.find({
+      where: {
+        tipoId: { $in: turmaIds },
+        tipo: Tipo.AVALIACAO
+      }
+    });
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
     

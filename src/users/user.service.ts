@@ -141,6 +141,16 @@ export class UsersService implements OnModuleInit {
     };
   }
 
+    // DASHBOARD DOCENTE
+  async getDashboardDocente(userId: number) {
+    const avaliacoes = await this.pesquisaService.findByDocente(userId);
+
+    return {
+      docenteId: userId,
+      avaliacoes
+    };
+  }
+
   // -------------------------------------------------------------------------
   // MÉTODOS DE ESCRITA
   // -------------------------------------------------------------------------
