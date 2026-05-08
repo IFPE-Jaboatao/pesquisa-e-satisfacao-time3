@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 
-@Controller('turma')
+@Controller('academic/turmas')
 export class TurmaController {
   constructor(private readonly turmaService: TurmaService) {}
 

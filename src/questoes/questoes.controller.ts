@@ -15,7 +15,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
-@Controller('questoes')
+@Controller('surveys/questoes')
 export class QuestoesController {
   constructor(private readonly service: QuestoesService) {}
 

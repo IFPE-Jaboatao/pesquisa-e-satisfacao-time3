@@ -21,7 +21,7 @@ import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ObjectId } from 'mongodb';
 
-@Controller('pesquisas')
+@Controller('surveys/pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PesquisasController {
   constructor(private readonly service: PesquisasService) {}
@@ -66,6 +66,28 @@ export class PesquisasController {
   }
 
   // --- ESCRITA ---
+
+  /**
+   * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
+   * 
+   */
+  @Post('satisfacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  async createSatisfacao(@Body() dto: CreatePesquisaDto, @Req() req: any) {
+    const usuario = req.user;
+    return await this.service.create(dto, usuario); // Redireciona para a lógica que ela vai ajustar
+  }
+
+  /**
+   * RN 9.2: Criação de Avaliação Docente (Automática/Turma)
+   * 
+   */
+  @Post('avaliacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  async createAvaliacao(@Body() dto: CreatePesquisaDto, @Req() req: any) {
+    const usuario = req.user;
+    return await this.service.create(dto, usuario); // Redireciona para a lógica que ela vai ajustar
+  }
 
   @Post()
   @Roles(Role.GESTOR, Role.ADMIN)
