@@ -232,7 +232,7 @@ export class PesquisasService {
 
     if (countExisting === 0) HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`}
 
-    return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existiam e não foram recriadas.`}
+    return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
