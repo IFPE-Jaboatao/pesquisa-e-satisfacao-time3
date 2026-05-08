@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
-@Controller('setor')
+@Controller('institutional/setores')
 export class SetorController {
   constructor(private readonly setorService: SetorService) {}
 

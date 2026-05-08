@@ -86,7 +86,7 @@ export class PesquisasService {
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
-      usuarioNome: usuario?.username || 'Admin',
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
       entidade: 'Pesquisa',
       entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
       acao: 'CRIACAO_PESQUISA',
@@ -121,6 +121,8 @@ export class PesquisasService {
       if (novaData !== dataAntiga) {
         await this.auditoriaService.registrar({
           usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+          usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+          entidade: 'Pesquisa',
           entidadeId: id,
           acao: 'ALTERACAO_PRAZO',
           dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
@@ -147,6 +149,8 @@ export class PesquisasService {
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+      entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'PUBLICAR_PESQUISA',
       dadosNovos: { publicada: true }
@@ -166,6 +170,8 @@ export class PesquisasService {
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+      entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'REMOVER_PESQUISA',
       dadosAnteriores: { titulo: pesquisa.titulo }

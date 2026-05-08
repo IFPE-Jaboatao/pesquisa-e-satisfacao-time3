@@ -7,7 +7,7 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 
-@Controller('matricula')
+@Controller('academic/matriculas')
 export class MatriculaController {
   constructor(private readonly matriculaService: MatriculaService) {}
 

@@ -15,7 +15,8 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../users/user-role.enum';
 
-@Controller('relatorios')
+// Ajustado para manter a consistência com a rota raiz de pesquisas requisitada
+@Controller('surveys/pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RelatoriosController {
   constructor(
@@ -26,7 +27,7 @@ export class RelatoriosController {
   /**
    * Retorna os dados em JSON para gráficos ou conferência rápida
    */
-  @Get(':pesquisaId/resumo')
+  @Get(':pesquisaId/relatorio')
   @Roles(Role.ADMIN, Role.GESTOR)
   async resumo(@Param('pesquisaId') id: string) {
     const dados = await this.pesquisasService.getRelatorio(id);
@@ -38,7 +39,7 @@ export class RelatoriosController {
   /**
    * Exportação em CSV
    */
-  @Get(':pesquisaId/csv')
+  @Get(':pesquisaId/relatorio/csv')
   @Roles(Role.ADMIN, Role.GESTOR)
   async exportarCSV(@Param('pesquisaId') id: string, @Res() res: Response) {
     try {
@@ -62,7 +63,7 @@ export class RelatoriosController {
   /**
    * Exportação em PDF
    */
-  @Get(':pesquisaId/pdf')
+  @Get(':pesquisaId/relatorio/pdf')
   @Roles(Role.ADMIN, Role.GESTOR)
   async exportarPDF(@Param('pesquisaId') id: string, @Res() res: Response) {
     try {

@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 
-@Controller('servico')
+@Controller('institutional/servicos')
 export class ServicoController {
   constructor(private readonly servicoService: ServicoService) {}
 

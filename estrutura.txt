@@ -63,6 +63,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   ¦           periodo.entity.ts
 ¦   ¦           
 ¦   +---turma
+¦       ¦   turma-turnos.enum.ts
 ¦       ¦   turma.controller.spec.ts
 ¦       ¦   turma.controller.ts
 ¦       ¦   turma.service.spec.ts
@@ -101,6 +102,9 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦           
 +---common
 ¦   +---decorators
+¦   ¦       is-before.decorator.ts
+¦   ¦       is-compatible-year.decorator.ts
+¦   ¦       max-months-diff.decorator.ts
 ¦   ¦       roles.decorator.ts
 ¦   ¦       
 ¦   +---guards
@@ -117,6 +121,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   ¦   institutional.module.ts
 ¦   ¦   
 ¦   +---campus
+¦   ¦   ¦   campus-cidades.enum.ts
 ¦   ¦   ¦   campus.controller.spec.ts
 ¦   ¦   ¦   campus.controller.ts
 ¦   ¦   ¦   campus.service.spec.ts
@@ -157,6 +162,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦               
 +---mail
 ¦       mail.module.ts
+¦       mail.service.spect.ts
 ¦       mail.service.ts
 ¦       
 +---notificacoes
