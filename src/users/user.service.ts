@@ -16,6 +16,8 @@ import { DocenteDeletedEvent } from 'src/shared/events/docente-deleted.event';
 import { AlunoDeletedEvent } from 'src/shared/events/aluno-deleted.event';
 import { MatriculaService } from 'src/academic/matricula/matricula.service';
 import { PesquisasService } from 'src/pesquisas/pesquisas.service';
+import { CampusService } from 'src/institutional/campus/campus.service';
+import { PeriodoService } from 'src/academic/periodo/periodo.service';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -29,7 +31,11 @@ export class UsersService implements OnModuleInit {
 
     private readonly matriculaService: MatriculaService,
 
-    private readonly pesquisaService: PesquisasService
+    private readonly pesquisaService: PesquisasService,
+
+    private readonly campusService: CampusService,
+
+    private readonly periodoService: PeriodoService,
   ) {}
 
   // -------------------------------------------------------------------------
@@ -157,6 +163,27 @@ export class UsersService implements OnModuleInit {
 
     return {
       pesquisas
+    };
+  }
+
+      // DASHBOARD GESTOR
+  async getDashboardAdmin() {
+    const campus = await this.campusService.findAllFull();
+
+    const periodos = await this.periodoService.findAll();
+
+    const users = await this.repo.find({
+      select: ['id', 'matricula', 'nome', 'role', 'email'],
+      withDeleted: false
+    });
+
+    const matriculas = await this.matriculaService.findAll();
+
+    return {
+      campus,
+      periodos,
+      users,
+      matriculas
     };
   }
 
