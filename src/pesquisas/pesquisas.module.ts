@@ -28,12 +28,12 @@ import { AppModule } from 'src/app.module';
     ),
     AuditoriaModule, 
     MailModule, // Adicionado para que o PesquisasCronService possa injetar o MailService
+    AcademicModule,
+    QuestoesModule
   ],
   providers: [
     PesquisasService, 
     PesquisasCronService, // Registrado como provider para ativar o @Cron
-    AcademicModule,
-    QuestoesModule
   ],
   controllers: [PesquisasController],
   exports: [PesquisasService], 

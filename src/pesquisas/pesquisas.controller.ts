@@ -74,7 +74,7 @@ export class PesquisasController {
    * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
    * 
    */
-  @Post('satisfacao')
+  @Post('/satisfacao')
   @Roles(Role.GESTOR, Role.ADMIN)
   async createSatisfacao(@Body() dto: CreateSatisfacaoDto) {
     // // campo para implementar auditoria futuramente
