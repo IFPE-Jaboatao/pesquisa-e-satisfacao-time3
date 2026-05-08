@@ -4,7 +4,8 @@ import {
   NotFoundException, 
   ForbiddenException, 
   ConsoleLogger,
-  HttpCode
+  HttpCode,
+  ConflictException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
@@ -22,6 +23,8 @@ import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
 import { QuestoesService } from 'src/questoes/questoes.service';
 import { CRITERIOS } from './perguntas-criterios.dict';
 import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
+import { error } from 'console';
+import { Status } from './pesquisa-status.enum';
 
 @Injectable()
 export class PesquisasService {
@@ -112,16 +115,70 @@ export class PesquisasService {
 
   // função para criar pesquisa de satisfação sobre serviço
   async createSatisfacao(dto: CreateSatisfacaoDto) {
+    // pesquisas não podem começar no passado
+    if (dto.dataInicio) {
+      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
 
-    const pesquisa = this.repo.create({
+      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+    }
+
+    const pesquisaDto = this.repo.create({
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: new Date(dto.dataFinal),
-      publicada: false, 
+      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true , 
       tipo: Tipo.SATISFACAO,
-      tipoId: dto.servicoId
+      tipoId: dto.servicoId,
+      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
     });
-    return await this.repo.save(pesquisa);
+
+    // verificar se pesquisa com mesmo servico ID e mesma dataInicio/dataFinal existem
+    const existing = await this.repo.find({
+      where: 
+      {
+        tipoId: dto.servicoId,
+        tipo: Tipo.SATISFACAO,
+        dataFinal: new Date(dto.dataFinal),
+        dataInicio: new Date(dto.dataInicio),
+        status: Status.ATIVA
+        },
+        withDeleted: false
+      })
+    
+    if (existing.length > 0) throw new ConflictException("Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.")
+      
+    // criar pesquisa
+    const pesquisa = await this.repo.save(pesquisaDto);
+
+    if (!pesquisa) throw new Error("Pesquisa não foi criada!");
+
+    // adicionar o id de pesquisa para criar as questões
+    const questoes = dto.questoes.map(q => {
+      const questao: any = {
+        ...q,
+        pesquisaId: pesquisa.id.toString()
+      };
+
+      // remove campos que são null ou undefined
+      Object.keys(questao).forEach(key => {
+        if (questao[key] === null || questao[key] === undefined) {
+          delete questao[key];
+        }
+      });
+
+      return questao;
+    });
+
+    // criar as questões
+    const result = await this.questoesService.createMany(questoes);
+
+    if (!result || result.insertedCount === 0) {
+      await this.repo.deleteOne(pesquisa.id);
+
+      throw new Error("Questões não criadas! Pesquisa deletada!");
+    }
+
+    return HttpCode.apply(201), { message: 'Pesquisa criada com sucesso!', id: pesquisa.id};
   }
 
   // função para criar Avaliação Docente manualmente
@@ -140,9 +197,10 @@ export class PesquisasService {
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dataFinal,
-      publicada: dto.dataInicio == new Date().toDateString() ? true : false, 
+      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true, 
       tipo: Tipo.AVALIACAO,
-      tipoId: dto.turmaId
+      tipoId: dto.turmaId,
+      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
     });
     return await this.repo.save(pesquisa);
   }

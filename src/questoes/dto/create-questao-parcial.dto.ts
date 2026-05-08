@@ -1,22 +1,18 @@
 import {
   IsString,
   IsEnum,
-  IsOptional,
   IsArray,
   IsNumber,
   IsString as IsStringEach,
-  ArrayMinSize,
-  ArrayNotEmpty,
   ValidateIf,
+  ArrayNotEmpty,
   Min,
+  ArrayMinSize,
 } from 'class-validator';
 
 import { TipoQuestao } from '../entities/questao.entity';
 
-export class CreateQuestaoDto {
-  @IsString()
-  pesquisaId!: string;
-
+export class CreateQuestaoParcialDto {
   @IsString()
   pergunta!: string;
 

@@ -6,11 +6,18 @@ import {
   IsBoolean, 
   IsOptional, 
   IsEnum,
-  MinLength
+  MinLength,
+  IsArray,
+  ArrayMinSize,
+  ArrayNotEmpty,
+  ValidateNested
 } from 'class-validator';
 import { Tipo } from '../pesquisa-tipo.enum';
 import { IsBefore } from 'src/common/decorators/is-before.decorator';
 import { MaxMonthsDiff } from 'src/common/decorators/max-months-diff.decorator';
+import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
+import { CreateQuestaoParcialDto } from 'src/questoes/dto/create-questao-parcial.dto';
+import { Type } from 'class-transformer';
 
 export class CreateSatisfacaoDto {
   @IsString()
@@ -29,12 +36,18 @@ export class CreateSatisfacaoDto {
 
   @IsDateString({}, { message: 'Data final inválida.' })
   @IsNotEmpty()
-  @MaxMonthsDiff('dataInicio', 1, { message: 'Data final deve ser no minímo 1 mês após a data de início.' })
   dataFinal!: string;
 
   @IsNumber()
   @IsNotEmpty({ message: 'O ID do serviço é obrigatório.' })
   servicoId!: number;
+
+  @IsArray({ message: 'O campo de questões deve ser um array.' })
+  @ArrayNotEmpty({ message: "A lista de questões não pode estar vazia." })
+  @ArrayMinSize(1, { message: "A pesquisa deve ter pelo menos uma questão." })
+  @ValidateNested({each: true, message: 'As questões devem ser objetos válidos.'})
+  @Type(() => CreateQuestaoParcialDto)
+  questoes!: CreateQuestaoParcialDto[];
 
   @IsBoolean()
   @IsOptional()
