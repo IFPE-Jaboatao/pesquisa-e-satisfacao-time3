@@ -43,6 +43,12 @@ export class PesquisasController {
     return this.service.findAllByTurma(turmaId);
   }
 
+  @Get('avaliacao/criterios')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  async getPreviewAvaliacaoDocente() {
+    return this.service.getPreviewAvaliacaoDocente();
+  }
+
   @Get(':id')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
   findOne(@Param('id') id: string) {

@@ -293,6 +293,29 @@ export class PesquisasService {
     return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
   }
 
+  // auxiliar : mostra as perguntas das avaliações docente com os critérios
+  async getPreviewAvaliacaoDocente() {
+      let questoes: Array<Object> = [];
+
+      for (const [key, value] of Object.entries(CRITERIOS)) {
+        const questao = {
+          pergunta: value.descricao,
+          tipo: TipoQuestao.ESCALA,
+          escalaMax: 6
+        }
+        questoes.push(questao)
+        }
+
+      const comentario = {
+        pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+        tipo: TipoQuestao.ABERTA
+      }
+
+      questoes.push(comentario)
+
+      return questoes
+  }
+
   // DASHBOARD - funções auxiliares
   async findByAluno(alunoId: number, turmaIds: number[]) {
     // avaliações docente
