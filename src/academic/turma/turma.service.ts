@@ -19,6 +19,8 @@ import { isNumber } from 'class-validator';
 import e from 'express';
 import { TurmaDeletedEvent } from 'src/shared/events/turma-deleted.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CreateAvaliacaoPeriodoDto } from 'src/pesquisas/dto/create-avaliacao-periodo.dto';
+import { PesquisasService } from 'src/pesquisas/pesquisas.service';
 
 @Injectable()
 export class TurmaService {
@@ -209,6 +211,32 @@ export class TurmaService {
 
       // retorna apenas turmas que não foram deletados
     return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
+  // função auxiliar para pre visualizar as avaliações docentes disponíveis
+  async findAvaliacoesDisponiveis(dto: CreateAvaliacaoPeriodoDto) {
+    const turmas = await this.findAll();
+
+    // filtra pelo curso e pelo periodo
+    const turmasFilted = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
+
+    if (turmasFilted.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+
+    // coletar as avaliações
+    const avaliacoes: Array<Object> = []
+
+    for (const turma of turmasFilted) {
+
+      const pesquisa: Object = {
+        titulo: turma.disciplina.nome,
+        turmaId: turma.id,
+        docente: turma.docente.nome,
+        turno: turma.turno
+      };
+        avaliacoes.push(pesquisa)
+    }
+    
+    return avaliacoes
   }
 
   async update(id: number, updateTurmaDto: UpdateTurmaDto) {
