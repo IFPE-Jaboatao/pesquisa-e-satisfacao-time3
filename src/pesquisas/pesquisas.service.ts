@@ -180,7 +180,7 @@ export class PesquisasService {
       };
 
       // verificar se pesquisa com essas informações já existe
-      const existing = await this.repo.findOne({where: { tipoId: pesquisaDto.turmaId }})
+      const existing = await this.repo.findOne({where: { tipoId: pesquisaDto.turmaId, tipo: Tipo.AVALIACAO }})
 
       if (existing) {
         countExisting++;
@@ -229,6 +229,8 @@ export class PesquisasService {
     if (count == 0) {
       return HttpCode.apply(200), {"message": `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`}
     }
+
+    if (countExisting === 0) HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`}
 
     return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existiam e não foram recriadas.`}
   }
