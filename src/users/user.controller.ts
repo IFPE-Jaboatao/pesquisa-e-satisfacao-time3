@@ -130,4 +130,12 @@ export class UsersController {
     return this.service.getDashboardDocente(req.user.id);
   }
 
+  // dashboard de gestor
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.GESTOR)
+  @Get('dashboard/gestor')
+  getDashboardGestor() {
+    return this.service.getDashboardGestor();
+  }
+
 }

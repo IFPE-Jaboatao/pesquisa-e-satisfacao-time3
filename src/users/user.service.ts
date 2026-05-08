@@ -151,6 +151,15 @@ export class UsersService implements OnModuleInit {
     };
   }
 
+    // DASHBOARD GESTOR
+  async getDashboardGestor() {
+    const pesquisas = await this.pesquisaService.findAll();
+
+    return {
+      pesquisas
+    };
+  }
+
   // -------------------------------------------------------------------------
   // MÉTODOS DE ESCRITA
   // -------------------------------------------------------------------------
