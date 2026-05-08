@@ -17,6 +17,8 @@ import { Role } from 'src/users/user-role.enum';
 import { Matricula } from '../matricula/entities/matricula.entity';
 import { isNumber } from 'class-validator';
 import e from 'express';
+import { TurmaDeletedEvent } from 'src/shared/events/turma-deleted.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TurmaService {
@@ -32,15 +34,16 @@ export class TurmaService {
 
     @InjectRepository(User, 'mysql')
     private usersRepo: Repository<User>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createTurmaDto: CreateTurmaDto) {
-    const { nome, turno, disciplinaId, periodoId, docenteId } = createTurmaDto;
+    const { turno, disciplinaId, periodoId, docenteId } = createTurmaDto;
 
     // validação de duplicidade
     const exists = await this.turmaRepo.findOne({
       where: {
-        nome,
         turno,
         disciplina: { id: disciplinaId },
         periodo: { id: periodoId },
@@ -81,7 +84,6 @@ export class TurmaService {
 
     // criando entidade
     const turma = this.turmaRepo.create({
-      nome,
       turno,
       disciplina,
       periodo,
@@ -92,7 +94,6 @@ export class TurmaService {
 
     return {
       id: savedTurma.id,
-      nome: savedTurma.nome,
       turno: savedTurma.turno,
       disciplina: savedTurma.disciplina,
       periodo: savedTurma.periodo,
@@ -110,13 +111,12 @@ export class TurmaService {
   async findAll(disciplinaId?: number) {
     const turmas = await this.turmaRepo.find({
       where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
-      relations: { disciplina: true, periodo: true, docente: true },
+      relations: { disciplina: { curso: true}, periodo: true, docente: true },
       withDeleted: false
     });
 
     return turmas.map((turma) => ({
       id: turma?.id,
-      nome: turma?.nome,
       turno: turma?.turno,
       disciplina: turma?.disciplina,
       periodo: turma?.periodo,
@@ -135,7 +135,7 @@ export class TurmaService {
       );
 
     const turmas = await this.turmaRepo.find({
-      where: { docente: docente },
+      where: { docente: {id: docente.id} },
       relations: {
         docente: true,
         periodo: true,
@@ -152,7 +152,6 @@ export class TurmaService {
       docenteEmail: turmas[0]?.docente.email,
       turmas: turmas?.map((turma) => ({
         id: turma?.id,
-        nome: turma?.nome,
         turno: turma?.turno,
         disciplina: {
           id: turma?.disciplina.id,
@@ -176,7 +175,6 @@ export class TurmaService {
 
     return {
       id: turma.id,
-      nome: turma.nome,
       turno: turma.turno,
       disciplina: turma.disciplina,
       periodo: turma.periodo,
@@ -184,6 +182,33 @@ export class TurmaService {
       createdAt: turma.createdAt,
       updatedAt: turma.updatedAt
     };
+  }
+
+  // função auxiliar para soft delete cascade vindo de disciplina
+  async findByDisciplina(disciplinaId?: number) {
+      const todasTurmas = await this.turmaRepo.find({
+      where: { disciplina: { id:disciplinaId } }, withDeleted: true })
+
+      // retorna apenas turmas que não foram deletados
+    return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
+  // função auxiliar para soft delete cascade vindo de periodo
+  async findByPeriodo(periodoId?: number) {
+      const todasTurmas = await this.turmaRepo.find({
+      where: { periodo: { id:periodoId } }, withDeleted: true })
+
+      // retorna apenas turmas que não foram deletados
+    return todasTurmas.filter((c) => c.deletedAt === null)
+  }
+
+  // função auxiliar para soft delete cascade vindo de docente deletado
+  async findByDocente(docenteId?: number) {
+      const todasTurmas = await this.turmaRepo.find({
+      where: { docente: { id:docenteId } }, withDeleted: true })
+
+      // retorna apenas turmas que não foram deletados
+    return todasTurmas.filter((c) => c.deletedAt === null)
   }
 
   async update(id: number, updateTurmaDto: UpdateTurmaDto) {
@@ -204,7 +229,6 @@ export class TurmaService {
     // validação de duplicidade (excluindo ela mesma)
     const exists = await this.turmaRepo.findOne({
       where: {
-        nome: updateTurmaDto.nome ?? turma.nome,
         turno: updateTurmaDto.turno ?? turma.turno,
         disciplina: { id: updateTurmaDto.disciplinaId ?? turma.disciplina.id },
         periodo: { id: updateTurmaDto.periodoId ?? turma.periodo.id },
@@ -260,7 +284,6 @@ export class TurmaService {
     }
 
     // aplica update manual
-    turma.nome = updateTurmaDto.nome ?? turma.nome;
     turma.turno = updateTurmaDto.turno ?? turma.turno;
     turma.disciplina = disciplina;
     turma.periodo = periodo;
@@ -280,7 +303,6 @@ export class TurmaService {
 
     return {
       id: updated?.id,
-      nome: updated?.nome,
       turno: updated?.turno,
       disciplina: updated?.disciplina,
       periodo: updated?.periodo,
@@ -296,10 +318,20 @@ export class TurmaService {
   }
 
   async remove(id: number) {
+    const turma = await this.turmaRepo.findOne({where: {id}, withDeleted: false});
+
+    if (!turma) throw new NotFoundException("Turma não encontrada!")
+
     const result = await this.turmaRepo.softDelete(id);
 
     if (result.affected === 0)
       throw new NotFoundException('Turma não encontrada!');
+
+    // evento emitado para deletar matriculas e pesquisas da turma
+    this.eventEmitter.emit(
+      'turma.deleted',
+      new TurmaDeletedEvent(turma.id)
+    )
 
     return { success: true, message: 'Turma deletada com sucesso!' };
   }

@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Setor } from '../setor/entities/setor.entity';
 import { Not, Repository } from 'typeorm';
 import { Servico } from './entities/servico.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ServicoDeletedEvent } from 'src/shared/events/servico-deleted.event';
 
 @Injectable()
 export class ServicoService {
@@ -14,6 +16,8 @@ export class ServicoService {
 
     @InjectRepository(Setor, 'mysql')
     private setorRepo: Repository<Setor>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
 
@@ -78,6 +82,16 @@ export class ServicoService {
     };
     }
 
+        // função auxiliar para soft delete cascade vindo de setor
+  async findBySetor(setorId: number) {
+    // retorna os servicos do setor deletado
+    const todosServicos = await this.servicoRepo.find({
+      where: { setor: { id:setorId } }, withDeleted: true })
+
+      // retorna apenas servicos que não foram deletados
+    return todosServicos.filter((c) => c.deletedAt === null)
+  }
+
   async update(id: number, updateServicoDto: UpdateServicoDto) {
       const servico = await this.servicoRepo.findOne({where: {id}, withDeleted: false});
   
@@ -112,9 +126,20 @@ export class ServicoService {
 
     // deletar um serviço
   async remove(id: number) {
+    // impedir update de deletedAt indevidamente
+    const servico = await this.servicoRepo.findOne({where: {id: id}, withDeleted: false})
+
+    if (!servico) throw new NotFoundException("Serviço não encontrado!")
+
     const result = await this.servicoRepo.softDelete({id});
 
     if (result.affected === 0) throw new NotFoundException("Serviço não encontrado!")
+
+    // evento emitado para deletar pesquisas de satisfação desse serviço
+    this.eventEmitter.emit(
+      'servico.deleted',
+      new ServicoDeletedEvent(servico.id)
+    )
 
     return {"success": true, "message": "Serviço deletado com sucesso!"};
   }

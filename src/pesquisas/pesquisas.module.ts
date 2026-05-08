@@ -12,6 +12,9 @@ import { Resposta } from '../respostas/entities/resposta.entity';
 // Importações necessárias para Auditoria e Notificações (RF-300)
 import { AuditoriaModule } from '../auditoria/auditoria.module';
 import { MailModule } from '../mail/mail.module'; // Importado para permitir o envio de e-mails
+import { AcademicModule } from 'src/academic/academic.module';
+import { QuestoesModule } from 'src/questoes/questoes.module';
+import { AppModule } from 'src/app.module';
 
 @Module({
   imports: [
@@ -25,10 +28,12 @@ import { MailModule } from '../mail/mail.module'; // Importado para permitir o e
     ),
     AuditoriaModule, 
     MailModule, // Adicionado para que o PesquisasCronService possa injetar o MailService
+    AcademicModule,
+    QuestoesModule
   ],
   providers: [
     PesquisasService, 
-    PesquisasCronService // Registrado como provider para ativar o @Cron
+    PesquisasCronService, // Registrado como provider para ativar o @Cron
   ],
   controllers: [PesquisasController],
   exports: [PesquisasService], 

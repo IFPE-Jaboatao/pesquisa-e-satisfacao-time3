@@ -2,16 +2,29 @@ import {
   Injectable, 
   BadRequestException, 
   NotFoundException, 
-  ForbiddenException 
+  ForbiddenException, 
+  ConsoleLogger,
+  HttpCode,
+  ConflictException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
-import { MongoRepository } from 'typeorm';
+import { MongoRepository, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { Questao } from '../questoes/entities/questao.entity';
+import { Questao, TipoQuestao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaService } from '../auditoria/auditoria.service';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { Tipo } from './pesquisa-tipo.enum';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
+import { TurmaService } from 'src/academic/turma/turma.service';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
+import { QuestoesService } from 'src/questoes/questoes.service';
+import { CRITERIOS } from './perguntas-criterios.dict';
+import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
+import { error } from 'console';
+import { Status } from './pesquisa-status.enum';
 
 @Injectable()
 export class PesquisasService {
@@ -26,6 +39,10 @@ export class PesquisasService {
     private readonly respostaRepo: MongoRepository<Resposta>,
 
     private readonly auditoriaService: AuditoriaService,
+
+    private readonly turmaService: TurmaService,
+
+    private readonly questoesService: QuestoesService
   ) {}
 
   async findAll() {
@@ -94,6 +111,186 @@ export class PesquisasService {
     });
 
     return salvo;
+  }
+
+  // função para criar pesquisa de satisfação sobre serviço
+  async createSatisfacao(dto: CreateSatisfacaoDto) {
+    // pesquisas não podem começar no passado
+    if (dto.dataInicio) {
+      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+
+      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+    }
+
+    const pesquisaDto = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: new Date(dto.dataFinal),
+      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true , 
+      tipo: Tipo.SATISFACAO,
+      tipoId: dto.servicoId,
+      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
+    });
+
+    // verificar se pesquisa com mesmo servico ID e mesma dataInicio/dataFinal existem
+    const existing = await this.repo.find({
+      where: 
+      {
+        tipoId: dto.servicoId,
+        tipo: Tipo.SATISFACAO,
+        dataFinal: new Date(dto.dataFinal),
+        dataInicio: new Date(dto.dataInicio),
+        status: Status.ATIVA
+        },
+        withDeleted: false
+      })
+    
+    if (existing.length > 0) throw new ConflictException("Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.")
+      
+    // criar pesquisa
+    const pesquisa = await this.repo.save(pesquisaDto);
+
+    if (!pesquisa) throw new Error("Pesquisa não foi criada!");
+
+    // adicionar o id de pesquisa para criar as questões
+    const questoes = dto.questoes.map(q => {
+      const questao: any = {
+        ...q,
+        pesquisaId: pesquisa.id.toString()
+      };
+
+      // remove campos que são null ou undefined
+      Object.keys(questao).forEach(key => {
+        if (questao[key] === null || questao[key] === undefined) {
+          delete questao[key];
+        }
+      });
+
+      return questao;
+    });
+
+    // criar as questões
+    const result = await this.questoesService.createMany(questoes);
+
+    if (!result || result.insertedCount === 0) {
+      await this.repo.deleteOne(pesquisa.id);
+
+      throw new Error("Questões não criadas! Pesquisa deletada!");
+    }
+
+    return HttpCode.apply(201), { message: 'Pesquisa criada com sucesso!', id: pesquisa.id};
+  }
+
+  // função para criar Avaliação Docente manualmente
+  async createAvaliacao(dto: CreateAvaliacaoDto) {
+    // verifica se a turma existe
+    const turma = await this.turmaService.findOne(dto.turmaId);
+
+    if (!turma) throw new NotFoundException("Turma não encontrada!")
+
+    // cria data final como {fim do periodo + 180 dias}
+    const dataFinal = new Date(turma?.periodo?.endDate);
+
+    dataFinal.setDate(dataFinal.getDate() + 180)
+
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dataFinal,
+      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true, 
+      tipo: Tipo.AVALIACAO,
+      tipoId: dto.turmaId,
+      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
+    });
+    return await this.repo.save(pesquisa);
+  }
+
+  // função para criar Avaliação Docente a partir do periodo e do curso
+  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto) {
+
+    const turmas = await this.turmaService.findAll();
+
+    if (!turmas) throw new NotFoundException("Não existem turmas para criar avaliações!")
+
+    // filtra pelo curso e pelo periodo
+    const turmasFilted = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
+
+    if (turmasFilted.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+
+    if (dto.dataInicio) {
+      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+
+      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+    }
+
+    // criar avaliação para cada turma
+    // contabilizar as pesquisas criadas para retornar
+    let count = 0;
+    let countExisting = 0;
+
+    for (const turma of turmasFilted) {
+
+      const pesquisaDto: CreateAvaliacaoDto = {
+        titulo: `${turma.disciplina.nome} - Turma ${turma.id}`,
+        descricao: `Avaliação da disciplina ${turma.disciplina.nome} ministrada por ${turma.docente.nome} em ${turma.periodo.ano}.${turma.periodo.semestre}.`,
+        turmaId: turma.id,
+        dataInicio: dto.dataInicio ? dto.dataInicio : new Date().toDateString()
+      };
+
+      // verificar se pesquisa com essas informações já existe
+      const existing = await this.repo.findOne({where: { tipoId: pesquisaDto.turmaId, tipo: Tipo.AVALIACAO }})
+
+      if (existing) {
+        countExisting++;
+      } else {
+
+      const pesquisa = await this.createAvaliacao(pesquisaDto);
+
+      if (!pesquisa) throw new Error("Não foi possível criar a pesquisa!")
+
+      count++;
+
+      // INTERAR SOBRE AS QUESTÕES
+      let questoes: CreateQuestaoDto[] = [];
+      for (const [key, value] of Object.entries(CRITERIOS)) {
+
+        const questao: CreateQuestaoDto = {
+          pesquisaId: pesquisa.id.toString(),
+          pergunta: value.descricao,
+          tipo: TipoQuestao.ESCALA,
+          escalaMax: 6
+        }
+
+        questoes.push(questao)
+
+        }
+
+        const comentario: CreateQuestaoDto = {
+          pesquisaId: pesquisa.id.toString(),
+          pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+          tipo: TipoQuestao.ABERTA
+        }
+
+        questoes.push(comentario)
+
+        // aqui chama o createMany de QuestoesService
+        const result = await this.questoesService.createMany(questoes);
+
+        if (!result || result.insertedCount === 0) {
+          await this.repo.deleteOne(pesquisa.id)
+
+          throw new Error("As questões não foram criadas! Pesquisa deletada!")
+        }
+        count++;
+      }}
+    
+    if (count == 0) {
+      return HttpCode.apply(200), {"message": `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`}
+    }
+
+    if (countExisting === 0) HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`}
+
+    return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {

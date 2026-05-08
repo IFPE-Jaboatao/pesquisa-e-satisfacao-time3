@@ -12,6 +12,8 @@ import { ServicoController } from './servico/servico.controller';
 import { CampusService } from './campus/campus.service';
 import { SetorService } from './setor/setor.service';
 import { ServicoService } from './servico/servico.service';
+import { CampusDeletedHandler } from './handlers/campus-deleted.handler';
+import { SetorDeletedHandler } from './handlers/setor-deleted.handler';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { ServicoService } from './servico/servico.service';
     CampusService,
     SetorService,
     ServicoService,
+    CampusDeletedHandler,
+    SetorDeletedHandler
   ],
   exports: [
     CampusService,

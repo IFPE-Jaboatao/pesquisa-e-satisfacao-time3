@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Questao } from './entities/questao.entity';
 import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
-import { MongoRepository } from 'typeorm';
+import { MongoRepository, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreateQuestaoDto } from './dto/create-questao.dto';
 import { AuditoriaService } from '../auditoria/auditoria.service';
@@ -50,6 +50,13 @@ export class QuestoesService {
     });
 
     return salvo;
+  }
+
+  // função auxiliar para criação de perguntas com várias questões
+  async createMany(questoes: CreateQuestaoDto[]) {
+    const result = await this.repo.insertMany(questoes, {ordered: true})
+
+    return result
   }
 
   async findByPesquisa(pesquisaId: string) {

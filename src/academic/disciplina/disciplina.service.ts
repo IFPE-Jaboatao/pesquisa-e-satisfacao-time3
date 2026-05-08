@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Disciplina } from './entities/disciplina.entity';
 import { Repository } from 'typeorm';
 import { Curso } from '../curso/entities/curso.entity';
+import { DisciplinaDeletedEvent } from 'src/shared/events/disciplina-deleted.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class DisciplinaService {
@@ -14,6 +16,8 @@ export class DisciplinaService {
 
     @InjectRepository(Curso, 'mysql')
     private cursoRepo: Repository<Curso>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createDisciplinaDto: CreateDisciplinaDto) {
@@ -62,6 +66,15 @@ export class DisciplinaService {
       updatedAt: disciplina.updatedAt
     }));
   }
+  
+    // função auxiliar para soft delete cascade vindo de curso
+   async findByCurso(cursoId?: number) {
+      const todasDisicplinas = await this.disciplinaRepo.find({
+      where: { curso: { id:cursoId } }, withDeleted: true })
+
+      // retorna apenas disciplinas que não foram deletados
+    return todasDisicplinas.filter((c) => c.deletedAt === null)
+  }
 
   async findOne(id: number) {
    const disciplina = await this.disciplinaRepo.findOne({where: {id}, relations: {curso: true}});
@@ -101,6 +114,11 @@ export class DisciplinaService {
 
     const { cursoId, ...rest} = updateDisciplinaDto;
 
+    // verificar se cursoId existe
+    const curso = await this.cursoRepo.findOne({where: {id: cursoId}, withDeleted:false})
+
+    if (!curso) throw new NotFoundException("Curso não encontrado!")
+
     await this.disciplinaRepo.save({
       ...disciplina,
       ...rest,
@@ -122,9 +140,19 @@ export class DisciplinaService {
   }
 
   async remove(id: number) {
+    const disciplina = await this.disciplinaRepo.findOne({where: {id}, withDeleted: false});
+
+    if (!disciplina) throw new NotFoundException("Disciplina não encontrada!")
+
     const result = await this.disciplinaRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Disciplina não encontrada!")
+
+    // evento emitado para deletar disciplinas do curso
+    this.eventEmitter.emit(
+      'disciplina.deleted',
+      new DisciplinaDeletedEvent(disciplina.id)
+    )
 
     return {"success": true, "message": "Disciplina deletada com sucesso!"};
   }

@@ -4,12 +4,16 @@ import { UpdatePeriodoDto } from './dto/update-periodo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Periodo } from './entities/periodo.entity';
 import { Not, Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PeriodoDeletedEvent } from 'src/shared/events/periodo-deleted.event';
 
 @Injectable()
 export class PeriodoService {
   constructor(
   @InjectRepository(Periodo, 'mysql')
   private periodoRepo: Repository<Periodo>,
+
+  private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createPeriodoDto: CreatePeriodoDto) {
@@ -108,9 +112,20 @@ export class PeriodoService {
   }
 
   async remove(id: number) {
+    // impede update de deletedAt indevidamente
+    const periodo = await this.periodoRepo.findOne({where: {id: id}, withDeleted:false})
+
+    if (!periodo) throw new NotFoundException("Período não encontrado!");
+
     const result = await this.periodoRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Período não encontrado!");
+
+    // emite event pra deletar turmas associadas ao período
+    this.eventEmitter.emit(
+      'periodo.deleted',
+      new PeriodoDeletedEvent(periodo.id)
+    )
 
     return {"success": true, "message": "Período deletado com sucesso!"};
   }

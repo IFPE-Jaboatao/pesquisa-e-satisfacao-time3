@@ -3,10 +3,6 @@ import { Turnos } from "../turma-turnos.enum";
 
 export class CreateTurmaDto {
 
-    @IsString()
-    @MinLength(2)
-    nome!: string;
-
     @IsEnum(Turnos)
     turno!: Turnos;
 

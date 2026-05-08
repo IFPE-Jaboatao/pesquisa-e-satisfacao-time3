@@ -1,5 +1,6 @@
 import { Entity, ObjectIdColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import { Status } from '../pesquisa-status.enum';
 
 @Entity('pesquisas')
 export class Pesquisa {
@@ -8,6 +9,9 @@ export class Pesquisa {
 
   @Column()
   titulo!: string;
+
+  @Column()
+  descricao!: string;
 
   @Column()
   dataInicio!: Date;
@@ -40,8 +44,11 @@ export class Pesquisa {
   @Column({ nullable: true })
   assunto?: string; 
 
+  @Column({type: 'enum', enum:Status, default: Status.INATIVA})
+  status!: Status;
+
   @Column()
-  turmaId!: number; // Usado pelo método findAllByTurma no service
+  tipoId!: number; // Usado pelo método findAllByTurma no service
 
   @CreateDateColumn()
   createdAt!: Date;

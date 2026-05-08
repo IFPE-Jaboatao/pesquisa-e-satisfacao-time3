@@ -20,6 +20,9 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ObjectId } from 'mongodb';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
 
 @Controller('surveys/pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -71,11 +74,12 @@ export class PesquisasController {
    * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
    * 
    */
-  @Post('satisfacao')
+  @Post('/satisfacao')
   @Roles(Role.GESTOR, Role.ADMIN)
-  async createSatisfacao(@Body() dto: CreatePesquisaDto, @Req() req: any) {
-    const usuario = req.user;
-    return await this.service.create(dto, usuario); // Redireciona para a lógica que ela vai ajustar
+  async createSatisfacao(@Body() dto: CreateSatisfacaoDto) {
+    // // campo para implementar auditoria futuramente
+    // const usuario = req.user;
+    return await this.service.createSatisfacao(dto); // Redireciona para a lógica que ela vai ajustar
   }
 
   /**
@@ -84,9 +88,10 @@ export class PesquisasController {
    */
   @Post('avaliacao')
   @Roles(Role.GESTOR, Role.ADMIN)
-  async createAvaliacao(@Body() dto: CreatePesquisaDto, @Req() req: any) {
-    const usuario = req.user;
-    return await this.service.create(dto, usuario); // Redireciona para a lógica que ela vai ajustar
+  async createAvaliacao(@Body() dto: CreateAvaliacaoDto) {
+    // // campo para implementar auditoria futuramente
+    // const usuario = req.user;
+    return this.service.createAvaliacao(dto); // Redireciona para a lógica que ela vai ajustar
   }
 
   @Post()
@@ -95,6 +100,12 @@ export class PesquisasController {
     // Captura o usuário da requisição para alimentar a auditoria
     const usuario = req.user;
     return await this.service.create(dto, usuario);
+  }
+
+  @Post('/avaliacao/periodo')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto) {
+    return this.service.createAvaliacaoPeriodo(dto);
   }
 
   @Patch(':id')

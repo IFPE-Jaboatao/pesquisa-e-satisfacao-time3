@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Setor } from './entities/setor.entity';
 import { Not, Repository } from 'typeorm';
 import { Campus } from '../campus/entities/campus.entity';
+import { SetorDeletedEvent } from 'src/shared/events/setor-deleted.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 
 @Injectable()
@@ -15,7 +17,9 @@ export class SetorService {
   private setorRepo: Repository<Setor>,
 
   @InjectRepository(Campus, 'mysql')
-  private campusRepo: Repository<Campus>
+  private campusRepo: Repository<Campus>,
+
+  private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createSetorDto: CreateSetorDto) {
@@ -74,6 +78,16 @@ export class SetorService {
     };
   }
 
+    // função auxiliar para soft delete cascade vindo de campus
+  async findByCampus(campusId: number) {
+    // retorna os cursos do campus deletado
+    const todosSetores = await this.setorRepo.find({
+      where: { campus: { id:campusId } }, withDeleted: true })
+
+      // retorna apenas setores que não foram deletados
+    return todosSetores.filter((c) => c.deletedAt === null)
+  }
+
   async update(id: number, updateSetorDto: UpdateSetorDto) {
     const setor = await this.setorRepo.findOne({where: {id}, withDeleted: false});
 
@@ -109,9 +123,20 @@ export class SetorService {
   }
 
   async remove(id: number) {
+    // impedir update de deletedAt indevidamente
+    const setor = await this.setorRepo.findOne({where: {id: id}, withDeleted: false})
+
+    if (!setor) throw new NotFoundException("Setor não encontrado!")
+
     const result = await this.setorRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Setor não encontrado!")
+
+    // evento emitado para deletar servicos do setor
+    this.eventEmitter.emit(
+      'setor.deleted',
+      new SetorDeletedEvent(setor.id)
+    )
 
     return {"success": true, "message": "Setor deletado com sucesso!"};
   }

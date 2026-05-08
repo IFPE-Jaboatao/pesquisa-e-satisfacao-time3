@@ -4,12 +4,16 @@ import { UpdateCampusDto } from './dto/update-campus.dto';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Campus } from './entities/campus.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CampusDeletedEvent } from 'src/shared/events/campus-deleted.event';
 
 @Injectable()
 export class CampusService {
   constructor(
     @InjectRepository(Campus, 'mysql')
     private campusRepo: Repository<Campus>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   // criar campus vazio
@@ -56,7 +60,10 @@ export class CampusService {
     const campus = this.campusRepo.findOne({ where: { id },
     relations: {
       setores: {
-        servicos: true
+        servicos: true,
+      },
+      cursos: {
+        disciplinas: true
       }
     } });
 
@@ -90,13 +97,20 @@ export class CampusService {
 
   // remover um campus
   async remove(id: number) {
-    const campus = await this.campusRepo.findOne({where: {id}});
+    // impede atualização do campo deletedAt indevidamente
+    const campus = await this.campusRepo.findOne({where: {id}, withDeleted: false});
 
     if (!campus) throw new NotFoundException("Campus não encontrado!");
 
     const result = await this.campusRepo.softDelete(id);
 
     if (result.affected === 0) throw new NotFoundException("Campus não encontrado!");
+
+    // emite evento para inicar a cascade de soft deletes
+    this.eventEmitter.emit(
+      'campus.deleted',
+      new CampusDeletedEvent(campus.id)
+    )
 
     return {"success": true, "message": "Campus deletado com sucesso!"};
   }

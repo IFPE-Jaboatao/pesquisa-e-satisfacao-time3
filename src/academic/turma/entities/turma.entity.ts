@@ -12,9 +12,6 @@ export class Turma {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
-    nome!: string;
-
     @Column({type: 'enum', enum: Turnos})
     turno!: Turnos;
 

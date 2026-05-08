@@ -10,5 +10,6 @@ import { QuestoesController } from './questoes.controller';
   imports: [TypeOrmModule.forFeature([Questao, Pesquisa], 'mongo')], 
   providers: [QuestoesService],
   controllers: [QuestoesController],
+  exports: [QuestoesService]
 })
 export class QuestoesModule {}
