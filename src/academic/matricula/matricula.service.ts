@@ -97,7 +97,6 @@ export class MatriculaService {
       },
       turma: {
         id: outputMatricula?.turma.id,
-        nome: outputMatricula?.turma.nome,
         disciplina: outputMatricula?.turma.disciplina,
         docente: {
           id: outputMatricula?.turma.docente?.id,
@@ -128,7 +127,6 @@ export class MatriculaService {
     if (turmaId) {
       return {
         turmaId: matriculas[0]?.turma.id,
-        turmaNome: matriculas[0]?.turma.nome,
         turmaPeriodo: matriculas[0]?.turma.periodo,
         turmaDisciplina: matriculas[0]?.turma.disciplina,
         turmaDocente: {
@@ -154,7 +152,6 @@ export class MatriculaService {
       id: matricula?.id,
       turma: {
         id: matricula?.turma.id,
-        nome: matricula?.turma.nome,
         disciplina: matricula?.turma.disciplina,
         periodo: matricula?.turma.periodo,
         docente: {
@@ -201,7 +198,6 @@ export class MatriculaService {
         id: m?.id,
         turma: {
           id: m?.turma?.id,
-          nome: m?.turma?.nome,
           disciplina: {
             id: m?.turma?.disciplina?.id,
             nome: m?.turma?.disciplina?.nome,
@@ -245,7 +241,6 @@ export class MatriculaService {
       id: matricula?.id,
       turma: {
         id: matricula?.turma.id,
-        nome: matricula?.turma.nome,
         disciplina: matricula?.turma.disciplina,
         periodo: matricula?.turma.periodo,
         docente: {
@@ -362,7 +357,6 @@ export class MatriculaService {
       id: updated?.id,
       turma: {
         id: updated?.turma.id,
-        nome: updated?.turma.nome,
         periodo: updated?.turma.periodo,
         disciplina: updated?.turma.disciplina,
         docente: {

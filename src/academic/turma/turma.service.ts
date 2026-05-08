@@ -39,12 +39,11 @@ export class TurmaService {
   ) {}
 
   async create(createTurmaDto: CreateTurmaDto) {
-    const { nome, turno, disciplinaId, periodoId, docenteId } = createTurmaDto;
+    const { turno, disciplinaId, periodoId, docenteId } = createTurmaDto;
 
     // validação de duplicidade
     const exists = await this.turmaRepo.findOne({
       where: {
-        nome,
         turno,
         disciplina: { id: disciplinaId },
         periodo: { id: periodoId },
@@ -85,7 +84,6 @@ export class TurmaService {
 
     // criando entidade
     const turma = this.turmaRepo.create({
-      nome,
       turno,
       disciplina,
       periodo,
@@ -96,7 +94,6 @@ export class TurmaService {
 
     return {
       id: savedTurma.id,
-      nome: savedTurma.nome,
       turno: savedTurma.turno,
       disciplina: savedTurma.disciplina,
       periodo: savedTurma.periodo,
@@ -114,13 +111,12 @@ export class TurmaService {
   async findAll(disciplinaId?: number) {
     const turmas = await this.turmaRepo.find({
       where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
-      relations: { disciplina: true, periodo: true, docente: true },
+      relations: { disciplina: { curso: true}, periodo: true, docente: true },
       withDeleted: false
     });
 
     return turmas.map((turma) => ({
       id: turma?.id,
-      nome: turma?.nome,
       turno: turma?.turno,
       disciplina: turma?.disciplina,
       periodo: turma?.periodo,
@@ -156,7 +152,6 @@ export class TurmaService {
       docenteEmail: turmas[0]?.docente.email,
       turmas: turmas?.map((turma) => ({
         id: turma?.id,
-        nome: turma?.nome,
         turno: turma?.turno,
         disciplina: {
           id: turma?.disciplina.id,
@@ -180,7 +175,6 @@ export class TurmaService {
 
     return {
       id: turma.id,
-      nome: turma.nome,
       turno: turma.turno,
       disciplina: turma.disciplina,
       periodo: turma.periodo,
@@ -235,7 +229,6 @@ export class TurmaService {
     // validação de duplicidade (excluindo ela mesma)
     const exists = await this.turmaRepo.findOne({
       where: {
-        nome: updateTurmaDto.nome ?? turma.nome,
         turno: updateTurmaDto.turno ?? turma.turno,
         disciplina: { id: updateTurmaDto.disciplinaId ?? turma.disciplina.id },
         periodo: { id: updateTurmaDto.periodoId ?? turma.periodo.id },
@@ -291,7 +284,6 @@ export class TurmaService {
     }
 
     // aplica update manual
-    turma.nome = updateTurmaDto.nome ?? turma.nome;
     turma.turno = updateTurmaDto.turno ?? turma.turno;
     turma.disciplina = disciplina;
     turma.periodo = periodo;
@@ -311,7 +303,6 @@ export class TurmaService {
 
     return {
       id: updated?.id,
-      nome: updated?.nome,
       turno: updated?.turno,
       disciplina: updated?.disciplina,
       periodo: updated?.periodo,

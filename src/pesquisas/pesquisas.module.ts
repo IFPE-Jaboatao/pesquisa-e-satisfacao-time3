@@ -13,6 +13,8 @@ import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaModule } from '../auditoria/auditoria.module';
 import { MailModule } from '../mail/mail.module'; // Importado para permitir o envio de e-mails
 import { AcademicModule } from 'src/academic/academic.module';
+import { QuestoesModule } from 'src/questoes/questoes.module';
+import { AppModule } from 'src/app.module';
 
 @Module({
   imports: [
@@ -30,7 +32,8 @@ import { AcademicModule } from 'src/academic/academic.module';
   providers: [
     PesquisasService, 
     PesquisasCronService, // Registrado como provider para ativar o @Cron
-    AcademicModule
+    AcademicModule,
+    QuestoesModule
   ],
   controllers: [PesquisasController],
   exports: [PesquisasService], 

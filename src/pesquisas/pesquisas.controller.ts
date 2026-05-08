@@ -20,7 +20,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ObjectId } from 'mongodb';
-import { CreatePesquisaPeriodoDto } from './dto/create-pesquisa-periodo.dto';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
 import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
 import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
 
@@ -112,11 +112,11 @@ export class PesquisasController {
     return this.service.createAvaliacao(dto);
   }
 
-  // @Post('/avaliacao/periodo')
-  // @Roles(Role.GESTOR, Role.ADMIN)
-  // createAvaliacaoPeriodo(@Body() dto: CreatePesquisaPeriodoDto) {
-  //   return this.service.createAvaliacaoPeriodo(dto);
-  // }
+  @Post('/avaliacao/periodo')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto) {
+    return this.service.createAvaliacaoPeriodo(dto);
+  }
 
   @Patch(':id')
   @Roles(Role.GESTOR, Role.ADMIN)

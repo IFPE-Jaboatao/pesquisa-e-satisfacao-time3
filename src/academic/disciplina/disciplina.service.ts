@@ -114,6 +114,11 @@ export class DisciplinaService {
 
     const { cursoId, ...rest} = updateDisciplinaDto;
 
+    // verificar se cursoId existe
+    const curso = await this.cursoRepo.findOne({where: {id: cursoId}, withDeleted:false})
+
+    if (!curso) throw new NotFoundException("Curso não encontrado!")
+
     await this.disciplinaRepo.save({
       ...disciplina,
       ...rest,

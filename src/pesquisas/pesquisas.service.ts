@@ -2,20 +2,26 @@ import {
   Injectable, 
   BadRequestException, 
   NotFoundException, 
-  ForbiddenException 
+  ForbiddenException, 
+  ConsoleLogger,
+  HttpCode
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
-import { MongoRepository } from 'typeorm';
+import { MongoRepository, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { Questao } from '../questoes/entities/questao.entity';
+import { Questao, TipoQuestao } from '../questoes/entities/questao.entity';
 import { Resposta } from '../respostas/entities/resposta.entity';
 import { AuditoriaService } from '../auditoria/auditoria.service';
 import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
 import { Tipo } from './pesquisa-tipo.enum';
 import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
 import { TurmaService } from 'src/academic/turma/turma.service';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
+import { QuestoesService } from 'src/questoes/questoes.service';
+import { CRITERIOS } from './perguntas-criterios.dict';
+import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
 
 @Injectable()
 export class PesquisasService {
@@ -31,7 +37,9 @@ export class PesquisasService {
 
     private readonly auditoriaService: AuditoriaService,
 
-    private readonly turmaService: TurmaService
+    private readonly turmaService: TurmaService,
+
+    private readonly questoesService: QuestoesService
   ) {}
 
   async findAll() {
@@ -132,11 +140,97 @@ export class PesquisasService {
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dataFinal,
-      publicada: false, 
+      publicada: dto.dataInicio == new Date().toDateString() ? true : false, 
       tipo: Tipo.AVALIACAO,
       tipoId: dto.turmaId
     });
     return await this.repo.save(pesquisa);
+  }
+
+  // função para criar Avaliação Docente a partir do periodo e do curso
+  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto) {
+
+    const turmas = await this.turmaService.findAll();
+
+    if (!turmas) throw new NotFoundException("Não existem turmas para criar avaliações!")
+
+    // filtra pelo curso e pelo periodo
+    const turmasFilted = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
+
+    if (turmasFilted.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+
+    if (dto.dataInicio) {
+      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+
+      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+    }
+
+    // criar avaliação para cada turma
+    // contabilizar as pesquisas criadas para retornar
+    let count = 0;
+    let countExisting = 0;
+
+    for (const turma of turmasFilted) {
+
+      const pesquisaDto: CreateAvaliacaoDto = {
+        titulo: `${turma.disciplina.nome} - Turma ${turma.id}`,
+        descricao: `Avaliação da disciplina ${turma.disciplina.nome} ministrada por ${turma.docente.nome} em ${turma.periodo.ano}.${turma.periodo.semestre}.`,
+        turmaId: turma.id,
+        dataInicio: dto.dataInicio ? dto.dataInicio : new Date().toDateString()
+      };
+
+      // verificar se pesquisa com essas informações já existe
+      const existing = await this.repo.findOne({where: { tipoId: pesquisaDto.turmaId }})
+
+      if (existing) {
+        countExisting++;
+      } else {
+
+      const pesquisa = await this.createAvaliacao(pesquisaDto);
+
+      if (!pesquisa) throw new Error("Não foi possível criar a pesquisa!")
+
+      count++;
+
+      // INTERAR SOBRE AS QUESTÕES
+      let questoes: CreateQuestaoDto[] = [];
+      for (const [key, value] of Object.entries(CRITERIOS)) {
+
+        const questao: CreateQuestaoDto = {
+          pesquisaId: pesquisa.id.toString(),
+          pergunta: value.descricao,
+          tipo: TipoQuestao.ESCALA,
+          escalaMax: 6
+        }
+
+        questoes.push(questao)
+
+        }
+
+        const comentario: CreateQuestaoDto = {
+          pesquisaId: pesquisa.id.toString(),
+          pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+          tipo: TipoQuestao.ABERTA
+        }
+
+        questoes.push(comentario)
+
+        // aqui chama o createMany de QuestoesService
+        const result = await this.questoesService.createMany(questoes);
+
+        if (!result || result.insertedCount === 0) {
+          await this.repo.deleteOne(pesquisa.id)
+
+          throw new Error("As questões não foram criadas! Pesquisa deletada!")
+        }
+        count++;
+      }}
+    
+    if (count == 0) {
+      return HttpCode.apply(200), {"message": `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`}
+    }
+
+    return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existiam e não foram recriadas.`}
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
