@@ -72,6 +72,24 @@ export class CampusService {
     return campus;
   }
 
+    // buscar todos os campi e seus filhos
+  async findAllFull() {
+    const campi = this.campusRepo.find({
+      relations: {
+        setores: {
+          servicos: true,
+        },
+        cursos: {
+          disciplinas: true
+        }
+      }, withDeleted: false
+    });
+
+    if (!campi) throw new NotFoundException("Campi não encontrados!")
+
+    return campi;
+  }
+
   // atualizar um campus
   async update(id: number, updateCampusDto: UpdateCampusDto) {
 

@@ -111,4 +111,39 @@ export class UsersController {
 
     return this.service.delete(userId);
   }
+
+  // ENDPOINTS DE DASHBOARDS PARA ROLES
+
+  // dashboard de aluno
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ALUNO)
+  @Get('dashboard/aluno')
+  getDashboardAluno(@Req() req) {
+    return this.service.getDashboardAluno(req.user.id);
+  }
+
+  // dashboard de docente
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.DOCENTE)
+  @Get('dashboard/docente')
+  getDashboardDocente(@Req() req) {
+    return this.service.getDashboardDocente(req.user.id);
+  }
+
+  // dashboard de gestor
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.GESTOR)
+  @Get('dashboard/gestor')
+  getDashboardGestor() {
+    return this.service.getDashboardGestor();
+  }
+
+    // dashboard de admin
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('dashboard/admin')
+  getDashboardAdmin() {
+    return this.service.getDashboardAdmin();
+  }
+
 }

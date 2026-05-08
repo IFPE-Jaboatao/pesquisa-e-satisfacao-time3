@@ -293,6 +293,74 @@ export class PesquisasService {
     return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
   }
 
+  // auxiliar : mostra as perguntas das avaliações docente com os critérios
+  async getPreviewAvaliacaoDocente() {
+      let questoes: Array<Object> = [];
+
+      for (const [key, value] of Object.entries(CRITERIOS)) {
+        const questao = {
+          pergunta: value.descricao,
+          tipo: TipoQuestao.ESCALA,
+          escalaMax: 6
+        }
+        questoes.push(questao)
+        }
+
+      const comentario = {
+        pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+        tipo: TipoQuestao.ABERTA
+      }
+
+      questoes.push(comentario)
+
+      return questoes
+  }
+
+  // DASHBOARD - funções auxiliares
+  async findByAluno(alunoId: number, turmaIds: number[]) {
+    // avaliações docente
+    const avaliacoesDocente = await this.repo.find({
+      where: {
+        tipoId: { $in: turmaIds }, 
+        tipo: Tipo.AVALIACAO, 
+      }
+    });
+
+    // pesquisas de satisfação
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO,
+        publicada: true,
+        // aqui entrará a lógica de "não respondidas" futuramente
+      }
+    });
+
+    return {
+      avaliacoesDocente,
+      pesquisasSatisfacao
+    };
+  }
+
+  // No PesquisasService
+  async findByDocente(docenteId: number) {
+    const turmasDocente = await this.turmaService.findAllProfessor(docenteId);
+
+    const turmaIds = turmasDocente.turmas
+      .map(t => t.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    if (turmaIds.length === 0) {
+      return { avaliacoes: [] };
+    }
+
+    return await this.repo.find({
+      where: {
+        tipoId: { $in: turmaIds },
+        tipo: Tipo.AVALIACAO
+      }
+    });
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
     
