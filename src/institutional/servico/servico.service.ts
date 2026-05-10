@@ -92,6 +92,21 @@ export class ServicoService {
     return todosServicos.filter((c) => c.deletedAt === null)
   }
 
+  // função auxiliar para buscar serviços por campus
+  async servicosByCampus(campusId: number) {
+    const servicos = await this.servicoRepo.find({
+      where: { setor: { campus: { id: campusId } } },
+      relations: { setor: { campus: true } },
+      withDeleted: false
+    });
+
+    return servicos.map((servico) => ({
+      id: servico.id,
+      nome: servico.nome,
+      setorId: servico.setor?.id
+    }));
+  }
+
   async update(id: number, updateServicoDto: UpdateServicoDto) {
       const servico = await this.servicoRepo.findOne({where: {id}, withDeleted: false});
   

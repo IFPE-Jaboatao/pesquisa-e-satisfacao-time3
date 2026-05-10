@@ -29,7 +29,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: payload.sub,        // Padronizamos como 'id' para facilitar no Controller
       matricula: payload.matricula,
-      role: payload.role
+      role: payload.role,
+      campusId: payload.campusId, // Pode ser null para Admins
     };
   }
 }

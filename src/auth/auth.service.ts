@@ -44,7 +44,8 @@ export class AuthService {
     const payload = {
       sub: user.id,          // ID do usuário (usado como 'sub' no padrão JWT)
       matricula: user.matricula,
-      role: user.role        // Necessário para o RolesGuard
+      role: user.role,        // Necessário para o RolesGuard
+      campusId: user.campus?.id ? user.campus.id : 0, // Necessário para o CampusGuard, 0 para Admin (não tem campus especifico)
     };
 
     return {

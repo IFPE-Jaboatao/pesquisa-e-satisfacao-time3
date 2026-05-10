@@ -89,8 +89,9 @@ export class UsersService implements OnModuleInit {
     });
   }
 
+  // função utilizada por auth.service para validar usuário no login
   findByMatricula(matricula: string) {
-    return this.repo.findOne({ where: { matricula }, withDeleted: false });
+    return this.repo.findOne({ where: { matricula }, withDeleted: false, relations: { campus: true } });
   }
 
   async findAll() {
@@ -115,7 +116,7 @@ export class UsersService implements OnModuleInit {
 
   // DASHBOARDS
 
-  async getDashboardAluno(userId: number) {
+  async getDashboardAluno(userId: number, campusId: number) {
     // 1. Pega as matrículas do aluno no MySQL
     const matriculas = await this.matriculaService.findAllStudent(userId);
 
@@ -124,26 +125,18 @@ export class UsersService implements OnModuleInit {
       .map(m => m.turma?.id)
       .filter((id): id is number => id !== undefined && id !== null);
 
-    // 3. Se o aluno não tiver turmas, evitamos uma busca vazia ou erro
-    if (turmaIds.length === 0) {
-      return {
-        avaliacoesDocente: [],
-        pesquisasSatisfacao: await this.pesquisaService.findAll()
-      };
-    }
-
-    // 4. Busca todas as pesquisas relevantes
-    const { avaliacoesDocente, pesquisasSatisfacao } = await this.pesquisaService.findByAluno(userId, turmaIds);
+    // 3. Busca todas as pesquisas relevantes
+    const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByAluno(campusId, turmaIds);
 
     // Retorno formatado para o dashboard do Front-end
     return {
       alunoId: userId,
       resumo: {
         avaliacoes: avaliacoesDocente.length,
-        satisfacoes: pesquisasSatisfacao.length
+        satisfacoes: filteredSatisfacao.length
       },
       avaliacoesDocente,
-      pesquisasSatisfacao
+      filteredSatisfacao
     };
   }
 

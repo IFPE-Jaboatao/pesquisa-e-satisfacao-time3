@@ -1,11 +1,11 @@
-import { 
-  Injectable, 
-  BadRequestException, 
-  NotFoundException, 
-  ForbiddenException, 
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
   ConsoleLogger,
   HttpCode,
-  ConflictException
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
@@ -25,6 +25,7 @@ import { CRITERIOS } from './perguntas-criterios.dict';
 import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
 import { error } from 'console';
 import { Status } from './pesquisa-status.enum';
+import { ServicoService } from 'src/institutional/servico/servico.service';
 
 @Injectable()
 export class PesquisasService {
@@ -42,7 +43,9 @@ export class PesquisasService {
 
     private readonly turmaService: TurmaService,
 
-    private readonly questoesService: QuestoesService
+    private readonly questoesService: QuestoesService,
+
+    private readonly servicoService: ServicoService,
   ) {}
 
   async findAll() {
@@ -50,9 +53,9 @@ export class PesquisasService {
   }
 
   async findAllByTurma(turmaId: number) {
-    return await this.repo.find({ 
+    return await this.repo.find({
       where: { turmaId: turmaId },
-      order: { _id: 'DESC' } 
+      order: { _id: 'DESC' },
     });
   }
 
@@ -60,9 +63,9 @@ export class PesquisasService {
     if (!id || !ObjectId.isValid(id)) {
       throw new BadRequestException('ID com formato inválido ou ausente');
     }
-    
-    const pesquisa = await this.repo.findOne({ 
-      where: { _id: new ObjectId(id) } as any 
+
+    const pesquisa = await this.repo.findOne({
+      where: { _id: new ObjectId(id) } as any,
     });
 
     if (!pesquisa) {
@@ -74,8 +77,14 @@ export class PesquisasService {
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
     const objId = new ObjectId(id);
-    
-    const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }, { pesquisaId: String(id) }] };
+
+    const filter = {
+      $or: [
+        { pesquisaId: id },
+        { pesquisaId: objId as any },
+        { pesquisaId: String(id) },
+      ],
+    };
     const questoes = await this.questaoRepo.find({ where: filter as any });
     const respostas = await this.respostaRepo.find({ where: filter as any });
 
@@ -86,7 +95,7 @@ export class PesquisasService {
       estatisticas: {
         totalQuestoes: questoes.length,
         totalParticipantes: respostas.length,
-      }
+      },
     };
   }
 
@@ -95,19 +104,20 @@ export class PesquisasService {
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
-      publicada: false, 
+      publicada: false,
       finalizada: false, // ATUALIZADO: Alinhado ao seu CreatePesquisaDto
     });
-    
+
     const salvo = await this.repo.save(pesquisa);
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
       usuarioNome: usuario?.username || usuario?.nome || 'Admin',
       entidade: 'Pesquisa',
-      entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
+      entidadeId:
+        (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
       acao: 'CRIACAO_PESQUISA',
-      dadosNovos: salvo
+      dadosNovos: salvo,
     });
 
     return salvo;
@@ -117,50 +127,64 @@ export class PesquisasService {
   async createSatisfacao(dto: CreateSatisfacaoDto) {
     // pesquisas não podem começar no passado
     if (dto.dataInicio) {
-      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+      const dateCheck =
+        new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
 
-      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+      if (!dateCheck)
+        throw new BadRequestException(
+          'Data início deve ser maior ou igual a hoje!',
+        );
     }
 
     const pesquisaDto = this.repo.create({
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: new Date(dto.dataFinal),
-      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true , 
+      publicada: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? false
+          : true
+        : true,
       tipo: Tipo.SATISFACAO,
       tipoId: dto.servicoId,
-      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
+      status: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? Status.INATIVA
+          : Status.ATIVA
+        : Status.ATIVA,
     });
 
     // verificar se pesquisa com mesmo servico ID e mesma dataInicio/dataFinal existem
     const existing = await this.repo.find({
-      where: 
-      {
+      where: {
         tipoId: dto.servicoId,
         tipo: Tipo.SATISFACAO,
         dataFinal: new Date(dto.dataFinal),
         dataInicio: new Date(dto.dataInicio),
-        status: Status.ATIVA
-        },
-        withDeleted: false
-      })
-    
-    if (existing.length > 0) throw new ConflictException("Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.")
-      
+        status: Status.ATIVA,
+      },
+      withDeleted: false,
+    });
+
+    if (existing.length > 0)
+      throw new ConflictException(
+        'Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.',
+      );
+
     // criar pesquisa
     const pesquisa = await this.repo.save(pesquisaDto);
 
-    if (!pesquisa) throw new Error("Pesquisa não foi criada!");
+    if (!pesquisa) throw new Error('Pesquisa não foi criada!');
 
     // adicionar o id de pesquisa para criar as questões
-    const questoes = dto.questoes.map(q => {
+    const questoes = dto.questoes.map((q) => {
       const questao: any = {
         ...q,
-        pesquisaId: pesquisa.id.toString()
+        pesquisaId: pesquisa.id.toString(),
       };
 
       // remove campos que são null ou undefined
-      Object.keys(questao).forEach(key => {
+      Object.keys(questao).forEach((key) => {
         if (questao[key] === null || questao[key] === undefined) {
           delete questao[key];
         }
@@ -175,10 +199,13 @@ export class PesquisasService {
     if (!result || result.insertedCount === 0) {
       await this.repo.deleteOne(pesquisa.id);
 
-      throw new Error("Questões não criadas! Pesquisa deletada!");
+      throw new Error('Questões não criadas! Pesquisa deletada!');
     }
 
-    return HttpCode.apply(201), { message: 'Pesquisa criada com sucesso!', id: pesquisa.id};
+    return (
+      HttpCode.apply(201),
+      { message: 'Pesquisa criada com sucesso!', id: pesquisa.id }
+    );
   }
 
   // função para criar Avaliação Docente manualmente
@@ -186,41 +213,57 @@ export class PesquisasService {
     // verifica se a turma existe
     const turma = await this.turmaService.findOne(dto.turmaId);
 
-    if (!turma) throw new NotFoundException("Turma não encontrada!")
+    if (!turma) throw new NotFoundException('Turma não encontrada!');
 
     // cria data final como {fim do periodo + 180 dias}
     const dataFinal = new Date(turma?.periodo?.endDate);
 
-    dataFinal.setDate(dataFinal.getDate() + 180)
+    dataFinal.setDate(dataFinal.getDate() + 180);
 
     const pesquisa = this.repo.create({
       ...dto,
       dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
       dataFinal: dataFinal,
-      publicada: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? false : true) : true, 
+      publicada: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? false
+          : true
+        : true,
       tipo: Tipo.AVALIACAO,
       tipoId: dto.turmaId,
-      status: dto.dataInicio ? (new Date(dto.dataInicio) > new Date() ? Status.INATIVA : Status.ATIVA) : Status.ATIVA
+      status: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? Status.INATIVA
+          : Status.ATIVA
+        : Status.ATIVA,
     });
     return await this.repo.save(pesquisa);
   }
 
   // função para criar Avaliação Docente a partir do periodo e do curso
   async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto) {
-
     const turmas = await this.turmaService.findAll();
 
-    if (!turmas) throw new NotFoundException("Não existem turmas para criar avaliações!")
+    if (!turmas)
+      throw new NotFoundException('Não existem turmas para criar avaliações!');
 
     // filtra pelo curso e pelo periodo
-    const turmasFilted = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
+    const turmasFilted = turmas.filter(
+      (t) =>
+        t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId,
+    );
 
-    if (turmasFilted.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+    if (turmasFilted.length === 0)
+      throw new NotFoundException('Não há turmas nesse curso e/ou período!');
 
     if (dto.dataInicio) {
-      const dateCheck = new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+      const dateCheck =
+        new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
 
-      if (!dateCheck) throw new BadRequestException("Data início deve ser maior ou igual a hoje!");
+      if (!dateCheck)
+        throw new BadRequestException(
+          'Data início deve ser maior ou igual a hoje!',
+        );
     }
 
     // criar avaliação para cada turma
@@ -229,102 +272,122 @@ export class PesquisasService {
     let countExisting = 0;
 
     for (const turma of turmasFilted) {
-
       const pesquisaDto: CreateAvaliacaoDto = {
         titulo: `${turma.disciplina.nome} - Turma ${turma.id}`,
         descricao: `Avaliação da disciplina ${turma.disciplina.nome} ministrada por ${turma.docente.nome} em ${turma.periodo.ano}.${turma.periodo.semestre}.`,
         turmaId: turma.id,
-        dataInicio: dto.dataInicio ? dto.dataInicio : new Date().toDateString()
+        dataInicio: dto.dataInicio ? dto.dataInicio : new Date().toDateString(),
       };
 
       // verificar se pesquisa com essas informações já existe
-      const existing = await this.repo.findOne({where: { tipoId: pesquisaDto.turmaId, tipo: Tipo.AVALIACAO }})
+      const existing = await this.repo.findOne({
+        where: { tipoId: pesquisaDto.turmaId, tipo: Tipo.AVALIACAO },
+      });
 
       if (existing) {
         countExisting++;
       } else {
+        const pesquisa = await this.createAvaliacao(pesquisaDto);
 
-      const pesquisa = await this.createAvaliacao(pesquisaDto);
+        if (!pesquisa) throw new Error('Não foi possível criar a pesquisa!');
 
-      if (!pesquisa) throw new Error("Não foi possível criar a pesquisa!")
+        count++;
 
-      count++;
+        // INTERAR SOBRE AS QUESTÕES
+        let questoes: CreateQuestaoDto[] = [];
+        for (const [key, value] of Object.entries(CRITERIOS)) {
+          const questao: CreateQuestaoDto = {
+            pesquisaId: pesquisa.id.toString(),
+            pergunta: value.descricao,
+            tipo: TipoQuestao.ESCALA,
+            escalaMax: 6,
+          };
 
-      // INTERAR SOBRE AS QUESTÕES
-      let questoes: CreateQuestaoDto[] = [];
-      for (const [key, value] of Object.entries(CRITERIOS)) {
-
-        const questao: CreateQuestaoDto = {
-          pesquisaId: pesquisa.id.toString(),
-          pergunta: value.descricao,
-          tipo: TipoQuestao.ESCALA,
-          escalaMax: 6
-        }
-
-        questoes.push(questao)
-
+          questoes.push(questao);
         }
 
         const comentario: CreateQuestaoDto = {
           pesquisaId: pesquisa.id.toString(),
-          pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
-          tipo: TipoQuestao.ABERTA
-        }
+          pergunta:
+            'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+          tipo: TipoQuestao.ABERTA,
+        };
 
-        questoes.push(comentario)
+        questoes.push(comentario);
 
         // aqui chama o createMany de QuestoesService
         const result = await this.questoesService.createMany(questoes);
 
         if (!result || result.insertedCount === 0) {
-          await this.repo.deleteOne(pesquisa.id)
+          await this.repo.deleteOne(pesquisa.id);
 
-          throw new Error("As questões não foram criadas! Pesquisa deletada!")
+          throw new Error('As questões não foram criadas! Pesquisa deletada!');
         }
         count++;
-      }}
-    
-    if (count == 0) {
-      return HttpCode.apply(200), {"message": `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`}
+      }
     }
 
-    if (countExisting === 0) HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`}
+    if (count == 0) {
+      return (
+        HttpCode.apply(200),
+        {
+          message: `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`,
+        }
+      );
+    }
 
-    return HttpCode.apply(201), {"message": `${count/2} ${count/2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting>1 ? 'm' : ''} e não fo${countExisting>1 ? 'ram' : 'i'} recriada${countExisting>1 ? 's' : ''}.`}
+    if (countExisting === 0)
+      (HttpCode.apply(201),
+        {
+          message: `${count / 2} ${count / 2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`,
+        });
+
+    return (
+      HttpCode.apply(201),
+      {
+        message: `${count / 2} ${count / 2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting > 1 ? 'm' : ''} e não fo${countExisting > 1 ? 'ram' : 'i'} recriada${countExisting > 1 ? 's' : ''}.`,
+      }
+    );
   }
 
   // auxiliar : mostra as perguntas das avaliações docente com os critérios
   async getPreviewAvaliacaoDocente() {
-      let questoes: Array<Object> = [];
+    let questoes: Array<Object> = [];
 
-      for (const [key, value] of Object.entries(CRITERIOS)) {
-        const questao = {
-          pergunta: value.descricao,
-          tipo: TipoQuestao.ESCALA,
-          escalaMax: 6
-        }
-        questoes.push(questao)
-        }
+    for (const [key, value] of Object.entries(CRITERIOS)) {
+      const questao = {
+        pergunta: value.descricao,
+        tipo: TipoQuestao.ESCALA,
+        escalaMax: 6,
+      };
+      questoes.push(questao);
+    }
 
-      const comentario = {
-        pergunta: 'Deixe um comentário de feedback para o docente avaliado. (opcional)',
-        tipo: TipoQuestao.ABERTA
-      }
+    const comentario = {
+      pergunta:
+        'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+      tipo: TipoQuestao.ABERTA,
+    };
 
-      questoes.push(comentario)
+    questoes.push(comentario);
 
-      return questoes
+    return questoes;
   }
 
   // DASHBOARD - funções auxiliares
-  async findByAluno(alunoId: number, turmaIds: number[]) {
+  async findByAluno(campusId: number, turmaIds: number[]) {
     // avaliações docente
-    const avaliacoesDocente = await this.repo.find({
-      where: {
-        tipoId: { $in: turmaIds }, 
-        tipo: Tipo.AVALIACAO, 
-      }
-    });
+    // não buscar avaliações docente caso não haja turmasId
+    let avaliacoesDocente: any[] = [];
+
+    if (turmaIds.length > 0) {
+      avaliacoesDocente = await this.repo.find({
+        where: {
+          tipoId: { $in: turmaIds },
+          tipo: Tipo.AVALIACAO,
+        },
+      });
+    }
 
     // pesquisas de satisfação
     const pesquisasSatisfacao = await this.repo.find({
@@ -332,12 +395,23 @@ export class PesquisasService {
         tipo: Tipo.SATISFACAO,
         publicada: true,
         // aqui entrará a lógica de "não respondidas" futuramente
-      }
+      },
     });
+
+    // filtrar pesquisas de satisfação para mostrar só as do campus do aluno
+    // passo 1 - buscar os serviços naquele campus
+    const servicosCampus = await this.servicoService.servicosByCampus(campusId);
+
+    // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
+    const servicoIds = servicosCampus.map((s) => s.id);
+
+    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+      servicoIds.includes(p.tipoId),
+    );
 
     return {
       avaliacoesDocente,
-      pesquisasSatisfacao
+      filteredSatisfacao,
     };
   }
 
@@ -346,7 +420,7 @@ export class PesquisasService {
     const turmasDocente = await this.turmaService.findAllProfessor(docenteId);
 
     const turmaIds = turmasDocente.turmas
-      .map(t => t.id)
+      .map((t) => t.id)
       .filter((id): id is number => id !== undefined && id !== null);
 
     if (turmaIds.length === 0) {
@@ -356,14 +430,14 @@ export class PesquisasService {
     return await this.repo.find({
       where: {
         tipoId: { $in: turmaIds },
-        tipo: Tipo.AVALIACAO
-      }
+        tipo: Tipo.AVALIACAO,
+      },
     });
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
-    
+
     // Proteção contra body vazio ou nulo
     const camposEditados = Object.keys(dto || {});
     if (camposEditados.length === 0) {
@@ -371,10 +445,13 @@ export class PesquisasService {
     }
 
     if (pesquisaAtual.publicada) {
-      const apenasDataFinal = camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
-      
+      const apenasDataFinal =
+        camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
+
       if (!apenasDataFinal) {
-        throw new ForbiddenException('Apenas o prazo final de pesquisas publicadas pode ser editado.');
+        throw new ForbiddenException(
+          'Apenas o prazo final de pesquisas publicadas pode ser editado.',
+        );
       }
     }
 
@@ -391,7 +468,7 @@ export class PesquisasService {
           entidadeId: id,
           acao: 'ALTERACAO_PRAZO',
           dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
-          dadosNovos: { dataFinal: dto.dataFinal }
+          dadosNovos: { dataFinal: dto.dataFinal },
         });
       }
     }
@@ -400,17 +477,17 @@ export class PesquisasService {
     if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
     if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
 
-    await this.repo.updateOne(
-      { _id: new ObjectId(id) }, 
-      { $set: updateData }
-    );
-    
+    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: updateData });
+
     return { message: 'Atualização concluída com sucesso' };
   }
 
   async publicar(id: string, usuario: any) {
     await this.findOne(id);
-    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: { publicada: true } });
+    await this.repo.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { publicada: true } },
+    );
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
@@ -418,7 +495,7 @@ export class PesquisasService {
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'PUBLICAR_PESQUISA',
-      dadosNovos: { publicada: true }
+      dadosNovos: { publicada: true },
     });
 
     return { message: 'Pesquisa publicada' };
@@ -439,7 +516,7 @@ export class PesquisasService {
       entidade: 'Pesquisa',
       entidadeId: id,
       acao: 'REMOVER_PESQUISA',
-      dadosAnteriores: { titulo: pesquisa.titulo }
+      dadosAnteriores: { titulo: pesquisa.titulo },
     });
 
     return { message: 'Pesquisa removida' };

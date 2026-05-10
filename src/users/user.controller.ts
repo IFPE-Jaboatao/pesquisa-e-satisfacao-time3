@@ -119,7 +119,7 @@ export class UsersController {
   @Roles(Role.ALUNO)
   @Get('dashboard/aluno')
   getDashboardAluno(@Req() req) {
-    return this.service.getDashboardAluno(req.user.id);
+    return this.service.getDashboardAluno(req.user.id, req.user.campusId);
   }
 
   // dashboard de docente
