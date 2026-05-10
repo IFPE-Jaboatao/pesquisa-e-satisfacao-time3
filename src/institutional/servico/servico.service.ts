@@ -69,14 +69,15 @@ export class ServicoService {
 
   // retornar um serviço com setor
   async findOne(id: number) {
-    const servico = await this.servicoRepo.findOne({ where: {id}, relations: {setor: true}, withDeleted: false });
+    const servico = await this.servicoRepo.findOne({ where: {id}, relations: {setor: { campus: true } }, withDeleted: false });
 
     if (!servico) throw new NotFoundException('Serviço não encontrado!')
 
     return {
       id: servico.id,
       nome: servico.nome,
-      setorId: servico.setor?.id,
+      setor: servico.setor,
+      campus: servico.setor?.campus,
       createdAt: servico.createdAt,
       updatedAt: servico.updatedAt
     };

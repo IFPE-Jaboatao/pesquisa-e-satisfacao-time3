@@ -82,10 +82,10 @@ export class PesquisasController {
    */
   @Post('/satisfacao')
   @Roles(Role.GESTOR, Role.ADMIN)
-  async createSatisfacao(@Body() dto: CreateSatisfacaoDto) {
+  async createSatisfacao(@Body() dto: CreateSatisfacaoDto, @Req() req) {
     // // campo para implementar auditoria futuramente
     // const usuario = req.user;
-    return await this.service.createSatisfacao(dto); // Redireciona para a lógica que ela vai ajustar
+    return await this.service.createSatisfacao(dto, req.user.campusId); // Redireciona para a lógica que ela vai ajustar
   }
 
   /**

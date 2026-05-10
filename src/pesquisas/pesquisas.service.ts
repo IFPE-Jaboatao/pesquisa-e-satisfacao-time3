@@ -6,10 +6,11 @@ import {
   ConsoleLogger,
   HttpCode,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
-import { MongoRepository, ObjectLiteral } from 'typeorm';
+import { MongoRepository, Not, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { Questao, TipoQuestao } from '../questoes/entities/questao.entity';
@@ -124,11 +125,12 @@ export class PesquisasService {
   }
 
   // função para criar pesquisa de satisfação sobre serviço
-  async createSatisfacao(dto: CreateSatisfacaoDto) {
+  async createSatisfacao(dto: CreateSatisfacaoDto, campusId: number) {
+    
     // pesquisas não podem começar no passado
     if (dto.dataInicio) {
       const dateCheck =
-        new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+        new Date(dto.dataInicio).toLocaleDateString() >= new Date().toLocaleDateString();
 
       if (!dateCheck)
         throw new BadRequestException(
@@ -136,19 +138,27 @@ export class PesquisasService {
         );
     }
 
+    // verificar se serviço existe
+    const servico = await this.servicoService.findOne(dto.servicoId);
+
+    if (!servico) throw new NotFoundException('Serviço não encontrado!');
+
+    // verificar se o gestor é do mesmo campus que o serviço
+    if (servico.campus?.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar uma pesquisa de um serviço do campus ${servico.campus.nome} pois não é o seu campus!`)
+
     const pesquisaDto = this.repo.create({
       ...dto,
-      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
-      dataFinal: new Date(dto.dataFinal),
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio).toISOString() : new Date().toISOString(),
+      dataFinal: new Date(dto.dataFinal).toISOString(),
       publicada: dto.dataInicio
-        ? new Date(dto.dataInicio) > new Date()
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
           ? false
           : true
         : true,
       tipo: Tipo.SATISFACAO,
       tipoId: dto.servicoId,
       status: dto.dataInicio
-        ? new Date(dto.dataInicio) > new Date()
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
           ? Status.INATIVA
           : Status.ATIVA
         : Status.ATIVA,
@@ -159,14 +169,16 @@ export class PesquisasService {
       where: {
         tipoId: dto.servicoId,
         tipo: Tipo.SATISFACAO,
-        dataFinal: new Date(dto.dataFinal),
-        dataInicio: new Date(dto.dataInicio),
-        status: Status.ATIVA,
+        dataFinal: new Date(dto.dataFinal).toISOString(),
+        dataInicio: new Date(dto.dataInicio).toISOString(),
       },
       withDeleted: false,
     });
 
-    if (existing.length > 0)
+    // retirar as pesquisas fechadas
+    const existingFiltered = existing.filter((p) => p.status !== Status.FECHADA)
+
+    if (existingFiltered.length > 0)
       throw new ConflictException(
         'Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.',
       );
@@ -458,13 +470,11 @@ export class PesquisasService {
     // pesquisas de satisfação
     const pesquisasSatisfacao = await this.repo.find({
       where: {
-        tipo: Tipo.SATISFACAO,
-        publicada: true,
-        // aqui entrará a lógica de "não respondidas" futuramente
+        tipo: Tipo.SATISFACAO
       },
     });
 
-    // filtrar pesquisas de satisfação para mostrar só as do campus do aluno
+    // filtrar pesquisas de satisfação para mostrar só as do campus do gestor
     // passo 1 - buscar os serviços naquele campus
     const servicosCampus = await this.servicoService.servicosByCampus(campusId);
 
