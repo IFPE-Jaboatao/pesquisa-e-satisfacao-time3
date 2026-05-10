@@ -60,9 +60,9 @@ export class TurmaService {
 
     // busca paralela
     const [disciplina, periodo, docente] = await Promise.all([
-      this.disciplinaRepo.findOne({ where: { id: disciplinaId }, withDeleted: false }),
+      this.disciplinaRepo.findOne({ where: { id: disciplinaId }, withDeleted: false, relations: { curso: { campus: true } } } ),
       this.periodoRepo.findOne({ where: { id: periodoId }, withDeleted: false }),
-      this.usersRepo.findOne({ where: { id: docenteId }, withDeleted: false }),
+      this.usersRepo.findOne({ where: { id: docenteId }, withDeleted: false, relations: { campus: true } }),
     ]);
 
     // validações
@@ -81,6 +81,13 @@ export class TurmaService {
     if (docente.role !== Role.DOCENTE) {
       throw new BadRequestException(
         `Usuário de role ${docente.role} não pode ser docente!`,
+      );
+    }
+
+    // validação de campus do docente e o da disciplina (devem ser iguais)
+    if (docente.campus.id !== disciplina.curso.campus.id) {
+      throw new BadRequestException(
+        `Docente e disciplina devem pertencer ao mesmo campus! Docente pertence ao campus ${docente.campus.nome} e disciplina pertence ao campus ${disciplina.curso.campus.nome}`,
       );
     }
 
