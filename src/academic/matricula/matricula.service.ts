@@ -46,8 +46,8 @@ export class MatriculaService {
 
     // busca paralela
     const [turma, aluno] = await Promise.all([
-      this.turmaRepo.findOne({ where: { id: turmaId }, withDeleted: false }),
-      this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false }),
+      this.turmaRepo.findOne({ where: { id: turmaId }, withDeleted: false, relations: { disciplina: { curso: { campus: true } } } } ),
+      this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false, relations: { campus: true } }),
     ]);
 
     // validações
@@ -62,6 +62,13 @@ export class MatriculaService {
     if (aluno.role !== Role.ALUNO) {
       throw new BadRequestException(
         `Usuário de role ${aluno.role} não pode ser matriculado como aluno!`,
+      );
+    }
+
+    // valida se aluno e turma pertencem ao mesmo campus
+    if (aluno.campus.id !== turma.disciplina.curso.campus.id) {
+      throw new BadRequestException(
+        `Aluno e disciplina devem pertencer ao mesmo campus! Aluno pertence ao campus ${aluno.campus.nome} e turma está no campus ${turma.disciplina.curso.campus.nome}`,
       );
     }
 
@@ -305,7 +312,8 @@ export class MatriculaService {
     // valida turma
     const turma = await this.turmaRepo.findOne({
       where: { id: updateMatriculaDTO.turmaId ?? matricula.turma.id },
-      withDeleted: false
+      withDeleted: false,
+      relations: { disciplina: { curso: { campus: true } } }
     });
 
     if (!turma) {
@@ -318,7 +326,8 @@ export class MatriculaService {
     if (updateMatriculaDTO.alunoId) {
       const found = await this.usersRepo.findOne({
         where: { id: updateMatriculaDTO.alunoId },
-        withDeleted: false
+        withDeleted: false,
+        relations: { campus: true }
       });
 
       if (!found) {
@@ -330,6 +339,13 @@ export class MatriculaService {
           `Usuário de role ${found.role} não pode ser aluno!`,
         );
       }
+
+    // valida se aluno e turma pertencem ao mesmo campus
+    if (found.campus.id !== turma.disciplina.curso.campus.id) {
+      throw new BadRequestException(
+        `Aluno e disciplina devem pertencer ao mesmo campus! Aluno pertence ao campus ${found.campus.nome} e turma está no campus ${turma.disciplina.curso.campus.nome}`,
+      );
+    }
 
       aluno = found;
     }

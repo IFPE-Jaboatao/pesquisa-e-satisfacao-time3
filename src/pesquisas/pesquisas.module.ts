@@ -15,6 +15,7 @@ import { MailModule } from '../mail/mail.module'; // Importado para permitir o e
 import { AcademicModule } from 'src/academic/academic.module';
 import { QuestoesModule } from 'src/questoes/questoes.module';
 import { AppModule } from 'src/app.module';
+import { InstitutionalModule } from 'src/institutional/institutional.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { AppModule } from 'src/app.module';
     AuditoriaModule, 
     MailModule, // Adicionado para que o PesquisasCronService possa injetar o MailService
     AcademicModule,
-    QuestoesModule
+    QuestoesModule,
+    InstitutionalModule,
   ],
   providers: [
     PesquisasService, 
