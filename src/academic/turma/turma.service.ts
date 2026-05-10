@@ -176,7 +176,7 @@ export class TurmaService {
 
     const turma = await this.turmaRepo.findOne({
       where: { id },
-      relations: { disciplina: true, periodo: true, docente: true },
+      relations: { disciplina: { curso: { campus: true} }, periodo: true, docente: true },
       withDeleted: false
     });
 
@@ -186,6 +186,7 @@ export class TurmaService {
       id: turma.id,
       turno: turma.turno,
       disciplina: turma.disciplina,
+      campus: turma.disciplina.curso.campus,
       periodo: turma.periodo,
       docente: { id: turma.docente.id, matricula: turma.docente.matricula, nome: turma.docente.nome, email: turma.docente.email },
       createdAt: turma.createdAt,
@@ -219,6 +220,16 @@ export class TurmaService {
       // retorna apenas turmas que não foram deletados
     return todasTurmas.filter((c) => c.deletedAt === null)
   }
+
+  // função auxiliar para retornar as turmas de um campus (utilizada para dashboard do gestor em pesquisas.service)
+  async findByCampus(campusId: number) {
+    const todasTurmas = await this.turmaRepo.find({
+      where: { disciplina: { curso: { campus: { id: campusId } } } }, withDeleted: false, relations: { disciplina: { curso: { campus: true }}, periodo: true }
+    })
+    // retorna apenas turmas que não foram deletados
+    return todasTurmas
+  }
+
 
   // função auxiliar para pre visualizar as avaliações docentes disponíveis
   async findAvaliacoesDisponiveis(dto: CreateAvaliacaoPeriodoDto) {

@@ -6,10 +6,11 @@ import {
   ConsoleLogger,
   HttpCode,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
-import { MongoRepository, ObjectLiteral } from 'typeorm';
+import { MongoRepository, Not, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { Questao, TipoQuestao } from '../questoes/entities/questao.entity';
@@ -124,11 +125,12 @@ export class PesquisasService {
   }
 
   // função para criar pesquisa de satisfação sobre serviço
-  async createSatisfacao(dto: CreateSatisfacaoDto) {
+  async createSatisfacao(dto: CreateSatisfacaoDto, campusId: number) {
+    
     // pesquisas não podem começar no passado
     if (dto.dataInicio) {
       const dateCheck =
-        new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+        new Date(dto.dataInicio).toLocaleDateString() >= new Date().toLocaleDateString();
 
       if (!dateCheck)
         throw new BadRequestException(
@@ -136,19 +138,27 @@ export class PesquisasService {
         );
     }
 
+    // verificar se serviço existe
+    const servico = await this.servicoService.findOne(dto.servicoId);
+
+    if (!servico) throw new NotFoundException('Serviço não encontrado!');
+
+    // verificar se o gestor é do mesmo campus que o serviço
+    if (servico.campus?.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar uma pesquisa de um serviço do campus ${servico.campus.nome} pois não é o seu campus!`)
+
     const pesquisaDto = this.repo.create({
       ...dto,
-      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
-      dataFinal: new Date(dto.dataFinal),
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio).toISOString() : new Date().toISOString(),
+      dataFinal: new Date(dto.dataFinal).toISOString(),
       publicada: dto.dataInicio
-        ? new Date(dto.dataInicio) > new Date()
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
           ? false
           : true
         : true,
       tipo: Tipo.SATISFACAO,
       tipoId: dto.servicoId,
       status: dto.dataInicio
-        ? new Date(dto.dataInicio) > new Date()
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
           ? Status.INATIVA
           : Status.ATIVA
         : Status.ATIVA,
@@ -159,14 +169,16 @@ export class PesquisasService {
       where: {
         tipoId: dto.servicoId,
         tipo: Tipo.SATISFACAO,
-        dataFinal: new Date(dto.dataFinal),
-        dataInicio: new Date(dto.dataInicio),
-        status: Status.ATIVA,
+        dataFinal: new Date(dto.dataFinal).toISOString(),
+        dataInicio: new Date(dto.dataInicio).toISOString(),
       },
       withDeleted: false,
     });
 
-    if (existing.length > 0)
+    // retirar as pesquisas fechadas
+    const existingFiltered = existing.filter((p) => p.status !== Status.FECHADA)
+
+    if (existingFiltered.length > 0)
       throw new ConflictException(
         'Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.',
       );
@@ -209,16 +221,29 @@ export class PesquisasService {
   }
 
   // função para criar Avaliação Docente manualmente
-  async createAvaliacao(dto: CreateAvaliacaoDto) {
+  async createAvaliacao(dto: CreateAvaliacaoDto, campusId: number) {
     // verifica se a turma existe
     const turma = await this.turmaService.findOne(dto.turmaId);
 
     if (!turma) throw new NotFoundException('Turma não encontrada!');
 
+    // verificar se o campusId do gestor é o mesmo da turma
+
+    // caso o campusId venha 0 é porque a função foi chamada pela função abaixo, createAvaliacaoPeriodo()
+    // e a função já tem uma verificação, então pode passar
+    if (campusId !== 0 && turma.campus.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar avaliação docente dessa turma pois não é do seu campus!`)
+
     // cria data final como {fim do periodo + 180 dias}
     const dataFinal = new Date(turma?.periodo?.endDate);
 
     dataFinal.setDate(dataFinal.getDate() + 180);
+
+    // verificar se pesquisa com essas informações já existe
+    const existing = await this.repo.findOne({
+      where: { tipoId: dto.turmaId, tipo: Tipo.AVALIACAO },
+    });
+
+    if (existing) throw new ConflictException("Já existe uma pesquisa para essa turma!")
 
     const pesquisa = this.repo.create({
       ...dto,
@@ -241,8 +266,8 @@ export class PesquisasService {
   }
 
   // função para criar Avaliação Docente a partir do periodo e do curso
-  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto) {
-    const turmas = await this.turmaService.findAll();
+  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto, campusId: number) {
+    const turmas = await this.turmaService.findByCampus(campusId);
 
     if (!turmas)
       throw new NotFoundException('Não existem turmas para criar avaliações!');
@@ -254,7 +279,7 @@ export class PesquisasService {
     );
 
     if (turmasFilted.length === 0)
-      throw new NotFoundException('Não há turmas nesse curso e/ou período!');
+      throw new NotFoundException('Não há turmas nesse curso e/ou período no seu campus!');
 
     if (dto.dataInicio) {
       const dateCheck =
@@ -287,7 +312,7 @@ export class PesquisasService {
       if (existing) {
         countExisting++;
       } else {
-        const pesquisa = await this.createAvaliacao(pesquisaDto);
+        const pesquisa = await this.createAvaliacao(pesquisaDto, 0);
 
         if (!pesquisa) throw new Error('Não foi possível criar a pesquisa!');
 
@@ -435,8 +460,65 @@ export class PesquisasService {
     });
   }
 
+  async findByGestor(campusId: number) {
+    // avaliações docente
+
+    // buscar as turmas do campus do gestor
+    const turmasCampus = await this.turmaService.findByCampus(campusId);
+
+    const turmaIds = turmasCampus.map((t) => t.id);
+
+    // buscar todas as avaliações docente das turmas do campus do gestor
+    let avaliacoesDocente: any[] = [];
+
+    if (turmaIds.length > 0) {
+      avaliacoesDocente = await this.repo.find({
+        where: {
+          tipoId: { $in: turmaIds },
+          tipo: Tipo.AVALIACAO,
+        },
+      });
+    }
+
+    // pesquisas de satisfação
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO
+      },
+    });
+
+    // filtrar pesquisas de satisfação para mostrar só as do campus do gestor
+    // passo 1 - buscar os serviços naquele campus
+    const servicosCampus = await this.servicoService.servicosByCampus(campusId);
+
+    // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
+    const servicoIds = servicosCampus.map((s) => s.id);
+
+    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+      servicoIds.includes(p.tipoId),
+    );
+
+    return {
+      avaliacoesDocente,
+      filteredSatisfacao,
+    };
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
+
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisaAtual.tipo = Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisaAtual.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    } 
+    else if (pesquisaAtual.tipo = Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisaAtual.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    }
 
     // Proteção contra body vazio ou nulo
     const camposEditados = Object.keys(dto || {});
@@ -505,6 +587,19 @@ export class PesquisasService {
     const pesquisa = await this.findOne(id);
     const objId = new ObjectId(id);
     const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] };
+
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisa.tipo = Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisa.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    } 
+    else if (pesquisa.tipo = Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisa.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    }
 
     await this.respostaRepo.deleteMany(filter as any);
     await this.questaoRepo.deleteMany(filter as any);

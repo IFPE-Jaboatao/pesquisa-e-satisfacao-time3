@@ -95,10 +95,22 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAll() {
-    return this.repo.find({
-      select: ['id', 'matricula', 'nome', 'email', 'role'],
-      withDeleted: false
+    const users = await this.repo.find({
+      withDeleted: false,
+      relations: { campus: true }
     });
+
+    return users?.map(user => ({
+      id: user?.id,
+      matricula: user?.matricula,
+      nome: user?.nome,
+      email: user?.email,
+      role: user?.role,
+      campus: user?.campus?.nome,
+      createdAt: user?.createdAt,
+      updatedAt: user?.updatedAt
+      })
+    )
   }
 
   async findOne(userId: string | number) {
@@ -106,12 +118,20 @@ export class UsersService implements OnModuleInit {
 
     const user = await this.repo.findOne({
       where: { id },
-      select: ['id', 'matricula', 'nome', 'email', 'role'],
+      relations: { campus: true },
       withDeleted: false
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
-    return user;
+
+    return {
+      id: user.id,
+      matricula: user.matricula,
+      nome: user.nome,
+      email: user.email,
+      role: user.role,
+      campus: user.campus.nome
+    };
   }
 
   // DASHBOARDS
@@ -151,11 +171,12 @@ export class UsersService implements OnModuleInit {
   }
 
     // DASHBOARD GESTOR
-  async getDashboardGestor() {
-    const pesquisas = await this.pesquisaService.findAll();
+  async getDashboardGestor(campusId: number) {
+    const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByGestor(campusId);
 
     return {
-      pesquisas
+      avaliacoesDocente,
+      filteredSatisfacao
     };
   }
 
