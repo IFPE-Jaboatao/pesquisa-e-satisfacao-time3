@@ -507,6 +507,19 @@ export class PesquisasService {
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
 
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisaAtual.tipo = Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisaAtual.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    } 
+    else if (pesquisaAtual.tipo = Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisaAtual.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    }
+
     // Proteção contra body vazio ou nulo
     const camposEditados = Object.keys(dto || {});
     if (camposEditados.length === 0) {
@@ -574,6 +587,19 @@ export class PesquisasService {
     const pesquisa = await this.findOne(id);
     const objId = new ObjectId(id);
     const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] };
+
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisa.tipo = Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisa.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    } 
+    else if (pesquisa.tipo = Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisa.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    }
 
     await this.respostaRepo.deleteMany(filter as any);
     await this.questaoRepo.deleteMany(filter as any);
