@@ -210,6 +210,7 @@ export class UsersService implements OnModuleInit {
       nome: dto.nome,
       email: dto.email,
       role: dto.role ?? Role.ALUNO,
+      campus: dto.campusId && dto.role !== Role.ADMIN ? { id: dto.campusId } : undefined,
       password: hashed,
     });
 
@@ -221,10 +222,11 @@ export class UsersService implements OnModuleInit {
       nome: savedUser.nome,
       email: savedUser.email,
       role: savedUser.role,
+      campus: savedUser.campus ? { id: savedUser.campus.id } : undefined
     };
   }
 
-  async update(userId: string, dto: Partial<{ matricula: string; password: string, email: string; nome: string; role: Role }>) {
+  async update(userId: string, dto: Partial<{ matricula: string; password: string, email: string; nome: string; role: Role, campusId: number }>) {
     const id = Number(userId);
     
     const user = await this.repo.findOne({ where: { id }, withDeleted: false });
@@ -253,6 +255,7 @@ export class UsersService implements OnModuleInit {
       nome: updated.nome,
       email: updated.email,
       role: updated.role,
+      campus: updated.campus ? { id: updated.campus.id } : undefined
     };
   }
 

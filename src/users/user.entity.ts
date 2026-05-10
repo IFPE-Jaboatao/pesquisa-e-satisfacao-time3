@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm';
 import { Role } from './user-role.enum';
+import { Campus } from 'src/institutional/campus/entities/campus.entity';
 
 @Entity('users')
 export class User {
@@ -17,6 +18,9 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.ALUNO })
   role?: Role
+
+  @ManyToOne(() => Campus , (campus) => campus.users)
+  campus!: Campus;
 
   @Column()
   password!: string;
