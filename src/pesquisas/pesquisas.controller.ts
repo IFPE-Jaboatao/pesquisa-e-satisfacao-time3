@@ -94,10 +94,10 @@ export class PesquisasController {
    */
   @Post('avaliacao')
   @Roles(Role.GESTOR, Role.ADMIN)
-  async createAvaliacao(@Body() dto: CreateAvaliacaoDto) {
+  async createAvaliacao(@Body() dto: CreateAvaliacaoDto, @Req() req) {
     // // campo para implementar auditoria futuramente
     // const usuario = req.user;
-    return this.service.createAvaliacao(dto); // Redireciona para a lógica que ela vai ajustar
+    return this.service.createAvaliacao(dto, req.user.campusId); // Redireciona para a lógica que ela vai ajustar
   }
 
   @Post()
@@ -110,8 +110,8 @@ export class PesquisasController {
 
   @Post('/avaliacao/periodo')
   @Roles(Role.GESTOR, Role.ADMIN)
-  createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto) {
-    return this.service.createAvaliacaoPeriodo(dto);
+  createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
+    return this.service.createAvaliacaoPeriodo(dto, req.user.campusId);
   }
 
   @Patch(':id')

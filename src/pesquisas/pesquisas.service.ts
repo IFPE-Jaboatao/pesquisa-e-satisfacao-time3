@@ -221,16 +221,29 @@ export class PesquisasService {
   }
 
   // função para criar Avaliação Docente manualmente
-  async createAvaliacao(dto: CreateAvaliacaoDto) {
+  async createAvaliacao(dto: CreateAvaliacaoDto, campusId: number) {
     // verifica se a turma existe
     const turma = await this.turmaService.findOne(dto.turmaId);
 
     if (!turma) throw new NotFoundException('Turma não encontrada!');
 
+    // verificar se o campusId do gestor é o mesmo da turma
+
+    // caso o campusId venha 0 é porque a função foi chamada pela função abaixo, createAvaliacaoPeriodo()
+    // e a função já tem uma verificação, então pode passar
+    if (campusId !== 0 && turma.campus.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar avaliação docente dessa turma pois não é do seu campus!`)
+
     // cria data final como {fim do periodo + 180 dias}
     const dataFinal = new Date(turma?.periodo?.endDate);
 
     dataFinal.setDate(dataFinal.getDate() + 180);
+
+    // verificar se pesquisa com essas informações já existe
+    const existing = await this.repo.findOne({
+      where: { tipoId: dto.turmaId, tipo: Tipo.AVALIACAO },
+    });
+
+    if (existing) throw new ConflictException("Já existe uma pesquisa para essa turma!")
 
     const pesquisa = this.repo.create({
       ...dto,
@@ -253,8 +266,8 @@ export class PesquisasService {
   }
 
   // função para criar Avaliação Docente a partir do periodo e do curso
-  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto) {
-    const turmas = await this.turmaService.findAll();
+  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto, campusId: number) {
+    const turmas = await this.turmaService.findByCampus(campusId);
 
     if (!turmas)
       throw new NotFoundException('Não existem turmas para criar avaliações!');
@@ -266,7 +279,7 @@ export class PesquisasService {
     );
 
     if (turmasFilted.length === 0)
-      throw new NotFoundException('Não há turmas nesse curso e/ou período!');
+      throw new NotFoundException('Não há turmas nesse curso e/ou período no seu campus!');
 
     if (dto.dataInicio) {
       const dateCheck =
@@ -299,7 +312,7 @@ export class PesquisasService {
       if (existing) {
         countExisting++;
       } else {
-        const pesquisa = await this.createAvaliacao(pesquisaDto);
+        const pesquisa = await this.createAvaliacao(pesquisaDto, 0);
 
         if (!pesquisa) throw new Error('Não foi possível criar a pesquisa!');
 
