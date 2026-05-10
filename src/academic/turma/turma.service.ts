@@ -279,7 +279,8 @@ export class TurmaService {
     // valida disciplina
     const disciplina = await this.disciplinaRepo.findOne({
       where: { id: updateTurmaDto.disciplinaId ?? turma.disciplina.id },
-      withDeleted: false
+      withDeleted: false,
+      relations: { curso: { campus: true } }
     });
 
     if (!disciplina) {
@@ -302,7 +303,8 @@ export class TurmaService {
     if (updateTurmaDto.docenteId) {
       const found = await this.usersRepo.findOne({
         where: { id: updateTurmaDto.docenteId },
-        withDeleted: false
+        withDeleted: false,
+        relations: { campus: true }
       });
 
       if (!found) {
@@ -312,6 +314,13 @@ export class TurmaService {
       if (found.role !== Role.DOCENTE) {
         throw new BadRequestException(
           `Usuário de role ${found.role} não pode ser docente!`,
+        );
+      }
+
+        // validação de campus do docente e o da disciplina (devem ser iguais)
+      if (found.campus.id !== disciplina.curso.campus.id) {
+        throw new BadRequestException(
+          `Docente e disciplina devem pertencer ao mesmo campus! Docente pertence ao campus ${found.campus.nome} e disciplina pertence ao campus ${disciplina.curso.campus.nome}`,
         );
       }
 
