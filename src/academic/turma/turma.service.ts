@@ -220,6 +220,16 @@ export class TurmaService {
     return todasTurmas.filter((c) => c.deletedAt === null)
   }
 
+  // função auxiliar para retornar as turmas de um campus (utilizada para dashboard do gestor em pesquisas.service)
+  async findByCampus(campusId: number) {
+    const todasTurmas = await this.turmaRepo.find({
+      where: { disciplina: { curso: { campus: { id: campusId } } } }, withDeleted: false, relations: { disciplina: { curso: { campus: true } } }
+    })
+    // retorna apenas turmas que não foram deletados
+    return todasTurmas
+  }
+
+
   // função auxiliar para pre visualizar as avaliações docentes disponíveis
   async findAvaliacoesDisponiveis(dto: CreateAvaliacaoPeriodoDto) {
     const turmas = await this.findAll();

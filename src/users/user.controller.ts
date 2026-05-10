@@ -134,8 +134,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.GESTOR)
   @Get('dashboard/gestor')
-  getDashboardGestor() {
-    return this.service.getDashboardGestor();
+  getDashboardGestor(@Req() req) {
+    return this.service.getDashboardGestor(req.user.campusId);
   }
 
     // dashboard de admin

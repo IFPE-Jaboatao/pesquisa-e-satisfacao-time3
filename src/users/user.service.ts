@@ -151,11 +151,12 @@ export class UsersService implements OnModuleInit {
   }
 
     // DASHBOARD GESTOR
-  async getDashboardGestor() {
-    const pesquisas = await this.pesquisaService.findAll();
+  async getDashboardGestor(campusId: number) {
+    const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByGestor(campusId);
 
     return {
-      pesquisas
+      avaliacoesDocente,
+      filteredSatisfacao
     };
   }
 

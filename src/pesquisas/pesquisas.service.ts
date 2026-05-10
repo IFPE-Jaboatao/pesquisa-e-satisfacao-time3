@@ -435,6 +435,52 @@ export class PesquisasService {
     });
   }
 
+  async findByGestor(campusId: number) {
+    // avaliações docente
+
+    // buscar as turmas do campus do gestor
+    const turmasCampus = await this.turmaService.findByCampus(campusId);
+
+    const turmaIds = turmasCampus.map((t) => t.id);
+
+    // buscar todas as avaliações docente das turmas do campus do gestor
+    let avaliacoesDocente: any[] = [];
+
+    if (turmaIds.length > 0) {
+      avaliacoesDocente = await this.repo.find({
+        where: {
+          tipoId: { $in: turmaIds },
+          tipo: Tipo.AVALIACAO,
+        },
+      });
+    }
+
+    // pesquisas de satisfação
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO,
+        publicada: true,
+        // aqui entrará a lógica de "não respondidas" futuramente
+      },
+    });
+
+    // filtrar pesquisas de satisfação para mostrar só as do campus do aluno
+    // passo 1 - buscar os serviços naquele campus
+    const servicosCampus = await this.servicoService.servicosByCampus(campusId);
+
+    // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
+    const servicoIds = servicosCampus.map((s) => s.id);
+
+    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+      servicoIds.includes(p.tipoId),
+    );
+
+    return {
+      avaliacoesDocente,
+      filteredSatisfacao,
+    };
+  }
+
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
     const pesquisaAtual = await this.findOne(id);
 
