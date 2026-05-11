@@ -102,7 +102,7 @@ describe('Auth (e2e)', () => {
         .post('/users')
         .set('Authorization', `Bearer ${accessToken}`) // Token do Admin
         .send({
-          matricula: `${new Date().getMilliseconds()}_aluno`,
+          matricula: `aluno123`,
           password: 'senha_do_aluno',
           nome: 'Aluno Teste',
           campusId: campusId,
@@ -145,7 +145,6 @@ describe('Auth (e2e)', () => {
       const mongo = app.get<DataSource>(getDataSourceToken('mongo'));
       if (mongo?.isInitialized) await mongo.destroy();
     } catch (e) {
-      console.log(e)
       // silencia erros caso os DataSources não tenham sido inicializados
     }
 
