@@ -130,7 +130,7 @@ export class UsersService implements OnModuleInit {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      campus: user.campus.nome
+      campus: user.campus?.nome ? user.campus?.nome : null
     };
   }
 
