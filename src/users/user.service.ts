@@ -2,7 +2,9 @@ import {
   Injectable, 
   NotFoundException, 
   ConflictException, 
-  OnModuleInit 
+  OnModuleInit, 
+  UnauthorizedException,
+  BadRequestException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -18,6 +20,7 @@ import { MatriculaService } from 'src/academic/matricula/matricula.service';
 import { PesquisasService } from 'src/pesquisas/pesquisas.service';
 import { CampusService } from 'src/institutional/campus/campus.service';
 import { PeriodoService } from 'src/academic/periodo/periodo.service';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -273,13 +276,22 @@ export class UsersService implements OnModuleInit {
     };
   }
 
-  async updatePassword(userId: string, passwordRaw: string) {
-    const id = Number(userId);
+  async updatePassword(updatePasswordDto: UpdatePasswordDto, userId: number) {
 
-    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
+    const user = await this.repo.findOne({ where: { id: userId }, withDeleted: false });
+
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    const hashed = await bcrypt.hash(passwordRaw, 10);
+    // verificar a senha atual do usuário
+    const check = await bcrypt.compare(updatePasswordDto.passwordAtual, user.password);
+
+    if (!check) throw new UnauthorizedException("Senha atual incorreta!")
+
+    if (updatePasswordDto.password === updatePasswordDto.passwordAtual) throw new BadRequestException("A senha nova não pode ser igual à atual.")
+
+    // segue para trocar a senha do usuário
+    const hashed = await bcrypt.hash(updatePasswordDto.password, 10);
+
     user.password = hashed;
 
     await this.repo.save(user);

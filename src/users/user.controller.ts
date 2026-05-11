@@ -69,7 +69,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('me/password')
   updatePassword(@Body() dto: UpdatePasswordDto, @Req() req) {
-    return this.service.updatePassword(req.user.id, dto.password);
+    return this.service.updatePassword(dto, req.user.id,);
   }
 
   // Atualizar usuário (Admin)
