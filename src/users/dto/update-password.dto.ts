@@ -6,4 +6,8 @@ export class UpdatePasswordDto {
   @MinLength(6)
   password!: string
 
+  @IsString()
+  @MinLength(6)
+  passwordAtual!: string
+
 }
