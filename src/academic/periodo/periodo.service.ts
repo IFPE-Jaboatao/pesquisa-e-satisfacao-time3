@@ -3,9 +3,11 @@ import { CreatePeriodoDto } from './dto/create-periodo.dto';
 import { UpdatePeriodoDto } from './dto/update-periodo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Periodo } from './entities/periodo.entity';
-import { Not, Repository } from 'typeorm';
+import { LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PeriodoDeletedEvent } from 'src/shared/events/periodo-deleted.event';
+import { FindOptionsUtils } from 'typeorm/browser';
+import { createSecretKey } from 'crypto';
 
 @Injectable()
 export class PeriodoService {
@@ -24,6 +26,46 @@ export class PeriodoService {
     });
 
     if (exists) throw new ConflictException("Período já existe!");
+
+    // verificar se existe um período anterior
+    // e verificar startDate atual com endDate anterior
+    const periodoAnt = await this.periodoRepo.findOne({
+      where: {
+        ano: createPeriodoDto.semestre === 1 ? LessThan(createPeriodoDto.ano) : LessThanOrEqual(createPeriodoDto.ano)},
+      order: {
+        ano: 'DESC',
+        semestre: 'DESC'
+      },
+      withDeleted: false
+    })
+
+    if (periodoAnt) {
+      const dateCheck1 = periodoAnt.endDate < createPeriodoDto.startDate;
+
+      if (!dateCheck1) {
+        throw new ConflictException(`O periodo anterior termina em ${periodoAnt.endDate}, então um período subsequente não pode começar em ${createPeriodoDto.startDate}.`)
+      }
+    }
+
+    // verificar se existe periodo posterior 
+    // e verificar endDate atual com startDate posterior
+    const periodoPos = await this.periodoRepo.findOne({
+      where: {
+        ano: createPeriodoDto.semestre === 2 ? MoreThan(createPeriodoDto.ano) : MoreThanOrEqual(createPeriodoDto.ano)},
+      order: {
+        ano: 'ASC',
+        semestre: 'ASC'
+      },
+      withDeleted: false
+    })
+
+    if (periodoPos) {
+      const dateCheck2 = periodoPos.startDate > createPeriodoDto.endDate;
+
+      if (!dateCheck2) {
+        throw new ConflictException(`O periodo subsequente começa em ${periodoPos.startDate}, então um período anterior a ele não pode terminar em ${createPeriodoDto.endDate}.`)
+      }
+  }
 
     const periodo = this.periodoRepo.create({
       ano: createPeriodoDto.ano,
