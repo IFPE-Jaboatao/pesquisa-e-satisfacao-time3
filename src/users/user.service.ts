@@ -55,7 +55,7 @@ export class UsersService implements OnModuleInit {
     if (adminExists) return;
 
     const passwordEnv = this.configService.seedAdminPassword;
-    const password = (passwordEnv && passwordEnv.trim().length > 0)
+    const password = (passwordEnv && passwordEnv.trim().length >= 6)
       ? passwordEnv
       : 'admin123';
 
