@@ -44,6 +44,17 @@ describe('Auth (e2e)', () => {
       });
   });
 
+    it('/auth/login (POST) - Error', () => {
+      // credenciais inválidas não devem funcionar para logar no sistema
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ matricula: 'matriculaInexistente', password: 'matriculaInexistente'})
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).not.toHaveProperty('access_token');
+      });
+  });
+
   afterAll(async () => {
   // pegar as conexões diretamente pelo token (se falhar, tem o catch)
   try {
