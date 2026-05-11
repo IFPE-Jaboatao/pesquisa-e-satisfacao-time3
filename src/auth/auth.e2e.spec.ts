@@ -9,6 +9,7 @@ describe('Auth (e2e)', () => {
   let app: INestApplication;
   let mysqlDataSource: DataSource;
   let mongoDataSource: DataSource;
+  let accessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,21 +31,24 @@ describe('Auth (e2e)', () => {
     }
   });
 
-  it('/auth/login (POST) - Success', () => {
+  it('/auth/login (POST) - Success', async () => {
     const seedPassword = process.env.SEED_ADMIN_PASSWORD;
 
     const finalPassword = (seedPassword && seedPassword.trim().length >= 6) ? seedPassword : 'admin123';
 
-    return request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ matricula: 'admin', password: finalPassword})
       .expect(201)
       .expect((res) => {
         expect(res.body).toHaveProperty('access_token');
       });
+
+      accessToken = response.body.access_token;
+      expect(accessToken).toBeDefined();
   });
 
-    it('/auth/login (POST) - Error', () => {
+    it('/auth/login (POST) - Error (Unauthorized)', () => {
       // credenciais inválidas não devem funcionar para logar no sistema
     return request(app.getHttpServer())
       .post('/auth/login')
@@ -53,6 +57,30 @@ describe('Auth (e2e)', () => {
       .expect((res) => {
         expect(res.body).not.toHaveProperty('access_token');
       });
+  });
+
+  it('/auth/login (POST) /users (GET) - Success', () => {
+    // admin deve conseguir acessar a sua rota
+    // testa se o token está sendo gerado corretamente
+    return request(app.getHttpServer())
+          .get('/users')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(200)
+          .expect((res) => {
+            expect(res.body.length > 0).toBe(true);
+          })
+  });
+
+    it('/auth/login (POST) /users/dashboard/aluno (GET) - Error (Forbidden)', () => {
+    // admin não deve conseguir acessar rota de outro role
+    // testa se o rolesguard está funcionando normalmente
+    return request(app.getHttpServer())
+          .get('/users/dashboard/aluno')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(403)
+          .expect((res) => {
+            expect(res.body).toBeDefined();
+          })
   });
 
   afterAll(async () => {
