@@ -54,3 +54,44 @@ jobs:
           MONGO_URL: mongodb://localhost:27017/test_db
           JWT_SECRET: my-secret
         run: npm run test:e2e
+   
+  test-auth:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_pass
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Auth tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASS: test_pass
+          DB_NAME: test_db
+          MONGO_URL: mongodb://localhost:27017/test_db
+          JWT_SECRET: my-secret
+        run: npx jest auth.e2e.spec.ts  
