@@ -95,14 +95,12 @@ export class PeriodoService {
 
     if (!periodo) throw new NotFoundException("Período não encontrado!");
 
-    // verifica se já existe outro período com ano, semestre, startDate e endDate iguais (exceto ele mesmo)
+    // verifica se já existe outro período com ano, semestre iguais (exceto ele mesmo)
     const exists = await this.periodoRepo.findOne({
       where: {
         ano: updatePeriodoDto?.ano || periodo.ano,
         semestre: updatePeriodoDto?.semestre || periodo.semestre,
-        id: Not(id),
-        startDate: updatePeriodoDto?.startDate || periodo.startDate,
-        endDate: updatePeriodoDto?.endDate || periodo.endDate
+        id: Not(id)
       },
       withDeleted: false
     });
