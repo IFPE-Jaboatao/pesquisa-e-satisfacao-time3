@@ -56,6 +56,19 @@ export class PesquisasController {
     return this.service.findOne(id);
   }
 
+  // retorna a pesquisa e as suas questões
+  @Get(':id/complete')
+  @Roles(Role.ALUNO, Role.GESTOR)
+  async findOneComplete(@Param('id') id: string, @Req() req) {
+    this.validarObjectId(id);
+    const user = {
+      id: req.user.id,
+      campusId: req.user.campusId,
+      role: req.user.role}
+
+    return this.service.findOneComplete(id, user)
+  }
+
   /**
    * Endpoint de Relatório corrigido com log de auditoria para debugar o erro "Ref:"
    */

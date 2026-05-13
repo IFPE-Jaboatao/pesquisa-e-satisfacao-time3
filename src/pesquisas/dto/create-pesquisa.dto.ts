@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { Tipo } from '../pesquisa-tipo.enum';
 import { IsBefore } from 'src/common/decorators/is-before.decorator';
+import { Status } from '../pesquisa-status.enum';
 
 export class CreatePesquisaDto {
   @IsString()
@@ -36,6 +37,9 @@ export class CreatePesquisaDto {
   @IsOptional()
   publicada?: boolean;
 
+  @IsEnum(Status)
+  @IsOptional()
+  status?: Status;
   /**
    * NOVO: Adicionado para resolver o erro TS2339 no PesquisasService.
    * Permite marcar a pesquisa como encerrada sem removê-la do banco.
