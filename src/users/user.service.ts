@@ -153,12 +153,23 @@ export class UsersService implements OnModuleInit {
 
     // Retorno formatado para o dashboard do Front-end
     return {
-      resumo: {
-        satisfacoes: satisfacoes.length,
-        avaliacoes: avaliacoes.length
-      },
-      satisfacoes,
-      avaliacoes
+      avaliacoesResponder: avaliacoes.length,
+      satisfacoesResponder: satisfacoes.length,
+      satisfacoes: satisfacoes.map((s) => ({
+        id: s.id,
+        titulo: s.titulo,
+        descricao: s.descricao,
+        dataInicio: s.dataInicio,
+        dataFinal: s.dataFinal,
+      })),
+      avaliacoes: avaliacoes.map((a) => ({
+        id: a.id,
+        titulo: a.titulo,
+        descricao: a.descricao,
+        dataInicio: a.dataInicio,
+        dataFinal: a.dataFinal,
+        turma: a.tipoId
+      }))
     };
   }
 
