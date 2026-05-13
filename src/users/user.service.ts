@@ -149,18 +149,44 @@ export class UsersService implements OnModuleInit {
       .filter((id): id is number => id !== undefined && id !== null);
 
     // 3. Busca todas as pesquisas relevantes
-    const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByAluno(campusId, turmaIds);
+    const { avaliacoes, satisfacoes} = await this.pesquisaService.findByAluno(campusId, turmaIds, userId);
+
+    // lista das turmas em que o aluno está matriculado
+    const listaMatriculas = matriculas.matriculas;
+    
+    // mapa para facilitar map no retorno de avaliações
+    const turmaMap = new Map(
+      listaMatriculas.map(m => [m.turma.id, m.turma])
+    );
 
     // Retorno formatado para o dashboard do Front-end
     return {
-      alunoId: userId,
-      resumo: {
-        avaliacoes: avaliacoesDocente.length,
-        satisfacoes: filteredSatisfacao.length
-      },
-      avaliacoesDocente,
-      filteredSatisfacao
-    };
+      avaliacoesResponder: avaliacoes.length,
+      satisfacoesResponder: satisfacoes.length,
+      satisfacoes: satisfacoes.map((s) => ({
+        id: s.id,
+        titulo: s.titulo,
+        descricao: s.descricao,
+        dataInicio: s.dataInicio,
+        dataFinal: s.dataFinal,
+      })),
+      avaliacoes: avaliacoes.map((a) => {
+      // busca os dados da turma no map usando o tipoId da pesquisa
+      const dadosTurma = turmaMap.get(a.tipoId);
+
+      return {
+        id: a.id,
+        titulo: a.titulo,
+        descricao: a.descricao,
+        dataInicio: a.dataInicio,
+        dataFinal: a.dataFinal,
+        disciplina: dadosTurma?.disciplina?.nome || 'Disciplina não encontrada',
+        docente: dadosTurma?.docente?.nome || 'Docente não informado',
+        turmaId: a.tipoId,
+        turno: dadosTurma?.turno
+      };
+    })
+  }
   }
 
     // DASHBOARD DOCENTE

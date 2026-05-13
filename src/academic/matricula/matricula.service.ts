@@ -220,6 +220,7 @@ export class MatriculaService {
             nome: m?.turma?.docente?.nome,
             email: m?.turma?.docente?.email,
           },
+          turno: m?.turma.turno
         },
       })),
     };

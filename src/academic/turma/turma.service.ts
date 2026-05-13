@@ -224,7 +224,7 @@ export class TurmaService {
   // função auxiliar para retornar as turmas de um campus (utilizada para dashboard do gestor em pesquisas.service)
   async findByCampus(campusId: number) {
     const todasTurmas = await this.turmaRepo.find({
-      where: { disciplina: { curso: { campus: { id: campusId } } } }, withDeleted: false, relations: { disciplina: { curso: { campus: true }}, periodo: true }
+      where: { disciplina: { curso: { campus: { id: campusId } } } }, withDeleted: false, relations: { disciplina: { curso: { campus: true }}, periodo: true, docente: true }
     })
     // retorna apenas turmas que não foram deletados
     return todasTurmas

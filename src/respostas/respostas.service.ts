@@ -50,8 +50,8 @@ export class RespostasService {
     const jaRespondeu = await this.repo.findOne({
       where: {
         $or: [
-          { pesquisaId: pesquisaIdNormalizada, alunoId: alunoHash },
-          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoId: alunoHash }
+          { pesquisaId: pesquisaIdNormalizada, alunoHash: alunoHash },
+          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoHash: alunoHash }
         ]
       } as any,
     });
