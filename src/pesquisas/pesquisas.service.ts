@@ -30,6 +30,7 @@ import { ServicoService } from 'src/institutional/servico/servico.service';
 import { MatriculaService } from 'src/academic/matricula/matricula.service';
 import { Role } from 'src/users/user-role.enum';
 import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
+import { isTimeZone } from 'class-validator';
 
 @Injectable()
 export class PesquisasService {
@@ -185,8 +186,14 @@ export class PesquisasService {
     
     // pesquisas não podem começar no passado
     if (dto.dataInicio) {
-      const dateCheck =
-        new Date(dto.dataInicio).toLocaleDateString() >= new Date().toLocaleDateString();
+      const dataInicio = new Date(dto.dataInicio.replace(/-/g, '\/'));
+
+      const hoje = new Date();
+
+      dataInicio.setHours(0, 0, 0, 0);
+      hoje.setHours(0, 0, 0, 0);
+
+      const dateCheck = dataInicio >= hoje;
 
       if (!dateCheck)
         throw new BadRequestException(
