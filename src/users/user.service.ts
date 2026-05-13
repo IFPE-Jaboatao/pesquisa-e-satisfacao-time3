@@ -149,17 +149,16 @@ export class UsersService implements OnModuleInit {
       .filter((id): id is number => id !== undefined && id !== null);
 
     // 3. Busca todas as pesquisas relevantes
-    const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByAluno(campusId, turmaIds);
+    const { avaliacoes, satisfacoes} = await this.pesquisaService.findByAluno(campusId, turmaIds, userId);
 
     // Retorno formatado para o dashboard do Front-end
     return {
-      alunoId: userId,
       resumo: {
-        avaliacoes: avaliacoesDocente.length,
-        satisfacoes: filteredSatisfacao.length
+        satisfacoes: satisfacoes.length,
+        avaliacoes: avaliacoes.length
       },
-      avaliacoesDocente,
-      filteredSatisfacao
+      satisfacoes,
+      avaliacoes
     };
   }
 

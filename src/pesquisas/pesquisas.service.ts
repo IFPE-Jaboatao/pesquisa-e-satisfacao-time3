@@ -31,6 +31,7 @@ import { MatriculaService } from 'src/academic/matricula/matricula.service';
 import { Role } from 'src/users/user-role.enum';
 import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
 import { isTimeZone } from 'class-validator';
+import { generateAnonymousHash } from 'src/common/utils/hash.util';
 
 @Injectable()
 export class PesquisasService {
@@ -463,7 +464,7 @@ export class PesquisasService {
   }
 
   // DASHBOARD - funções auxiliares
-  async findByAluno(campusId: number, turmaIds: number[]) {
+  async findByAluno(campusId: number, turmaIds: number[], alunoId: number) {
     // avaliações docente
     // não buscar avaliações docente caso não haja turmasId
     let avaliacoesDocente: any[] = [];
@@ -497,10 +498,36 @@ export class PesquisasService {
       servicoIds.includes(p.tipoId),
     );
 
-    return {
-      avaliacoesDocente,
-      filteredSatisfacao,
-    };
+    // filtrar as pesquisas para mostrar apenas as que o aluno não respondeu
+
+    // junta todos ids para criar os hashes de comparação
+    const todosOsIds = [...avaliacoesDocente, ...filteredSatisfacao].map(p => p.id.toString());
+
+    const hashesParaVerificar = todosOsIds.map(id => generateAnonymousHash(alunoId, id));
+
+    // traz respostas do aluno (hash é alunoId+pesquisaId)
+    const respostasEncontradas = await this.respostaRepo.find({
+      where: { alunoHash: { $in: hashesParaVerificar } } as any,
+      select: ['alunoHash']
+    });
+
+    // procura com set
+    const hashesJaRespondidos = new Set(respostasEncontradas.map(r => r.alunoHash));
+
+    // filtra as duas listas separadamente
+    const avaliacoesFiltradas = avaliacoesDocente.filter(p => 
+      !hashesJaRespondidos.has(generateAnonymousHash(alunoId, p.id.toString()))
+    );
+
+    const satisfacoesFiltradas = filteredSatisfacao.filter(p => 
+      !hashesJaRespondidos.has(generateAnonymousHash(alunoId, p.id.toString()))
+    );
+
+  // retorna o objeto com as chaves separadas
+  return {
+    avaliacoes: avaliacoesFiltradas,
+    satisfacoes: satisfacoesFiltradas
+  };
   }
 
   // No PesquisasService
