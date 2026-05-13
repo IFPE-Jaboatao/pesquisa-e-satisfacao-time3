@@ -2,6 +2,8 @@ name: CI Backend
 
 on:
   push:
+    paths:
+      - 'backend/**'
     branches: 
       - 'feature/**'
       - 'fix/**'
@@ -14,6 +16,9 @@ on:
 jobs:
   e2e-suite:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
 
     services:
       mysql:
