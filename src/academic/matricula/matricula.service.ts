@@ -275,7 +275,7 @@ export class MatriculaService {
   async findByAluno(alunoId: number) {
     // retorna os matriculas do aluno deletado
     const todasMatriculas = await this.matriculaRepo.find({
-      where: { aluno: { id:alunoId } }, withDeleted: true })
+      where: { aluno: { id:alunoId } }, withDeleted: true, relations: {turma: true} })
 
       // retorna apenas matriculas que não foram deletadas
     return todasMatriculas.filter((c) => c.deletedAt === null)

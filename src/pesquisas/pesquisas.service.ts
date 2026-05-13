@@ -27,6 +27,9 @@ import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
 import { error } from 'console';
 import { Status } from './pesquisa-status.enum';
 import { ServicoService } from 'src/institutional/servico/servico.service';
+import { MatriculaService } from 'src/academic/matricula/matricula.service';
+import { Role } from 'src/users/user-role.enum';
+import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
 
 @Injectable()
 export class PesquisasService {
@@ -47,6 +50,8 @@ export class PesquisasService {
     private readonly questoesService: QuestoesService,
 
     private readonly servicoService: ServicoService,
+
+    private readonly matriculaService: MatriculaService,
   ) {}
 
   async findAll() {
@@ -74,6 +79,57 @@ export class PesquisasService {
     }
     return pesquisa;
   }
+
+  async findOneComplete(id: string, user: { id: number, campusId: number, role: string }) {
+    // achar pesquisa
+    const pesquisa = await this.findOne(id);
+
+    // verificações de acesso do usuário à pesquisa antes de seguir para o retorno completo
+
+    // no caso de aluno, procurar pela matricula
+    if (pesquisa.tipo === Tipo.AVALIACAO && user.role === Role.ALUNO) {
+      // procurar matricula
+      const matricula = await this.matriculaService.findByAluno(user.id);
+
+      // verifica se o aluno tem matrícula nessa turma
+      const matriculasFiltradas = matricula?.filter((m) => m.turma.id === pesquisa.tipoId)
+
+      // se aluno não tiver matricula na turma, ele nao pode acessar a pesquisa
+      if (matriculasFiltradas?.length === 0) throw new UnauthorizedException('Aluno não está matriculado nessa turma e não tem acesso a essa pesquisa.')
+    }
+
+    // no caso de gestor, verificar se a turma está no campus dele
+    else if (pesquisa.tipo === Tipo.AVALIACAO && user.role === Role.GESTOR) {
+      // procurar turma
+      const turma = await this.turmaService.findOne(pesquisa.tipoId);
+
+      if (turma.campus.id !== user.campusId) throw new UnauthorizedException('Gestor não está matriculado nessa turma e não tem acesso a essa pesquisa.')
+    }
+  
+    // ver se o usuário está no mesmo campus que o serviço
+    else if (pesquisa.tipo === Tipo.SATISFACAO) {
+      // procurar serviço da pesquisa
+      const servico = await this.servicoService.findOne(pesquisa.tipoId);
+
+      // se usuário não estiver no mesmo campus do serviço, ele nao pode acessar a pesquisa
+      if (servico.campus.id !== user.campusId) throw new UnauthorizedException(`${capitalizeFirstLetter(user.role)} não é desse campus e não tem acesso a essa pesquisa.`)
+    }
+
+    // ultima verificação
+    // caso o aluno tenha acesso mas a pesquisa esteja fechada ou inativa, ele não pode acessar
+    if (user.role === Role.ALUNO && pesquisa.status !== Status.ATIVA) throw new UnauthorizedException('Pesquisa não está ativa. Alunos não podem acessar esse tipo de pesquisa.')
+
+    // usuário tem acesso a pesquisa, então pode seguir
+
+    // pegar as questões
+    const questoes = await this.questoesService.findByPesquisa(pesquisa.id.toString())
+
+    return {
+      ...pesquisa,
+      questoes: questoes
+    }
+  }
+
 
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
