@@ -13,6 +13,7 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacoesModule } from './notificacoes/notificacoes.module';
 import { MailModule } from './mail/mail.module'; 
 import { RelatoriosModule } from './relatorios/relatorios.module';
+import { SeedModule } from './seed/seed.module'; // <-- ADICIONADO: Import do seu módulo de Seed
 
 // Módulos de Negócio (Pesquisas)
 import { PesquisasModule } from './pesquisas/pesquisas.module';
@@ -130,6 +131,7 @@ import { AppService } from './app.service';
     RelatoriosModule,
     InstitutionalModule,
     AcademicModule,
+    SeedModule, // <-- ADICIONADO: Ativação do módulo de seed de forma limpa
   ],
   // MANTIDO: Estrutura da Main para evitar o erro 404 na rota '/'
   controllers: [AppController],

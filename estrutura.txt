@@ -36,6 +36,15 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   ¦   +---entities
 ¦   ¦           disciplina.entity.ts
 ¦   ¦           
+¦   +---handlers
+¦   ¦       aluno-deleted.handler.ts
+¦   ¦       campus-deleted.handler.ts
+¦   ¦       curso-deleted.handler.ts
+¦   ¦       disciplina-deleted.handler.ts
+¦   ¦       docente-deleted.handler.ts
+¦   ¦       periodo-deleted.handler.ts
+¦   ¦       turma-deleted.handler.ts
+¦   ¦       
 ¦   +---matricula
 ¦   ¦   ¦   matricula.controller.spec.ts
 ¦   ¦   ¦   matricula.controller.ts
@@ -91,6 +100,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦           
 +---auth
 ¦   ¦   auth.controller.ts
+¦   ¦   auth.e2e.spec.ts
 ¦   ¦   auth.module.ts
 ¦   ¦   auth.service.ts
 ¦   ¦   constants.ts
@@ -134,6 +144,10 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   ¦   +---entities
 ¦   ¦           campus.entity.ts
 ¦   ¦           
+¦   +---handlers
+¦   ¦       campus-deleted.handler.ts
+¦   ¦       setor-deleted.handler.ts
+¦   ¦       
 ¦   +---servico
 ¦   ¦   ¦   servico.controller.spec.ts
 ¦   ¦   ¦   servico.controller.ts
@@ -170,13 +184,20 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦       notificacoes.service.ts
 ¦       
 +---pesquisas
+¦   ¦   perguntas-criterios.dict.ts
+¦   ¦   pesquisa-status.enum.ts
+¦   ¦   pesquisa-tipo.enum.ts
 ¦   ¦   pesquisa.cron.service.ts
 ¦   ¦   pesquisas.controller.ts
 ¦   ¦   pesquisas.module.ts
 ¦   ¦   pesquisas.service.ts
 ¦   ¦   
 ¦   +---dto
+¦   ¦       create-avaliacao-periodo.dto.ts
+¦   ¦       create-avaliacao.dto.ts
 ¦   ¦       create-pesquisa.dto.ts
+¦   ¦       create-satisfacao.dto.ts
+¦   ¦       update-pesquisa.dto.ts
 ¦   ¦       
 ¦   +---entities
 ¦           pesquisa.entity.ts
@@ -187,6 +208,7 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   ¦   questoes.service.ts
 ¦   ¦   
 ¦   +---dto
+¦   ¦       create-questao-parcial.dto.ts
 ¦   ¦       create-questao.dto.ts
 ¦   ¦       
 ¦   +---entities
@@ -208,12 +230,25 @@ C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO-LIMPO-GITHUB\PESQUISA-E-SATISFACAO-TI
 ¦   +---entities
 ¦           resposta.entity.ts
 ¦           
++---shared
+¦   +---events
+¦           aluno-deleted.event.ts
+¦           campus-deleted.event.ts
+¦           curso-deleted.event.ts
+¦           disciplina-deleted.event.ts
+¦           docente-deleted.event.ts
+¦           periodo-deleted.event.ts
+¦           servico-deleted.event.ts
+¦           setor-deleted.event.ts
+¦           turma-deleted.event.ts
+¦           
 +---users
     ¦   user-role.enum.ts
     ¦   user.controller.ts
     ¦   user.entity.ts
     ¦   user.module.ts
     ¦   user.service.ts
+    ¦   users.e2e.spec.ts
     ¦   
     +---dto
             create-user.dto.ts
