@@ -611,7 +611,8 @@ export class PesquisasService {
       }
     }
 
-    const updateData: any = { ...dto };
+    // normalizando campo status para lowercase
+    const updateData: any = { ...dto, status: dto.status?.toLowerCase()  };
     if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
     if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
 
