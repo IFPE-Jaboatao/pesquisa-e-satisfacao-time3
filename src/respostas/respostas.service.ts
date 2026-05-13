@@ -14,6 +14,9 @@ import { Pesquisa } from '../pesquisas/entities/pesquisa.entity';
 import { EnviarRespostaDto } from './dto/enviar-resposta.dto';
 import { AuditoriaService } from '../auditoria/auditoria.service';
 
+import * as bcrypt from 'bcrypt';
+import { generateAnonymousHash } from 'src/common/utils/hash.util';
+
 @Injectable()
 export class RespostasService {
   constructor(
@@ -37,11 +40,8 @@ export class RespostasService {
     }
 
     const pesquisaIdNormalizada = dto.pesquisaId.toString();
-    const alunoIdNumerico = Number(alunoId);
 
-    if (isNaN(alunoIdNumerico)) {
-      throw new BadRequestException('ID do aluno em formato inválido.');
-    }
+    const alunoHash = generateAnonymousHash(Number(alunoId), pesquisaIdNormalizada)
 
     // 1. Valida se a pesquisa existe e está aberta
     await this.validarPesquisaEPrazo(pesquisaIdNormalizada);
@@ -50,15 +50,15 @@ export class RespostasService {
     const jaRespondeu = await this.repo.findOne({
       where: {
         $or: [
-          { pesquisaId: pesquisaIdNormalizada, alunoId: alunoIdNumerico },
-          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoId: alunoIdNumerico }
+          { pesquisaId: pesquisaIdNormalizada, alunoId: alunoHash },
+          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoId: alunoHash }
         ]
       } as any,
     });
 
     if (jaRespondeu) {
       throw new ConflictException(
-        `O aluno (ID: ${alunoIdNumerico}) já enviou uma resposta para esta avaliação.`
+        `O aluno já enviou uma resposta para esta avaliação.`
       );
     }
 
@@ -66,7 +66,7 @@ export class RespostasService {
     const novaResposta = this.repo.create({
       pesquisaId: pesquisaIdNormalizada,
       respostas: dto.respostas,
-      alunoId: alunoIdNumerico,
+      alunoHash: alunoHash,
       enviadoEm: new Date(),
     });
 
@@ -74,7 +74,7 @@ export class RespostasService {
 
     // 4. Auditoria Silenciosa (Conforme novo protocolo)
     await this.auditoriaService.registrar({
-      usuarioId: String(alunoIdNumerico),
+      usuarioId: alunoHash,
       usuarioNome: usuario?.username || 'Aluno',
       entidade: 'Resposta',
       entidadeId: (salvo as any).id?.toString() || (salvo as any)._id?.toString(),

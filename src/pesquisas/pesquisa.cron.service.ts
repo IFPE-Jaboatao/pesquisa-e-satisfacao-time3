@@ -5,6 +5,7 @@ import { MongoRepository } from 'typeorm';
 import { Pesquisa } from './entities/pesquisa.entity';
 import { Resposta } from '../respostas/entities/resposta.entity'; 
 import { MailService } from '../mail/mail.service';
+import { generateAnonymousHash } from 'src/common/utils/hash.util';
 
 @Injectable()
 export class PesquisasCronService {
@@ -71,7 +72,7 @@ export class PesquisasCronService {
         where: { pesquisaId: pesquisa.id.toString() }
       });
       
-      const idsQueJaResponderam = respostasExistentes.map(r => r.alunoId);
+      const idsQueJaResponderam = respostasExistentes.map(r => r.alunoHash);
 
       const alunosAlvo = [
         { id: 1, email: 'matheus7778842@gmail.com' },
@@ -80,7 +81,9 @@ export class PesquisasCronService {
 
       let houveEnvio = false;
       for (const aluno of alunosAlvo) {
-        if (!idsQueJaResponderam.includes(aluno.id)) {
+        const hash = generateAnonymousHash(aluno.id, pesquisa.id.toString())
+        
+        if (!idsQueJaResponderam.includes(hash)) {
           await this.mailService.enviarNotificacao('LEMBRETE_FIM', {
             emailDestinatario: aluno.email,
             titulo: pesquisa.titulo,

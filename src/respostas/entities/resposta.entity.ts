@@ -16,7 +16,7 @@ export class Resposta {
 
   // FK do aluno no MySQL para controle de unicidade
   @Column()
-  alunoId!: number;
+  alunoHash!: string;
 
   @Column()
   respostas!: RespostaItem[];
