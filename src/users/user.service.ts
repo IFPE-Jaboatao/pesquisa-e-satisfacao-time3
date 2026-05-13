@@ -151,6 +151,14 @@ export class UsersService implements OnModuleInit {
     // 3. Busca todas as pesquisas relevantes
     const { avaliacoes, satisfacoes} = await this.pesquisaService.findByAluno(campusId, turmaIds, userId);
 
+    // lista das turmas em que o aluno está matriculado
+    const listaMatriculas = matriculas.matriculas;
+    
+    // mapa para facilitar map no retorno de avaliações
+    const turmaMap = new Map(
+      listaMatriculas.map(m => [m.turma.id, m.turma])
+    );
+
     // Retorno formatado para o dashboard do Front-end
     return {
       avaliacoesResponder: avaliacoes.length,
@@ -162,15 +170,23 @@ export class UsersService implements OnModuleInit {
         dataInicio: s.dataInicio,
         dataFinal: s.dataFinal,
       })),
-      avaliacoes: avaliacoes.map((a) => ({
+      avaliacoes: avaliacoes.map((a) => {
+      // busca os dados da turma no map usando o tipoId da pesquisa
+      const dadosTurma = turmaMap.get(a.tipoId);
+
+      return {
         id: a.id,
         titulo: a.titulo,
         descricao: a.descricao,
         dataInicio: a.dataInicio,
         dataFinal: a.dataFinal,
-        turma: a.tipoId
-      }))
-    };
+        disciplina: dadosTurma?.disciplina?.nome || 'Disciplina não encontrada',
+        docente: dadosTurma?.docente?.nome || 'Docente não informado',
+        turmaId: a.tipoId,
+        turno: dadosTurma?.turno
+      };
+    })
+  }
   }
 
     // DASHBOARD DOCENTE
