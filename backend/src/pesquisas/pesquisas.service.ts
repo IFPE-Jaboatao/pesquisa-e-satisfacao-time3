@@ -570,8 +570,18 @@ export class PesquisasService {
       });
     }
 
+    // quantidade máxima de respostas por avaliação
+    const respostasMaximasAvaliacoes = await this.getMaximoRespostas(avaliacoesDocente);
+
+    avaliacoesDocente = avaliacoesDocente.map((a) => ({
+      ...a,
+      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0
+    }));
+
     // pesquisas de satisfação
-    const pesquisasSatisfacao = await this.repo.find({
+    let pesquisasSatisfacao: any[] = [];
+
+    pesquisasSatisfacao = await this.repo.find({
       where: {
         tipo: Tipo.SATISFACAO
       },
@@ -584,14 +594,58 @@ export class PesquisasService {
     // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
     const servicoIds = servicosCampus.map((s) => s.id);
 
-    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+    let filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
       servicoIds.includes(p.tipoId),
     );
+
+    // juntar os IDs para retornar as respostas
+    const todasPesquisas = [...avaliacoesDocente, ...filteredSatisfacao]
+
+    // procurar respostas da pesquisa
+    const resultados = await this.respostaRepo.aggregate([
+      {
+        $match: {
+          pesquisaId: { $in: todasPesquisas.map(p => p.id.toString( )) }
+        }
+      },
+      {
+        $group: {
+          _id: "$pesquisaId",
+          total: { $sum: 1 }
+      }
+      }
+    ]).toArray();
+
+    const mapaContagem = new Map(resultados.map(r => [r._id.toString(), r.total]));
+
+    // adicionar o total de respostas
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      respostasRecebidas: mapaContagem.get(p.id.toString()) || 0
+    }));
+
+    avaliacoesDocente = avaliacoesDocente.map(p => {
+      const recebidas = mapaContagem.get(p.id.toString()) || 0;
+
+      return {
+        ...p,
+        respostasRecebidas: recebidas,
+        respostasRestantes: p.maximoRespostas - recebidas,
+      };
+    });
 
     return {
       avaliacoesDocente,
       filteredSatisfacao,
     };
+  }
+
+  // função auxiliar para descobrir quantos alunos faltam responder avaliacoes
+  async getMaximoRespostas(pesquisas) {
+    // buscar quantas matrículas tem nas turmas
+    const matriculas = await this.matriculaService.findAllPesquisa(pesquisas)
+    
+    return matriculas;
   }
 
   async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
