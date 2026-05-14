@@ -9,7 +9,7 @@ import { UpdateMatriculaDto } from './dto/update-matricula.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Turma } from '../turma/entities/turma.entity';
 import { Matricula } from './entities/matricula.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Role } from 'src/users/user-role.enum';
 import { Disciplina } from '../disciplina/entities/disciplina.entity';
@@ -305,6 +305,28 @@ export class MatriculaService {
 
       // retorna apenas matriculas que não foram deletadas
     return todasMatriculas.filter((c) => c.deletedAt === null)
+  }
+
+  async findAllPesquisa(pesquisas) {
+    const turmaIds = [...new Set(pesquisas.map(p => p.tipoId))];
+
+    // procurando as matriculas nas turmas das pesquisas
+    const matriculas = await this.matriculaRepo.find({
+      where: {
+        turma: {id: In(turmaIds) }
+      },
+      relations: {
+        turma: true
+      }
+    });
+
+    // agrupando as matriculas por turma
+    const possiveisRespostasPorTurma = matriculas.reduce((acc, curr) => {
+      acc[curr.turma.id] = (acc[curr.turma.id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return possiveisRespostasPorTurma;
   }
 
   // atualizar matrícula

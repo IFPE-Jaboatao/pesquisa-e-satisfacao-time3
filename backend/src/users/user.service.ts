@@ -26,6 +26,7 @@ import { ServicoService } from 'src/institutional/servico/servico.service';
 import { TurmaService } from 'src/academic/turma/turma.service';
 import { CursoService } from 'src/academic/curso/curso.service';
 import { DisciplinaService } from 'src/academic/disciplina/disciplina.service';
+import { Status } from 'src/pesquisas/pesquisa-status.enum';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -218,9 +219,50 @@ export class UsersService implements OnModuleInit {
   async getDashboardGestor(campusId: number) {
     const { avaliacoesDocente, filteredSatisfacao } = await this.pesquisaService.findByGestor(campusId);
 
+    // retornar quantidade de alunos no campus
+    const alunos = await this.repo.find({
+      where: {
+        role: Role.ALUNO,
+        campus: { id: campusId}
+      },
+      relations: {
+        campus: true
+      },
+      withDeleted: false
+    });
+
+    // calcular quantas respostas faltam nas pesquisas de satisfacão
+    const satisfacoes = filteredSatisfacao.map((p) => ({
+      ...p,
+      respostasRestantes: alunos?.length - (p.respostasRecebidas || 0),
+      maximoRespostas: alunos?.length
+    }))
+
     return {
-      avaliacoesDocente,
-      filteredSatisfacao
+      resumo: {
+        avaliacoes: {
+          total: avaliacoesDocente.length,
+          fechadas: avaliacoesDocente.filter((a) => a.status === Status.FECHADA).length,
+          ativas: avaliacoesDocente.filter((a) => a.status === Status.ATIVA).length,
+          inativas: avaliacoesDocente.filter((a) => a.status === Status.INATIVA).length,
+        },
+        satisfacoes: {
+          total: satisfacoes.length,
+          fechadas: satisfacoes.filter((a) => a.status === Status.FECHADA).length,
+          ativas: satisfacoes.filter((a) => a.status === Status.ATIVA).length,
+          inativas: satisfacoes.filter((a) => a.status === Status.INATIVA).length,
+        }
+      },
+      avaliacoes: {
+        ativas: avaliacoesDocente.filter((a) => a.status === Status.ATIVA),
+        fechadas: avaliacoesDocente.filter((a) => a.status === Status.FECHADA),
+        inativas: avaliacoesDocente.filter((a) => a.status === Status.INATIVA),
+      },
+      satisfacoes: {
+        ativas: satisfacoes.filter((a) => a.status === Status.ATIVA),
+        fechadas: satisfacoes.filter((a) => a.status === Status.FECHADA),
+        inativas: satisfacoes.filter((a) => a.status === Status.INATIVA),
+      },
     };
   }
 
