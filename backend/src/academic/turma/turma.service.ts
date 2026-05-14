@@ -133,6 +133,22 @@ export class TurmaService {
     }));
   }
 
+  // função auxiliar para dashboard do admin
+  async findAllResumo() {
+    const turmas = await this.turmaRepo.find({
+      relations: { disciplina: { curso: true}, periodo: true, docente: true },
+      withDeleted: false
+    });
+
+    return turmas.map((turma) => ({
+      id: turma?.id,
+      turno: turma?.turno,
+      disciplina: turma?.disciplina.nome,
+      periodo: `${turma?.periodo.ano}.${turma?.periodo.semestre}`,
+      docente: { id: turma.docente?.id, nome: turma.docente?.nome },
+    }));
+  }
+
   async findAllProfessor(docenteId: number) {
     const docente = await this.usersRepo.findOne({ where: { id: docenteId }, withDeleted: false });
 
