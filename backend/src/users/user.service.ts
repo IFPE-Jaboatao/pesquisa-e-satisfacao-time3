@@ -21,6 +21,11 @@ import { PesquisasService } from 'src/pesquisas/pesquisas.service';
 import { CampusService } from 'src/institutional/campus/campus.service';
 import { PeriodoService } from 'src/academic/periodo/periodo.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { SetorService } from 'src/institutional/setor/setor.service';
+import { ServicoService } from 'src/institutional/servico/servico.service';
+import { TurmaService } from 'src/academic/turma/turma.service';
+import { CursoService } from 'src/academic/curso/curso.service';
+import { DisciplinaService } from 'src/academic/disciplina/disciplina.service';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -39,6 +44,16 @@ export class UsersService implements OnModuleInit {
     private readonly campusService: CampusService,
 
     private readonly periodoService: PeriodoService,
+
+    private readonly setorServico: SetorService,
+
+    private readonly servicoService: ServicoService,
+
+    private readonly turmaService: TurmaService,
+
+    private readonly cursoService: CursoService,
+
+    private readonly disciplinaService: DisciplinaService
   ) {}
 
   // -------------------------------------------------------------------------
@@ -211,22 +226,73 @@ export class UsersService implements OnModuleInit {
 
       // DASHBOARD GESTOR
   async getDashboardAdmin() {
-    const campus = await this.campusService.findAllFull();
+    // info de institutional
+    const campus = await this.campusService.findAll();
+
+    const setores = await this.setorServico.findAll();
+
+    const servicos = await this.servicoService.findAll();
+
+    // info de academic
+    const cursos = await this.cursoService.findAll();
 
     const periodos = await this.periodoService.findAll();
 
+    const disciplinas = await this.disciplinaService.findAll();
+
+    const turmas = await this.turmaService.findAllResumo();
+
+    const matriculas = await this.matriculaService.findAllAdmin();
+
+    // usuarios
     const users = await this.repo.find({
-      select: ['id', 'matricula', 'nome', 'role', 'email'],
+      relations: { campus: true},
       withDeleted: false
     });
 
-    const matriculas = await this.matriculaService.findAll();
-
     return {
-      campus,
-      periodos,
-      users,
-      matriculas
+      resumo: {
+        users: {
+          total: users.length,
+          admins: users.filter((u) => u.role === Role.ADMIN).length,
+          gestores: users.filter((u) => u.role === Role.GESTOR).length,
+          docentes: users.filter((u) => u.role === Role.DOCENTE).length,
+          alunos: users.filter((u) => u.role === Role.ALUNO).length,
+        },
+        institutional: {
+          campi: campus.length,
+          setores: setores.length,
+          servicos: servicos.length
+        },
+        academic: {
+          cursos: cursos.length,
+          disciplinas: disciplinas.length,
+          turmas: turmas.length,
+          periodos: periodos.length,
+          matriculas: matriculas.length
+        }
+      },
+      institutional: {
+        campus,
+        setores,
+        servicos
+      },
+      academic: {
+        cursos,
+        disciplinas,
+        turmas,
+        periodos,
+        matriculas
+      },
+      users: users.map((u) => ({
+        id: u.id,
+        matricula: u.matricula,
+        nome: u.nome,
+        role: u.role,
+        email: u.email,
+        campusId: u.campus?.id,
+        campus: u.campus?.nome 
+      }))
     };
   }
 

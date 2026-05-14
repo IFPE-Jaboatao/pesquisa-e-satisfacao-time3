@@ -172,6 +172,31 @@ export class MatriculaService {
     }));
   }
 
+  // função auxiliar para retornar matriculas para dashboard do admin
+    async findAllAdmin() {
+    const matriculas = await this.matriculaRepo.find({
+      relations: {
+        aluno: true,
+        turma: {
+          docente: true,
+          periodo: true,
+          disciplina: { curso: { campus: true } },
+        },
+      },
+    });
+
+
+    // output geral de matriculas sem turma especificada
+    return matriculas?.map((matricula) => ({
+      id: matricula?.id,
+      aluno: { id: matricula?.aluno?.id, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email }, 
+      turma: {id: matricula?.turma?.id, disciplina: matricula?.turma?.disciplina?.nome, periodo: `${matricula?.turma?.periodo.ano}.${matricula?.turma?.periodo.semestre}`},
+      campus: { id: matricula?.turma?.disciplina?.curso?.campus?.id,
+        nome: matricula?.turma?.disciplina?.curso?.campus?.nome,
+      }
+    }));
+  }
+
   // listar todas as matrículas de um aluno
   async findAllStudent(alunoId?: number) {
     const aluno = await this.usersRepo.findOne({ where: { id: alunoId }, withDeleted: false });
