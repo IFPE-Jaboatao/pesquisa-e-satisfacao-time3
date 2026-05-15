@@ -5,7 +5,8 @@ import {
   UseGuards, 
   Res, 
   HttpStatus, 
-  NotFoundException 
+  NotFoundException, 
+  Req
 } from '@nestjs/common';
 import type { Response } from 'express'; 
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -34,6 +35,12 @@ export class RelatoriosController {
     if (!dados) throw new NotFoundException('Pesquisa não encontrada');
     
     return dados;
+  }
+
+  @Get(':pesquisaId/relatorio/docente')
+  @Roles(Role.DOCENTE, Role.GESTOR)
+  async relatorioDocente(@Param('pesquisaId') id: string, @Req() req) {
+    return await this.pesquisasService.getRelatorioAvaliacao(id, req.user);
   }
 
   /**

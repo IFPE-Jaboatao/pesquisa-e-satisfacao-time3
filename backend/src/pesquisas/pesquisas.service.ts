@@ -32,6 +32,7 @@ import { Role } from 'src/users/user-role.enum';
 import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
 import { isTimeZone } from 'class-validator';
 import { generateAnonymousHash } from 'src/common/utils/hash.util';
+import { RelatoriosService } from 'src/relatorios/relatorios.service';
 
 @Injectable()
 export class PesquisasService {
@@ -156,6 +157,30 @@ export class PesquisasService {
         totalParticipantes: respostas.length,
       },
     };
+  }
+
+    async getRelatorioAvaliacao(id: string, user: { id: number, role: string, campusId: number}) {
+      const resultado = await this.getRelatorio(id);
+
+      // verificar se realmente é avaliação docente
+      if (resultado.pesquisa.tipo !== Tipo.AVALIACAO) throw new BadRequestException('Essa pesquisa não é de avaliação docente e não pode gerar esse tipo de relatório.')
+
+      // verificar se o docente ou gestor tem acesso à pesquisa
+      const turma = await this.turmaService.findOne(resultado.pesquisa.tipoId);
+
+      if (turma.docente.id !== user.id && user.role === Role.DOCENTE) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não ministra essa turma!')
+
+      if (turma.campus.id !== user.campusId && user.role === Role.GESTOR) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não é gestor nesse campus!')
+
+      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas)
+
+      return {
+        id: resultado.pesquisa.id,
+        titulo: resultado.pesquisa.titulo,
+        status: resultado.pesquisa.status,
+        docente: turma.docente.nome,
+        ...relatorio
+      }
   }
 
   async create(dto: CreatePesquisaDto, usuario: any) {
@@ -542,12 +567,122 @@ export class PesquisasService {
       return { avaliacoes: [] };
     }
 
-    return await this.repo.find({
+    const pesquisas = await this.repo.find({
       where: {
         tipoId: { $in: turmaIds },
         tipo: Tipo.AVALIACAO,
       },
     });
+
+    // processar relatório geral de todas as pesquisas
+    const pesquisaIds = pesquisas.map(p => String(p.id));
+
+    const todasAsRespostas = await this.respostaRepo.find({
+      where: { pesquisaId: { $in: pesquisaIds } }
+    });
+
+    const todasAsQuestoes = await this.questaoRepo.find({
+      where: { pesquisaId: { $in: pesquisaIds } }
+    });
+
+    const consolidado = await this.prepararRelatorioDocente(todasAsQuestoes, todasAsRespostas);
+
+    return {
+      totalTurmasAvaliado: turmasDocente.turmas.length,
+      totalRespostasRecebidas: todasAsRespostas.length,
+      desempenhoGeral: consolidado.indicadores,
+      mediaGeralHistorica: consolidado.mediaGeral,
+      pontosAtencao: consolidado.pontosAtencao,
+      ultimosComentarios: consolidado.comentarios.slice(-10),
+      avaliacoes: {
+        total: pesquisas.length,
+        ativas: pesquisas.filter((p) => p.status == Status.ATIVA),
+        fechadas: pesquisas.filter((p) => p.status == Status.FECHADA),
+        inativas: pesquisas.filter((p) => p.status == Status.INATIVA),
+      }
+    }; 
+  }
+
+  // função para retornar relatório de critérios agregados por avaliação docente
+  async prepararRelatorioDocente(questoes: any, respostas: any[]) {
+    const metasCriterios: Record<string, { label: string; soma: number; totalRespostas: number }> = {};
+    const comentarios: string[] = [];
+      
+      // mapa reverso para pegar o nome do critério a partir da pergunta
+      const mapaDescricaoParaLabel = new Map<string, string>();
+      Object.entries(CRITERIOS).forEach(([key, info]) => {
+          mapaDescricaoParaLabel.set(info.descricao, info.label);
+      });
+
+      // processa cada resposta
+      respostas.forEach((r) => {
+          const itens = r?.respostas || [];
+          
+          itens.forEach((item: any) => {
+              // pega o texto da pergunta original através do ID da questão
+              const questaoOriginal = questoes.find((q: any) => 
+                  String(q._id || q.id) === String(item.questaoId)
+              );
+
+              if (!questaoOriginal) return;
+
+              const textoPergunta = questaoOriginal.pergunta || questaoOriginal.enunciado;
+              const labelCriterio = mapaDescricaoParaLabel.get(textoPergunta);
+
+              if (labelCriterio) {
+                  // questão de escala 1 a 6
+                  const valorNumerico = parseInt(item.valor);
+                  
+                  if (!isNaN(valorNumerico)) {
+                      if (!metasCriterios[labelCriterio]) {
+                          metasCriterios[labelCriterio] = { label: labelCriterio, soma: 0, totalRespostas: 0 };
+                      }
+                      metasCriterios[labelCriterio].soma += valorNumerico;
+                      metasCriterios[labelCriterio].totalRespostas += 1;
+                  }
+              } else {
+                  // se não está no enum de critérios, tratamos como comentário (pergunta aberta)
+                  if (item.valor && item.valor.trim() !== "") {
+                      comentarios.push(item.valor);
+                  }
+              }
+          });
+      });
+
+      // calcula médias e formata em porcentagem
+      const indicadores = Object.values(metasCriterios).map(criterio => {
+          // média simples de 1 a 6
+          const media = criterio.soma / criterio.totalRespostas;
+          
+          // conversão para porcentagem: 
+          // regra: ((media - 1) / (max - 1)) * 100
+          // onde 1 = 0% e 6 = 100%
+          const porcentagem = ((media - 1) / (6 - 1)) * 100;
+
+          return {
+              criterio: criterio.label,
+              mediaValor: media.toFixed(2),
+              porcentagem: Math.round(porcentagem) + "%",
+              totalVotos: criterio.totalRespostas
+          };
+      });
+
+      // escolher os pontos de atenção
+      const pontosAtencao = {
+        razoavel: indicadores.filter((i) => parseFloat(i.porcentagem) < 60 && parseFloat(i.porcentagem) >= 40).map((i) => i.criterio),
+        alto: indicadores.filter((i) => parseFloat(i.porcentagem) < 40 && parseFloat(i.porcentagem) >= 20).map((i) => i.criterio),
+        critico: indicadores.filter((i) => parseFloat(i.porcentagem) < 20).map((i) => i.criterio)
+      }
+
+      // calcular a media geral
+      const mediaGeral = indicadores.map((i) => parseFloat(i.porcentagem)).reduce((total, current) => total + current, 0) / indicadores.length + "%"
+
+      return {
+          indicadores,
+          comentarios,
+          pontosAtencao,
+          mediaGeral
+      };
   }
 
   async findByGestor(campusId: number) {
