@@ -67,13 +67,27 @@ export class QuestoesService {
     // Busca flexível para garantir que encontre a questão independente do formato do ID salvo
     const questoes = await this.repo.find({
       where: {
-        $or: [
-          { pesquisaId: pesquisaId },
-          { pesquisaId: new ObjectId(pesquisaId) as any }
-        ]
+        pesquisaId: pesquisaId 
       } as any,
     });
 
     return questoes; // Removido o throw para permitir que relatórios venham vazios sem quebrar o fluxo
   }
+
+  // função auxiliar de softDelete
+    async softDelete(pesquisaIds: Array<string>) {
+
+      if (!pesquisaIds || pesquisaIds.length === 0) {
+        console.log("sem pesquisas para deletar as questoes")
+        return
+      }
+
+      // soft delete das questoes
+      await this.repo.updateMany(
+        { pesquisaId: { $in: pesquisaIds } },
+        { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+      );
+
+      return
+    }
 }

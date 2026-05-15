@@ -16,6 +16,8 @@ import { AcademicModule } from 'src/academic/academic.module';
 import { QuestoesModule } from 'src/questoes/questoes.module';
 import { AppModule } from 'src/app.module';
 import { InstitutionalModule } from 'src/institutional/institutional.module';
+import { TurmaDeletedHandlerPesquisa } from './handlers/turma-deleted.handler';
+import { ServicoDeletedHandlerPesquisa } from './handlers/servico-deleted.handler';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { InstitutionalModule } from 'src/institutional/institutional.module';
   providers: [
     PesquisasService, 
     PesquisasCronService, // Registrado como provider para ativar o @Cron
+    TurmaDeletedHandlerPesquisa,
+    ServicoDeletedHandlerPesquisa
   ],
   controllers: [PesquisasController],
   exports: [PesquisasService], 

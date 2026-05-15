@@ -46,15 +46,11 @@ export class RespostasService {
     // 1. Valida se a pesquisa existe e está aberta
     await this.validarPesquisaEPrazo(pesquisaIdNormalizada);
 
-    // 2. Verificação de Duplicidade com busca flexível
+    // 2. Verificação de Duplicidade com busca objetiva
     const jaRespondeu = await this.repo.findOne({
-      where: {
-        $or: [
-          { pesquisaId: pesquisaIdNormalizada, alunoHash: alunoHash },
-          { pesquisaId: new ObjectId(pesquisaIdNormalizada) as any, alunoHash: alunoHash }
-        ]
-      } as any,
-    });
+      where: { alunoHash: alunoHash }
+      } ,
+    );
 
     if (jaRespondeu) {
       throw new ConflictException(
@@ -83,6 +79,11 @@ export class RespostasService {
     });
 
     return salvo;
+  }
+
+
+  async findAll() {
+    return await this.repo.find({ withDeleted: true})
   }
 
   /**
@@ -146,4 +147,22 @@ export class RespostasService {
       order: { enviadoEm: 'DESC' },
     });
   }
+
+  // função auxiliar de softDelete
+    async softDelete(pesquisaIds: Array<string>) {
+
+      if (!pesquisaIds || pesquisaIds.length === 0) {
+        console.log("sem pesquisas para deletar as respostas")
+        return
+      }
+
+      // soft delete das questoes
+      await this.repo.updateMany(
+        { pesquisaId: { $in: pesquisaIds } },
+        { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+      );
+
+      return
+    }
+
 }
