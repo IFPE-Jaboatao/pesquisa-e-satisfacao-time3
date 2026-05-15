@@ -885,9 +885,17 @@ export class PesquisasService {
       if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
     }
 
-    await this.respostaRepo.deleteMany(filter as any);
-    await this.questaoRepo.deleteMany(filter as any);
-    await this.repo.deleteOne({ _id: objId });
+    // soft delete das pesquisas
+    await this.repo.updateOne(
+      { id: pesquisa.id },
+      { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // evento emitado para deletar questoes e respostas da pesquisa
+    this.eventEmitter.emit(
+      'pesquisa.deleted',
+      new PesquisaDeletedEvent([pesquisa.id.toString()])
+    )
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
@@ -908,7 +916,7 @@ export class PesquisasService {
       where: { tipo: tipo, tipoId: tipoId, deletedAt: null },
       select: ['id'] 
     });
-    console.log(pesquisasParaDeletar)
+
     if (pesquisasParaDeletar.length === 0) return;
 
     // extrai os IDs em um array (atendendo a strings e objectIds)
