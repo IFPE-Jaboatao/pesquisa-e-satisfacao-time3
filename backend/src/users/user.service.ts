@@ -437,7 +437,7 @@ export class UsersService implements OnModuleInit {
     const id = Number(userId);
     // verifica se o usuário existe sem considerar os deletados
     
-    const user = await this.repo.findOne({ where: { id }, withDeleted: false });
+    const user = await this.repo.findOne({ where: { id }, withDeleted: false, relations: { campus: true } });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
@@ -455,7 +455,7 @@ export class UsersService implements OnModuleInit {
           // evento emitado para deletar matriculas daquele aluno
           this.eventEmitter.emit(
             'aluno.deleted',
-            new AlunoDeletedEvent(user.id)
+            new AlunoDeletedEvent(user.id, user.campus.id)
           )
     }
 

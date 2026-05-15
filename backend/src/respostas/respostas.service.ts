@@ -16,6 +16,8 @@ import { AuditoriaService } from '../auditoria/auditoria.service';
 
 import * as bcrypt from 'bcrypt';
 import { generateAnonymousHash } from 'src/common/utils/hash.util';
+import { Tipo } from 'src/pesquisas/pesquisa-tipo.enum';
+import { ServicoService } from 'src/institutional/servico/servico.service';
 
 @Injectable()
 export class RespostasService {
@@ -27,6 +29,8 @@ export class RespostasService {
     private readonly pesquisaRepo: MongoRepository<Pesquisa>,
 
     private readonly auditoriaService: AuditoriaService,
+
+    private readonly servicoService: ServicoService,
   ) {}
 
   /**
@@ -156,13 +160,83 @@ export class RespostasService {
         return
       }
 
-      // soft delete das questoes
+      // soft delete das respostas
       await this.repo.updateMany(
         { pesquisaId: { $in: pesquisaIds } },
         { $set: { deletedAt: new Date(), updatedAt: new Date() } }
       );
 
       return
+    }
+
+    
+    // função auxiliar de softDelete
+    async softDeleteByMatricula(turmaId: number, alunoId: number) {
+
+      const pesquisa = await this.pesquisaRepo.findOne({
+        where: {
+          tipo: Tipo.AVALIACAO,
+          tipoId: turmaId 
+        }
+      });
+
+      if (!pesquisa) return;
+
+      const pesquisaId = pesquisa.id.toString();
+
+      // gerar hash para apagar possível resposta
+      const alunoHash = await generateAnonymousHash(alunoId, pesquisaId);
+
+      // soft delete da resposta
+      await this.repo.updateOne(
+        { alunoHash: alunoHash  },
+        { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+      );
+
+      return
+    }
+
+    async softDeleteByAlunoCampus( alunoId: number, campusId: number) {
+
+      // buscar APENAS os IDs de todas as pesquisas de SATISFACAO ativas daquele campus
+
+      // buscar servicos do campus
+      const servicos = await this.servicoService.servicosByCampus(campusId);
+
+      const servicosIds = servicos.map((s) => s.id)
+
+      const pesquisasSatisfacao = await this.pesquisaRepo.find({
+        where: {
+          tipo: 'SATISFACAO',
+          tipoId: { $in: servicosIds}, // filtro pelos servicos para limitar o escopo
+          deletedAt: null
+        },
+        select: ['id']
+      });
+
+      if (!pesquisasSatisfacao || pesquisasSatisfacao.length === 0) {
+        return; // nenhuma pesquisa encontrada, nada para deletar
+      }
+
+      // gerar a lista de hashes possíveis para este aluno
+      const hashesParaDeletar = pesquisasSatisfacao.map(pesquisa => {
+        const idPesquisaStr = String(pesquisa.id || (pesquisa as any).id);
+        return generateAnonymousHash(alunoId, idPesquisaStr);
+      });
+
+      // soft delete em massa de todas as respostas que possuam esses hashes
+      await this.repo.updateMany(
+        { 
+          alunoHash: { $in: hashesParaDeletar },
+          deletedAt: null
+        },
+        { 
+          $set: { 
+            deletedAt: new Date(), 
+            updatedAt: new Date()
+          } 
+        }
+      );
     }
 
 }

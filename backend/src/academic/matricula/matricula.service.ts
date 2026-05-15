@@ -14,6 +14,8 @@ import { User } from 'src/users/user.entity';
 import { Role } from 'src/users/user-role.enum';
 import { Disciplina } from '../disciplina/entities/disciplina.entity';
 import { isNumber } from 'class-validator';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MatriculaDeletedEvent } from 'src/shared/events/matricula-deleted.event';
 
 @Injectable()
 export class MatriculaService {
@@ -26,6 +28,8 @@ export class MatriculaService {
 
     @InjectRepository(User, 'mysql')
     private usersRepo: Repository<User>,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async create(createMatriculaDto: CreateMatriculaDto) {
@@ -441,7 +445,7 @@ export class MatriculaService {
 
   // deletar matrícula
   async remove(id: number) {
-    const matricula = await this.matriculaRepo.findOne({where: {id}, withDeleted: false});
+    const matricula = await this.matriculaRepo.findOne({where: {id}, withDeleted: false, relations: {aluno: true, turma: true}});
 
     if (!matricula) throw new NotFoundException("Matrícula não encontrada!")
 
@@ -449,6 +453,12 @@ export class MatriculaService {
 
     if (result.affected === 0)
       throw new NotFoundException('Matrícula não encontrada!');
+
+    // evento emitado para deletar respostas do aluno em avaliações
+    this.eventEmitter.emit(
+      'matricula.deleted',
+      new MatriculaDeletedEvent(matricula.turma.id, matricula.aluno.id)
+    )
 
     return { success: true, message: 'Matrícula deletada com sucesso!' };
   }
