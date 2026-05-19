@@ -50,13 +50,13 @@ export class Pesquisa {
   @Column()
   tipoId!: number; // Usado pelo método findAllByTurma no service
 
-  @CreateDateColumn()
+  @CreateDateColumn({type: 'timestamp'})
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({type: 'timestamp'})
   updatedAt!: Date; // Útil para auditoria e controle de alterações
 
   // RECOMENDADO: Soft Delete padronizado com o restante do projeto (Adila)
-  @DeleteDateColumn()
+  @DeleteDateColumn({type: 'timestamp'})
   deletedAt?: Date; 
 }

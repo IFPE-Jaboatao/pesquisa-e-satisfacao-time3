@@ -1,4 +1,4 @@
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectIdColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
 
 export interface RespostaItem {
@@ -23,4 +23,13 @@ export class Resposta {
 
   @Column()
   enviadoEm!: Date;
+
+  @CreateDateColumn({type: 'timestamp'})
+  createdAt!: Date;
+
+  @UpdateDateColumn({type: 'timestamp'})
+  updatedAt!: Date; 
+
+  @DeleteDateColumn({type: 'timestamp'})
+  deletedAt?: Date; 
 }
