@@ -12,8 +12,8 @@ export class MatriculaDeletedHandlerResposta {
 
   @OnEvent('matricula.deleted')
   async handlePesquisaDeletedEvent(payload: MatriculaDeletedEvent) {
-
-    await this.respostasService.softDeleteByMatricula(payload.alunoId, payload.turmaId);
+    // ordem correta dos itens para softDeleteByMatricula()
+    await this.respostasService.softDeleteByMatricula(payload.turmaId, payload.alunoId);
     
   }
 }

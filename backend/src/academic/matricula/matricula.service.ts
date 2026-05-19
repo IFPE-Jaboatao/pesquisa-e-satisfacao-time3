@@ -445,9 +445,11 @@ export class MatriculaService {
 
   // deletar matrícula
   async remove(id: number) {
-    const matricula = await this.matriculaRepo.findOne({where: {id}, withDeleted: false, relations: {aluno: true, turma: true}});
-
-    if (!matricula) throw new NotFoundException("Matrícula não encontrada!")
+    // necessário trazer withDelete: true para caso o aluno tenha sido deletado
+    const matricula = await this.matriculaRepo.findOne({where: {id}, withDeleted: true, relations: {aluno: true, turma: true}});
+    
+    // ainda assim rejeita matrículas que já estejam deletadas (deletedAt != null)
+    if (!matricula || matricula.deletedAt != null) throw new NotFoundException("Matrícula não encontrada!")
 
     const result = await this.matriculaRepo.softDelete(id);
 
