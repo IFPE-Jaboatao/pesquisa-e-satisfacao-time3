@@ -874,12 +874,12 @@ export class PesquisasService {
 
     // verificar se o gestor tentando deletar a pesquisa é do campus dela
     // caso seja pesquisa de satisfação
-    if (pesquisa.tipo = Tipo.SATISFACAO) {
+    if (pesquisa.tipo === Tipo.SATISFACAO) {
       const servico = await this.servicoService.findOne(pesquisa.tipoId);
 
       if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
     } 
-    else if (pesquisa.tipo = Tipo.AVALIACAO) {
+    else if (pesquisa.tipo === Tipo.AVALIACAO) {
       const turma = await this.turmaService.findOne(pesquisa.tipoId);
 
       if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
@@ -887,7 +887,7 @@ export class PesquisasService {
 
     // soft delete das pesquisas
     await this.repo.updateOne(
-      { id: pesquisa.id },
+      { _id: pesquisa.id },
       { $set: { deletedAt: new Date(), updatedAt: new Date() } }
     );
 
