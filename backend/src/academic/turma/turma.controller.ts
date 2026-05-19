@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException, Req } from '@nestjs/common';
 import { TurmaService } from './turma.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
@@ -41,10 +41,10 @@ export class TurmaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.GESTOR)
+  @Roles(Role.GESTOR, Role.ADMIN)
   @Post('avaliacoes-disponiveis')
-  async findAvaliacoesDisponiveis(@Body() dto: CreateAvaliacaoPeriodoDto) {
-    return this.turmaService.findAvaliacoesDisponiveis(dto)
+  async findAvaliacoesDisponiveis(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
+    return this.turmaService.findAvaliacoesDisponiveis(dto, req.user.campusId)
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

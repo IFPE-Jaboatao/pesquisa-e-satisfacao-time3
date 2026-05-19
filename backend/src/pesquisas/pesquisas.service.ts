@@ -937,4 +937,18 @@ export class PesquisasService {
 
     return
   }
+
+  // função auxiliar de debug temporária
+  async getMongoDump() {
+    const pesquisas = await this.repo.find({ withDeleted: true });
+    const questoes = await this.questaoRepo.find({ withDeleted: true });
+    const respostas = await this.respostaRepo.find({ withDeleted: true });
+
+    return {
+      pesquisas,
+      questoes,
+      respostas
+    };
+  }
 }
+

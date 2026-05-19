@@ -207,7 +207,7 @@ export class RespostasService {
 
       const pesquisasSatisfacao = await this.pesquisaRepo.find({
         where: {
-          tipo: 'SATISFACAO',
+          tipo: Tipo.SATISFACAO,
           tipoId: { $in: servicosIds}, // filtro pelos servicos para limitar o escopo
           deletedAt: null
         },
