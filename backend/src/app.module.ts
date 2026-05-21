@@ -13,6 +13,7 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacoesModule } from './notificacoes/notificacoes.module';
 import { MailModule } from './mail/mail.module'; 
 import { RelatoriosModule } from './relatorios/relatorios.module';
+import { SeedModule } from './seed/seed.module';
 
 // Módulos de Negócio (Pesquisas)
 import { PesquisasModule } from './pesquisas/pesquisas.module';
@@ -119,7 +120,7 @@ import { AppService } from './app.service';
     // 6. REGISTRO DE MÓDULOS DE DOMÍNIO
     AuditoriaModule,
     // ADICIONADO: MailModule da sua branch para a automação funcionar
-    MailModule,           
+    MailModule,          
     NotificacoesModule,  
     UsersModule,
     AuthModule,
@@ -130,6 +131,9 @@ import { AppService } from './app.service';
     RelatoriosModule,
     InstitutionalModule,
     AcademicModule,
+    
+    // CORRIGIDO: Trava condicional adicionada para evitar execução do Seed no ambiente de teste (CI)
+    ...(process.env.NODE_ENV !== 'test' ? [SeedModule] : []),
   ],
   // MANTIDO: Estrutura da Main para evitar o erro 404 na rota '/'
   controllers: [AppController],
