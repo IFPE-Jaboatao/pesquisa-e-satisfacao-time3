@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { CursoService } from './curso.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
@@ -7,6 +8,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 
+@ApiBearerAuth('access-token')
 @Controller('academic/cursos')
 export class CursoController {
   constructor(private readonly cursoService: CursoService) {}

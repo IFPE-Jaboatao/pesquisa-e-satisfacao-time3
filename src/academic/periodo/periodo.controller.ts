@@ -6,7 +6,9 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('academic/periodos')
 export class PeriodoController {
   constructor(private readonly periodoService: PeriodoService) {}

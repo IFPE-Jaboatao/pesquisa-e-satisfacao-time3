@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 
 import { UsersService } from './user.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -22,6 +23,7 @@ import { Role } from './user-role.enum';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+@ApiBearerAuth('access-token')
 @Controller('users')
 export class UsersController {
   constructor(private readonly service: UsersService) {}

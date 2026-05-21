@@ -23,7 +23,10 @@ import { ObjectId } from 'mongodb';
 import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
 import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
 import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiParam } from '@nestjs/swagger';
 
+@ApiTags('Pesquisas')
+@ApiBearerAuth('access-token')
 @Controller('surveys/pesquisas')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PesquisasController {
@@ -33,24 +36,29 @@ export class PesquisasController {
 
   @Get()
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Lista todas as pesquisas cadastradas' })
   findAll() {
     return this.service.findAll();
   }
 
   @Get('turma/:turmaId')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Busca pesquisas vinculadas a uma turma específica' })
+  @ApiParam({ name: 'turmaId', description: 'ID numérico da turma (MySQL)' })
   findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
     return this.service.findAllByTurma(turmaId);
   }
 
   @Get('avaliacao/criterios')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Obtém um preview dos critérios de avaliação docente' })
   async getPreviewAvaliacaoDocente() {
     return this.service.getPreviewAvaliacaoDocente();
   }
 
   @Get(':id')
   @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Busca os detalhes de uma pesquisa por ID do MongoDB' })
   findOne(@Param('id') id: string) {
     this.validarObjectId(id);
     return this.service.findOne(id);
@@ -61,6 +69,7 @@ export class PesquisasController {
    */
   @Get(':id/relatorio')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Gera os dados consolidados para o relatório da pesquisa' })
   async getRelatorio(@Param('id') id: string) {
     this.validarObjectId(id);
 
@@ -78,44 +87,42 @@ export class PesquisasController {
 
   /**
    * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
-   * 
    */
   @Post('/satisfacao')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria uma pesquisa de satisfação institucional' })
   async createSatisfacao(@Body() dto: CreateSatisfacaoDto, @Req() req) {
-    // // campo para implementar auditoria futuramente
-    // const usuario = req.user;
-    return await this.service.createSatisfacao(dto, req.user.campusId); // Redireciona para a lógica que ela vai ajustar
+    return await this.service.createSatisfacao(dto, req.user.campusId);
   }
 
   /**
    * RN 9.2: Criação de Avaliação Docente (Automática/Turma)
-   * 
    */
   @Post('avaliacao')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria uma avaliação docente vinculada a turmas' })
   async createAvaliacao(@Body() dto: CreateAvaliacaoDto, @Req() req) {
-    // // campo para implementar auditoria futuramente
-    // const usuario = req.user;
-    return this.service.createAvaliacao(dto, req.user.campusId); // Redireciona para a lógica que ela vai ajustar
+    return this.service.createAvaliacao(dto, req.user.campusId);
   }
 
   @Post()
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Criação genérica de pesquisa' })
   async create(@Body() dto: CreatePesquisaDto, @Req() req: any) {
-    // Captura o usuário da requisição para alimentar a auditoria
     const usuario = req.user;
     return await this.service.create(dto, usuario);
   }
 
   @Post('/avaliacao/periodo')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria avaliações docentes para um período letivo inteiro' })
   createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
     return this.service.createAvaliacaoPeriodo(dto, req.user.campusId);
   }
 
   @Patch(':id')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Atualiza dados de uma pesquisa existente' })
   async update(
     @Param('id') id: string, 
     @Body() dto: Partial<CreatePesquisaDto>,
@@ -128,6 +135,7 @@ export class PesquisasController {
 
   @Patch(':id/publicar')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Altera o status da pesquisa para PUBLICADA' })
   async publicar(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
     return await this.service.publicar(id, req.user);
@@ -135,6 +143,7 @@ export class PesquisasController {
 
   @Delete(':id')
   @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Remove uma pesquisa (Exclusão lógica/física)' })
   async remove(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
     return await this.service.remove(id, req.user);
