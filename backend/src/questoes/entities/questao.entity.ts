@@ -1,4 +1,4 @@
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectIdColumn, Column, DeleteDateColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
 
 export enum TipoQuestao {
@@ -26,4 +26,13 @@ export class Questao {
 
   @Column({ nullable: true })
   escalaMax?: number;
+
+  @CreateDateColumn({type: 'timestamp'})
+  createdAt!: Date;
+
+  @UpdateDateColumn({type: 'timestamp'})
+  updatedAt!: Date; 
+
+  @DeleteDateColumn({type: 'timestamp'})
+  deletedAt?: Date; 
 }

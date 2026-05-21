@@ -33,6 +33,8 @@ import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
 import { isTimeZone } from 'class-validator';
 import { generateAnonymousHash } from 'src/common/utils/hash.util';
 import { RelatoriosService } from 'src/relatorios/relatorios.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PesquisaDeletedEvent } from 'src/shared/events/pesquisa-deleted.event';
 
 @Injectable()
 export class PesquisasService {
@@ -55,10 +57,12 @@ export class PesquisasService {
     private readonly servicoService: ServicoService,
 
     private readonly matriculaService: MatriculaService,
+
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async findAll() {
-    return await this.repo.find({ order: { _id: 'DESC' } });
+    return await this.repo.find({ order: { _id: 'DESC' }, withDeleted: true });
   }
 
   async findAllByTurma(turmaId: number) {
@@ -870,20 +874,28 @@ export class PesquisasService {
 
     // verificar se o gestor tentando deletar a pesquisa é do campus dela
     // caso seja pesquisa de satisfação
-    if (pesquisa.tipo = Tipo.SATISFACAO) {
+    if (pesquisa.tipo === Tipo.SATISFACAO) {
       const servico = await this.servicoService.findOne(pesquisa.tipoId);
 
       if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
     } 
-    else if (pesquisa.tipo = Tipo.AVALIACAO) {
+    else if (pesquisa.tipo === Tipo.AVALIACAO) {
       const turma = await this.turmaService.findOne(pesquisa.tipoId);
 
       if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
     }
 
-    await this.respostaRepo.deleteMany(filter as any);
-    await this.questaoRepo.deleteMany(filter as any);
-    await this.repo.deleteOne({ _id: objId });
+    // soft delete das pesquisas
+    await this.repo.updateOne(
+      { _id: pesquisa.id },
+      { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // evento emitado para deletar questoes e respostas da pesquisa
+    this.eventEmitter.emit(
+      'pesquisa.deleted',
+      new PesquisaDeletedEvent([pesquisa.id.toString()])
+    )
 
     await this.auditoriaService.registrar({
       usuarioId: String(usuario?.userId || usuario?.id || 'system'),
@@ -896,4 +908,47 @@ export class PesquisasService {
 
     return { message: 'Pesquisa removida' };
   }
+
+  // função auxiliar de softDelete
+  async softDelete(tipoId: number, tipo: string) {
+    // encontrando pesquisas para depois emitar evento e deletar dependentes
+    const pesquisasParaDeletar = await this.repo.find({
+      where: { tipo: tipo, tipoId: tipoId, deletedAt: null },
+      select: ['id'] 
+    });
+
+    if (pesquisasParaDeletar.length === 0) return;
+
+    // extrai os IDs em um array (atendendo a strings e objectIds)
+    const pesquisaIds = pesquisasParaDeletar.map(p => p.id);
+    const pesquisaStringIds = pesquisasParaDeletar.map(p => String(p.id));
+
+    // soft delete das pesquisas
+    await this.repo.updateMany(
+      { _id: { $in: pesquisaIds } },
+      { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // evento emitado para deletar questoes e respostas da pesquisa
+    this.eventEmitter.emit(
+      'pesquisa.deleted',
+      new PesquisaDeletedEvent(pesquisaStringIds)
+    )
+
+    return
+  }
+
+  // função auxiliar de debug temporária
+  async getMongoDump() {
+    const pesquisas = await this.repo.find({ withDeleted: true });
+    const questoes = await this.questaoRepo.find({ withDeleted: true });
+    const respostas = await this.respostaRepo.find({ withDeleted: true });
+
+    return {
+      pesquisas,
+      questoes,
+      respostas
+    };
+  }
 }
+

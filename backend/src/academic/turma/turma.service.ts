@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
@@ -120,7 +121,7 @@ export class TurmaService {
   async findAll(disciplinaId?: number) {
     const turmas = await this.turmaRepo.find({
       where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
-      relations: { disciplina: { curso: true}, periodo: true, docente: true },
+      relations: { disciplina: { curso: { campus: true}}, periodo: true, docente: true },
       withDeleted: false
     });
 
@@ -128,6 +129,7 @@ export class TurmaService {
       id: turma?.id,
       turno: turma?.turno,
       disciplina: turma?.disciplina,
+      campusId: turma?.disciplina?.curso?.campus?.id,
       periodo: turma?.periodo,
       docente: { id: turma.docente?.id, matricula: turma.docente?.matricula, nome: turma.docente?.nome, email: turma.docente?.email },
     }));
@@ -242,24 +244,27 @@ export class TurmaService {
     const todasTurmas = await this.turmaRepo.find({
       where: { disciplina: { curso: { campus: { id: campusId } } } }, withDeleted: false, relations: { disciplina: { curso: { campus: true }}, periodo: true, docente: true }
     })
-    // retorna apenas turmas que não foram deletados
+    // retorna apenas turmas que não foram deletadas
     return todasTurmas
   }
 
 
   // função auxiliar para pre visualizar as avaliações docentes disponíveis
-  async findAvaliacoesDisponiveis(dto: CreateAvaliacaoPeriodoDto) {
+  async findAvaliacoesDisponiveis(dto: CreateAvaliacaoPeriodoDto, campusId: number) {
     const turmas = await this.findAll();
 
     // filtra pelo curso e pelo periodo
-    const turmasFilted = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
+    const turmasFiltered = turmas.filter((t) => t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId)
 
-    if (turmasFilted.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+    if (turmasFiltered.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
+
+    // evita que o usuário requerente visualize turmas de outro campus
+    if (turmasFiltered[0]?.disciplina?.curso?.campus?.id !== campusId) throw new UnauthorizedException('Esse curso não pertence ao seu campus!')
 
     // coletar as avaliações
     const avaliacoes: Array<Object> = []
 
-    for (const turma of turmasFilted) {
+    for (const turma of turmasFiltered) {
 
       const pesquisa: Object = {
         titulo: turma.disciplina.nome,
