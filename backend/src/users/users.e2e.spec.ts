@@ -56,7 +56,7 @@ describe('Users (e2e)', () => {
           matricula: matricula,
           password: 'senha_do_aluno',
         })
-        .expect(201)
+        .expect(200)
         
         accessToken = res.body.access_token;
     });
@@ -73,7 +73,7 @@ describe('Users (e2e)', () => {
         return request(app.getHttpServer())
         .post('/auth/login')
         .send({ matricula: matricula, password: 'nova_senha'})
-        .expect(201)
+        .expect(200)
     })
 
 });
