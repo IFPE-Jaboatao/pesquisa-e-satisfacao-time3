@@ -1,7 +1,5 @@
 # Endpoints da API
 
----
-
 ## Auth
 
 O módulo **auth** serve para realizar a autenticação do usuário e possibilitar as autorizações dele no sistema.
