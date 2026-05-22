@@ -4,42 +4,490 @@
 
 ## Auth
 
-### POST /auth/login
+O módulo **auth** serve para realizar a autenticação do usuário e possibilitar as autorizações dele no sistema.
+
+#### POST
+
+<details>
+
+<summary>/auth/login</summary>
+
+Realiza login do usuário retornando um token para acessar às demais rotas.
+
+```json
+JSON Content:
+{
+    "matricula": string,
+    "password": string
+}
+```
+
+</details>
 
 ---
 
-## Pesquisas
+## Surveys
 
-* POST /pesquisas
-* GET /pesquisas
-* GET /pesquisas/:id
-* PATCH /pesquisas/:id
-* PATCH /pesquisas/:id/publicar
-* DELETE /pesquisas/:id
+***Surveys*** reúne os módulos das entidades: Pesquisa, Questão, Resposta e Relatório.
+
+
+### Pesquisas
+
+Todas as suas rotas são liberadas para o acesso de **Gestores**, sendo especificado na descrição da rota caso algum outro perfil também tenha acesso àquela rota específica.
+
+#### GET
+
+<details>
+
+<summary>/surveys/pesquisas </summary>
+
+Lista todas as pesquisas existentes no campus do gestor requerente.
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/:id</summary>
+
+Retorna uma pesquisa específica.
+
+**Perfis autorizados**: Gestor e Aluno.
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/:id/complete</summary>
+
+Retorna uma pesquisa específica e as suas questões.
+
+**Perfis autorizados**: Gestor e Aluno.
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/avaliacao/criterios </summary>
+
+Retorna um preview das questões definidas para avaliação dos docentes.
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/:pesquisaId/relatorio </summary>
+
+Retorna o relatório da pesquisa especificada.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/surveys/pesquisas/satisfacao </summary>
+
+Cria uma pesquisa de satisfação de um serviço.
+
+```json
+JSON Content:
+{
+    "titulo": string,
+    "descricao": string,
+    "servicoId": number,
+    "dataInicio": datestring,
+    "dataFinal": datestring
+
+}
+```
+
+**Regras de Criação**
+
+- **descricao**: deve ser maior do que 10 caracteres.
+
+- **dataInicio**: deve ser igual ou maior do que hoje.
+
+- **dataFinal**: deve ser maior do que `dataInicio`.
+
+- **Conflitos de pesquisas**: uma pesquisa de satisfação de um serviço não pode existir mais de uma vez com as mesmas `dataInicio` e `dataFinal`.
+
+**OBS.:** Todas as avaliações são criadas de forma padronizada, e turmas com avaliações já existentes não são criadas novamente.
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/avaliacao/periodo </summary>
+
+Cria todas as avaliações docentes para todas as turmas de um curso em tal período.
+
+```json
+JSON Content:
+{
+    "periodoId": number,
+    "cursoId": number
+}
+```
+
+**OBS.:** Todas as avaliações são criadas de forma padronizada, e turmas com avaliações já existentes não são criadas novamente.
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/surveys/pesquisas/:id </summary>
+
+Atualiza uma pesquisa.
+
+```json
+JSON Content:
+{  
+    "titulo": string,
+    "descricao": string,  
+    "dataInicio": string,
+    "dataFinal": string,
+    "tipo": string, // avaliacao ou satisfacao
+    "tipoId": number, // se tipo = avaliação, se refere a um turmaId, se tipo = satisfacao, se refere a um servicoId
+    "publicada": boolean,
+    "status": string, // ATIVA, INATIVA, FECHADA
+    "finalizada": boolean
+}
+```
+
+</details>
+
+<details>
+
+<summary>/surveys/pesquisas/:id/publicar </summary>
+
+Publica uma pesquisa.
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/surveys/pesquisas/:id </summary>
+
+Deleta uma pesquisa.
+
+***Causa deleção em cascada em:*** questões e respostas.
+
+</details>
 
 ---
 
-## Questões
+### Questões
 
-* POST /questoes
-* GET /questoes/:pesquisaId
+#### GET
 
-## Respostas
+<details>
+
+<summary>/surveys/questoes/pesquisa/:pesquisaId </summary>
+
+Retorna as questões da pesquisa especificada.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/surveys/questoes </summary>
+
+Cria uma questão.
+
+```json
+JSON Content:
+{
+    "pesquisaId": string,
+    "pergunta": string,
+    "tipo": string,
+    "opcoes": string[], // obrigatório se "tipo" = "MULTIPLA"
+    "escalaMax": number // obrigatório se "tipo" = "ESCALA"
+}
+```
+
+<details>
+
+<summary>Valores aceitos para <b>Tipo</b></summary>
+
+    - ABERTA
+    - ESCALA
+    - MULTIPLA
+
+**Obs.:**
+
+</details>
+
+</details>
 
 ---
 
-* POST /respostas
-* GET /respostas/relatorio/:pesquisaId
+### Respostas
+
+#### GET
+
+<details>
+
+<summary>/surveys/respostas/relatorio/:pesquisaId </summary>
+
+Retorna relatório de pesquisa com todas as respostas.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/surveys/respostas/enviar </summary>
+
+Envia resposta
+
+**Perfis autorizados**: Aluno
+
+```json
+JSON Content:
+{
+    "pesquisaId": string,
+    "respostas": [
+        {
+            "questaoId": string,
+            "valor": string
+        },
+    ]
+}
+```
+
+***OBS.:*** "valor" se refere à resposta do aluno àquela pergunta.
+
+</details>
 
 ---
 
-## Users (exclusivo para Admins)
+## Users
 
-* GET /users
-* POST /users
-* GET /users/:id
-* PATCH /users/:id
-* DELETE /users/:id
+O módulo **Users** é usado para gestão das entidades: Users.
+
+Informações sobre as especificações de perfis autorizados nas rotas estão na descrição de cada uma.
+
+### Gestão de Usuários
+
+**Perfil autorizado**: Admin
+
+#### GET
+
+<details>
+
+<summary>/users</summary>
+
+Lista todos os usuários.
+
+</details>
+
+<details>
+
+<summary>/users/:id</summary>
+
+Busca um usuário específico.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/users</summary>
+
+Cria um usuário.
+
+```json
+JSON Content:
+{
+    "matricula": string,
+    "nome": string,
+    "email": string,
+    "role": string, // admin, gestor, docente ou aluno, sendo "aluno" o default
+    "password": string,
+    "campusId": string // opcional caso role = admin
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/users/:id</summary>
+
+Atualiza um usuário
+
+```json
+JSON Content:
+{
+    "matricula": string,
+    "nome": string,
+    "email": string,
+    "role": string, // admin, gestor, docente ou aluno, sendo "aluno" o default
+    "password": string,
+    "campusId": string // opcional caso role = admin
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/users/:id</summary>
+
+Deleta um usuário.
+
+***Causa deleção em cascada em:*** matrículas e repostas (caso user.role = aluno), turmas (caso user.role = docente)
+
+</details>
+
+### Acesso Comum
+
+**Perfis autorizados:** todos
+
+#### GET
+
+<details>
+
+<summary>/users/me</summary>
+
+Retorna as informações do usuário requerente.
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/users/me/password</summary>
+
+Altera a senha do usuário requerente.
+
+```json
+JSON Content:
+{
+    "passwordAtual": string, // a senha atual
+    "password": string // a senha nova que o usuário quer ter
+}
+```
+
+</details>
+
+### Dashboards
+
+<details>
+
+<summary>/users/dashboard/admin</summary>
+
+Retorna a quantidade e as informações dos usuários e das entidades dos módulos Institutional.
+
+**Exemplo de resposta**
+```json
+{
+    "resumo": {
+        "users": { "total": 49, "admins": 3, "gestores": 3, ... },
+        "institutional": { "campi": 4, "setores": 5, ... },
+        "academic": { "cursos": 2, "disciplinas": 5, ... }
+    },
+    "institutional": { "campus": {...}, "setores": {...}, ...},
+    "academic": { "cursos": {...}, "disciplinas": {...}, ...},
+    "users": { { "id": 1, "matricula": "2787219", "nome": "Pessoa da Silva", ....}, ...}
+}
+```
+
+</details>
+
+<details>
+
+<summary>/users/dashboard/gestor</summary>
+
+Retorna a quantidade e as informações das pesquisas do campus do gestor requerente.
+
+**Exemplo de resposta**
+```json
+{
+    "resumo": {
+        "avaliacoes": { "total": 42, "fechadas": 7, "ativas": 2, ...},
+        "satisfacoes": { "total": 42, "fechadas": 7, "ativas": 2, ...},
+    },
+    "avaliacoes": {
+        "ativas": [ { "id": "1bbca34e2412b3e", "titulo": "Pesquisa sobre tal", ...} ],
+        "inativas": [ { "id": "35baa34dca2j32b", "titulo": "Pesquisa sobre tal 2", ...} ],
+        ...
+    },
+    "satisfacoes": {
+        "ativas": [ { "id": "1bbca3bda412b3aee", "titulo": "Pesquisa sobre tal 3", ...} ],
+        "inativas": [ { "id": "35baa3aae5ca2j32cc", "titulo": "Pesquisa sobre tal 4", ...} ],
+        ...
+    }
+}
+```
+
+</details>
+
+<details>
+
+<summary>/users/dashboard/docente</summary>
+
+Retorna a quantidade e as informações das pesquisas do docente requerente junto com seu desempenho atual.
+
+**Exemplo de resposta**
+```json
+{
+    "docenteId": 1,
+    "totalTurmasAvaliado": 6,
+    "totalRespostasRecebidas": 18,
+    "desempenhoGeral": { {"criterio": "Organização", "mediaValor": 45, "porcentagem": "45%", ... }},
+    "mediaGeralHistorica": "45%",
+    "pontosAtencao": { "razoavel": ["Organização"], "alto": ["Didática"], "critico": ["Pontualidade"]},
+    "ultimosComentarios": ["Muito bom", "Não sei...", ...],
+    "avaliacoes": {
+        "total": 5,
+        "ativas": [ { "id": "1bbca34e2412b3e", "titulo": "Pesquisa sobre tal", ...} ],
+        "inativas": [ { "id": "35baa34dca2j32b", "titulo": "Pesquisa sobre tal 2", ...} ],
+        ...
+    }
+}
+```
+
+</details>
+
+<details>
+
+<summary>/users/dashboard/aluno</summary>
+
+Retorna as pesquisas disponíveis para o aluno responder.
+
+**Exemplo de resposta**
+```json
+{
+    "avaliacoesResponder": 4,
+    "satisfacoesResponder": 5,
+    "satisfacoes": [
+        { "id": "1bbca34e2412b3e", "titulo": "Pesquisa sobre tal", ...},
+        { "id": "35baa34dca2j32b", "titulo": "Pesquisa sobre tal 2", ...},
+        ...
+    ],
+    "avaliacoes":[ 
+        { "id": "1bbca34e2412b3e", "titulo": "Pesquisa sobre tal 3", ...},
+        { "id": "35baa34dca2j32b", "titulo": "Pesquisa sobre tal 4", ...},
+        ...
+    ]
+}
+```
+
+</details>
 
 ---
 
