@@ -34,21 +34,15 @@ export class PesquisasController {
 
   // --- CONSULTA ---
 
-  // endpoint de debug temporário
-  @Get('/dump')
-  debugAll() {
-    return this.service.getMongoDump()
-  }
-
   @Get()
-  @Roles(Role.GESTOR, Role.ADMIN)
-  @ApiOperation({ summary: 'Lista todas as pesquisas cadastradas' })
-  findAll() {
-    return this.service.findAll();
+  @Roles(Role.GESTOR)
+  @ApiOperation({ summary: 'Lista todas as pesquisas cadastradas filtradas por Campus' })
+  findAll(@Req() req) {
+    return this.service.findAllByCampus(req.user.campusId);
   }
 
   @Get('turma/:turmaId')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   @ApiOperation({ summary: 'Busca pesquisas vinculadas a uma turma específica' })
   @ApiParam({ name: 'turmaId', description: 'ID numérico da turma (MySQL)' })
   findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
@@ -56,14 +50,14 @@ export class PesquisasController {
   }
 
   @Get('avaliacao/criterios')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   @ApiOperation({ summary: 'Obtém um preview dos critérios de avaliação docente' })
   async getPreviewAvaliacaoDocente() {
     return this.service.getPreviewAvaliacaoDocente();
   }
 
   @Get(':id')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   @ApiOperation({ summary: 'Busca os detalhes de uma pesquisa por ID do MongoDB' })
   findOne(@Param('id') id: string) {
     this.validarObjectId(id);
@@ -87,7 +81,7 @@ export class PesquisasController {
    * Endpoint de Relatório corrigido com log de auditoria para debugar o erro "Ref:"
    */
   @Get(':id/relatorio')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Gera os dados consolidados para o relatório da pesquisa' })
   async getRelatorio(@Param('id') id: string) {
     this.validarObjectId(id);
@@ -108,7 +102,7 @@ export class PesquisasController {
    * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
    */
   @Post('/satisfacao')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Cria uma pesquisa de satisfação institucional' })
   async createSatisfacao(@Body() dto: CreateSatisfacaoDto, @Req() req) {
     return await this.service.createSatisfacao(dto, req.user.campusId);
@@ -118,29 +112,29 @@ export class PesquisasController {
    * RN 9.2: Criação de Avaliação Docente (Automática/Turma)
    */
   @Post('avaliacao')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Cria uma avaliação docente vinculada a turmas' })
   async createAvaliacao(@Body() dto: CreateAvaliacaoDto, @Req() req) {
     return this.service.createAvaliacao(dto, req.user.campusId);
   }
-
+  
   @Post()
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Criação genérica de pesquisa' })
   async create(@Body() dto: CreatePesquisaDto, @Req() req: any) {
     const usuario = req.user;
     return await this.service.create(dto, usuario);
   }
-
+  
   @Post('/avaliacao/periodo')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Cria avaliações docentes para um período letivo inteiro' })
   createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
     return this.service.createAvaliacaoPeriodo(dto, req.user.campusId);
   }
-
+  
   @Patch(':id')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Atualiza dados de uma pesquisa existente' })
   async update(
     @Param('id') id: string, 
@@ -153,7 +147,7 @@ export class PesquisasController {
   }
 
   @Patch(':id/publicar')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Altera o status da pesquisa para PUBLICADA' })
   async publicar(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
@@ -161,7 +155,7 @@ export class PesquisasController {
   }
 
   @Delete(':id')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Remove uma pesquisa (Exclusão lógica/física)' })
   async remove(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
