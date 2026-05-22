@@ -45,37 +45,305 @@
 
 ## Institutional
 
-### Campus
-* POST /campus
-* GET /campus → listar campus
-* GET /campus/:id → buscar um campus
-* PATCH /campus/:id → atualizar campus
-* DELETE /campus/:id → remover campus (checar cascade)
-* GET /campus/:id/full → campus + setores + serviços (agregado)
+O módulo **institucional** é usado para gestão das entidades: Campus, Setor e Serviço.
+
+Todas as suas rotas são liberadas apenas para o acesso de **Admins**.
+
+### Campi
+
+#### GET
+
+<details>
+
+<summary>/institutional/campi</summary>
+
+Lista todos os campi.
+
+</details>
+
+<details>
+
+<summary>/institutional/campi/:id</summary>
+
+Busca um campus específico.
+
+</details>
+
+<details>
+
+<summary>/institutional/campi/:id/full</summary>
+
+Retorna o campus especificado junto com os seus setores, e os serviços daqueles setores.
+
+**Exemplo de resposta**
+
+```json
+{
+    "id": 1,
+    "nome": "Jaboatao",
+    "cidade": "Jaboatão dos Guararapes",
+    "setores": [
+        {
+            "id": 1,
+            "nome": "Infraestrutura",
+            "servicos": [
+                {
+                    "id": 1,
+                    "nome": "Áreas de Convivência"
+                },
+            ]
+        },
+    ]
+} 
+```
+
+</details>
+
+<details>
+
+<summary>/institutional/campi/deleted</summary>
+
+Lista todos os campi que foram deletados.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/institutional/campi</summary>
+
+Cria um campus.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "cidade": string,
+}
+```
+
+<details>
+
+<summary>Valores aceitos para o campo <b>Cidade</b></summary> 
+
+```JS
+'Abreu e Lima',
+'Afogados da Ingazeira',
+'Barreiros',
+'Belo Jardim',
+'Cabo de Santo Agostinho',
+'Caruaru',
+'EAD',
+'Garanhuns',
+'Igarassu',
+'Ipojuca',
+'Jaboatão dos Guararapes',
+'Olinda',
+'Palmares',
+'Paulista',
+'Pesqueira',
+'Recife',
+'Vitória de Santo Antão'
+```
+
+</details>
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/institutional/campi/:id</summary>
+
+Atualiza um campus.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "cidade": string,
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/institutional/servicos</summary>
+
+Cria um campus.
+
+***Causa deleção em cascada em:*** setores, serviços e usuários.
+
+</details>
 
 ---
 
-### Setor
-* POST /setor → criar setor (vinculado ao campus)
-* GET /setor → listar setores
-* GET /setor/:id → buscar setor
-* PATCH /setor/:id → atualizar setor
-* DELETE /setor/:id → remover setor
-* GET /setor?campusId=X → listar por campus
+### Setores
+
+#### GET
+
+<details>
+
+<summary>/institutional/setores</summary>
+
+Lista todos os setores.
+
+</details>
+
+<details>
+
+<summary>/institutional/setores?campusId=</summary>
+
+Lista todos os setores de um campus específico.
+
+</details>
+
+<details>
+
+<summary>/institutional/setores/:id</summary>
+
+Busca um setor específico.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/institutional/setores</summary>
+
+Cria um setor.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "campusId": number,
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/institutional/setores/:id</summary>
+
+Atualiza um setor.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "campusId": number,
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/institutional/setores/:id</summary>
+
+Deleta um setor.
+
+***Causa deleção em cascada em:*** dsdsad
+
+</details>
 
 ---
 
-### Serviço
-* POST /servico → criar serviço (vinculado ao setor)
-* GET /servico → listar serviços
-* GET /servico/:id → buscar serviço
-* PATCH /servico/:id → atualizar serviço
-* DELETE /servico/:id → remover serviço
-* GET /servico?setorId=X → listar por setor
+### Serviços
+
+#### GET
+
+<details>
+
+<summary>/institutional/servicos</summary>
+
+Lista todos os serviços.
+
+</details>
+
+<details>
+
+<summary>/institutional/servicos?setorId=</summary>
+
+Lista todos os serviços de um setor específico.
+
+</details>
+
+<details>
+
+<summary>/institutional/servicos/:id</summary>
+
+Busca um serviço específico.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/institutional/servicos</summary>
+
+Cria um serviço.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "setorId": number,
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/institutional/servicos/:id</summary>
+
+Atualiza um serviço.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "setorId": number,
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/institutional/servicos/:id</summary>
+
+Deleta um serviço.
+
+***Causa deleção em cascada em:*** pesquisas.
+
+</details>
 
 ---
 
 ## Academic
+
+O módulo **acadêmico** é usado para gestão das entidades: Curso, Disciplina, Turma, Período e Matrícula.
+
+Todas as suas rotas são liberadas para o acesso de **Admins**, sendo especificado na descrição da rota caso algum outro perfil também tenha acesso àquela rota específica.
 
 ### Cursos
 
@@ -127,7 +395,7 @@ JSON Content:
 
 <details>
 
-<summary>/academic/cursos</summary>
+<summary>/academic/cursos/:id</summary>
 
 Atualiza um curso.
 
@@ -457,6 +725,8 @@ JSON Content:
 
 Deleta uma turma.
 
+***Causa deleção em cascada em:*** pesquisas e matrículas.
+
 </details>
 
 ---
@@ -544,6 +814,8 @@ JSON Content:
 
 <summary>/academic/matriculas/:id</summary>
 Deleta uma matrícula.
+
+***Causa deleção em cascada em:*** respostas.
 
 </details>
 
