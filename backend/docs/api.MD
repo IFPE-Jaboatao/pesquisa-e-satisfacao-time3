@@ -88,12 +88,82 @@
 ---
 
 ### Disciplina
-* POST /disciplina → criar disciplina (vinculado ao curso)
-* GET /disciplina → listar disciplinas
-* GET /disciplina/:id → buscar disciplina
-* PATCH /disciplina/:id → atualizar disciplina
-* DELETE /disciplina/:id → remover disciplina
-* GET /disciplina?cursoId=X → listar disciplinas por curso
+
+#### GET
+
+<details>
+
+<summary>/academic/disciplinas</summary>
+
+Lista todas as disciplinas.
+
+</details>
+
+<details>
+
+<summary>/academic/disciplinas?cursoId=</summary>
+
+Lista todas as disciplinas de um curso específico.
+
+</details>
+
+<details>
+
+<summary>/academic/disciplinas/:id</summary>
+
+Busca uma disciplina específica.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/academic/disciplinas</summary>
+
+Cria uma disciplina.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "codigo": string,
+    "cursoId": number,
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/academic/disciplinas/:id</summary>
+
+Atualiza uma disciplina.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "codigo": string,
+    "cursoId": number,
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/academic/disciplinas/:id</summary>
+
+Deleta uma disciplina.
+
+***Causa deleção em cascada em***: turmas.
+
+</details>
 
 ---
 
