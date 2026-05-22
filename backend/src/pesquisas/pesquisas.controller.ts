@@ -1,0 +1,178 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Get,
+  Delete,
+  UseGuards,
+  Req,
+  Res,
+  ParseIntPipe,
+  BadRequestException,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { PesquisasService } from './pesquisas.service';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Role } from 'src/users/user-role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ObjectId } from 'mongodb';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiParam } from '@nestjs/swagger';
+
+@ApiTags('Pesquisas')
+@ApiBearerAuth('access-token')
+@Controller('surveys/pesquisas')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class PesquisasController {
+  constructor(private readonly service: PesquisasService) {}
+
+  // --- CONSULTA ---
+
+  // endpoint de debug temporário
+  @Get('/dump')
+  debugAll() {
+    return this.service.getMongoDump()
+  }
+
+  @Get()
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Lista todas as pesquisas cadastradas' })
+  findAll() {
+    return this.service.findAll();
+  }
+
+  @Get('turma/:turmaId')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Busca pesquisas vinculadas a uma turma específica' })
+  @ApiParam({ name: 'turmaId', description: 'ID numérico da turma (MySQL)' })
+  findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
+    return this.service.findAllByTurma(turmaId);
+  }
+
+  @Get('avaliacao/criterios')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Obtém um preview dos critérios de avaliação docente' })
+  async getPreviewAvaliacaoDocente() {
+    return this.service.getPreviewAvaliacaoDocente();
+  }
+
+  @Get(':id')
+  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Busca os detalhes de uma pesquisa por ID do MongoDB' })
+  findOne(@Param('id') id: string) {
+    this.validarObjectId(id);
+    return this.service.findOne(id);
+  }
+
+  // retorna a pesquisa e as suas questões
+  @Get(':id/complete')
+  @Roles(Role.ALUNO, Role.GESTOR)
+  async findOneComplete(@Param('id') id: string, @Req() req) {
+    this.validarObjectId(id);
+    const user = {
+      id: req.user.id,
+      campusId: req.user.campusId,
+      role: req.user.role}
+
+    return this.service.findOneComplete(id, user)
+  }
+
+  /**
+   * Endpoint de Relatório corrigido com log de auditoria para debugar o erro "Ref:"
+   */
+  @Get(':id/relatorio')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Gera os dados consolidados para o relatório da pesquisa' })
+  async getRelatorio(@Param('id') id: string) {
+    this.validarObjectId(id);
+
+    // Busca os dados que serão enviados ao RelatoriosService
+    const dadosRelatorio = await this.service.getRelatorio(id);
+
+    // LOG DE DEBUG: Verifique no terminal se 'questoes' está preenchido e com o campo 'pergunta'
+    console.log('--- DEBUG RELATÓRIO ---');
+    console.log('Pesquisa encontrada:', JSON.stringify(dadosRelatorio, null, 2));
+    
+    return dadosRelatorio;
+  }
+
+  // --- ESCRITA ---
+
+  /**
+   * RN 9.1: Criação de Pesquisa de Satisfação (Manual/Serviço)
+   */
+  @Post('/satisfacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria uma pesquisa de satisfação institucional' })
+  async createSatisfacao(@Body() dto: CreateSatisfacaoDto, @Req() req) {
+    return await this.service.createSatisfacao(dto, req.user.campusId);
+  }
+
+  /**
+   * RN 9.2: Criação de Avaliação Docente (Automática/Turma)
+   */
+  @Post('avaliacao')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria uma avaliação docente vinculada a turmas' })
+  async createAvaliacao(@Body() dto: CreateAvaliacaoDto, @Req() req) {
+    return this.service.createAvaliacao(dto, req.user.campusId);
+  }
+
+  @Post()
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Criação genérica de pesquisa' })
+  async create(@Body() dto: CreatePesquisaDto, @Req() req: any) {
+    const usuario = req.user;
+    return await this.service.create(dto, usuario);
+  }
+
+  @Post('/avaliacao/periodo')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Cria avaliações docentes para um período letivo inteiro' })
+  createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
+    return this.service.createAvaliacaoPeriodo(dto, req.user.campusId);
+  }
+
+  @Patch(':id')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Atualiza dados de uma pesquisa existente' })
+  async update(
+    @Param('id') id: string, 
+    @Body() dto: Partial<CreatePesquisaDto>,
+    @Req() req: any 
+  ) {
+    this.validarObjectId(id);
+    const usuario = req.user || { userId: 'sistema' };
+    return await this.service.update(id, dto, usuario);
+  }
+
+  @Patch(':id/publicar')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Altera o status da pesquisa para PUBLICADA' })
+  async publicar(@Param('id') id: string, @Req() req: any) {
+    this.validarObjectId(id);
+    return await this.service.publicar(id, req.user);
+  }
+
+  @Delete(':id')
+  @Roles(Role.GESTOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Remove uma pesquisa (Exclusão lógica/física)' })
+  async remove(@Param('id') id: string, @Req() req: any) {
+    this.validarObjectId(id);
+    return await this.service.remove(id, req.user);
+  }
+
+  // --- AUXILIARES ---
+
+  private validarObjectId(id: string) {
+    if (!id || !ObjectId.isValid(id)) {
+      throw new BadRequestException('Formato de ID MongoDB inválido.');
+    }
+  }
+}

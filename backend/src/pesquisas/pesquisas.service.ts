@@ -1,0 +1,954 @@
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  ConsoleLogger,
+  HttpCode,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Pesquisa } from './entities/pesquisa.entity';
+import { MongoRepository, Not, ObjectLiteral } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
+import { Questao, TipoQuestao } from '../questoes/entities/questao.entity';
+import { Resposta } from '../respostas/entities/resposta.entity';
+import { AuditoriaService } from '../auditoria/auditoria.service';
+import { CreateSatisfacaoDto } from './dto/create-satisfacao.dto';
+import { Tipo } from './pesquisa-tipo.enum';
+import { CreateAvaliacaoDto } from './dto/create-avaliacao.dto';
+import { TurmaService } from 'src/academic/turma/turma.service';
+import { CreateAvaliacaoPeriodoDto } from './dto/create-avaliacao-periodo.dto';
+import { QuestoesService } from 'src/questoes/questoes.service';
+import { CRITERIOS } from './perguntas-criterios.dict';
+import { CreateQuestaoDto } from 'src/questoes/dto/create-questao.dto';
+import { error } from 'console';
+import { Status } from './pesquisa-status.enum';
+import { ServicoService } from 'src/institutional/servico/servico.service';
+import { MatriculaService } from 'src/academic/matricula/matricula.service';
+import { Role } from 'src/users/user-role.enum';
+import { capitalizeFirstLetter } from 'src/common/utils/string-utils';
+import { isTimeZone } from 'class-validator';
+import { generateAnonymousHash } from 'src/common/utils/hash.util';
+import { RelatoriosService } from 'src/relatorios/relatorios.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PesquisaDeletedEvent } from 'src/shared/events/pesquisa-deleted.event';
+
+@Injectable()
+export class PesquisasService {
+  constructor(
+    @InjectRepository(Pesquisa, 'mongo')
+    private readonly repo: MongoRepository<Pesquisa>,
+
+    @InjectRepository(Questao, 'mongo')
+    private readonly questaoRepo: MongoRepository<Questao>,
+
+    @InjectRepository(Resposta, 'mongo')
+    private readonly respostaRepo: MongoRepository<Resposta>,
+
+    private readonly auditoriaService: AuditoriaService,
+
+    private readonly turmaService: TurmaService,
+
+    private readonly questoesService: QuestoesService,
+
+    private readonly servicoService: ServicoService,
+
+    private readonly matriculaService: MatriculaService,
+
+    private readonly eventEmitter: EventEmitter2
+  ) {}
+
+  async findAll() {
+    return await this.repo.find({ order: { _id: 'DESC' }, withDeleted: true });
+  }
+
+  async findAllByTurma(turmaId: number) {
+    return await this.repo.find({
+      where: { turmaId: turmaId },
+      order: { _id: 'DESC' },
+    });
+  }
+
+  async findOne(id: string) {
+    if (!id || !ObjectId.isValid(id)) {
+      throw new BadRequestException('ID com formato inválido ou ausente');
+    }
+
+    const pesquisa = await this.repo.findOne({
+      where: { _id: new ObjectId(id) } as any,
+    });
+
+    if (!pesquisa) {
+      throw new NotFoundException(`Pesquisa com ID ${id} não encontrada`);
+    }
+    return pesquisa;
+  }
+
+  async findOneComplete(id: string, user: { id: number, campusId: number, role: string }) {
+    // achar pesquisa
+    const pesquisa = await this.findOne(id);
+
+    // verificações de acesso do usuário à pesquisa antes de seguir para o retorno completo
+
+    // no caso de aluno, procurar pela matricula
+    if (pesquisa.tipo === Tipo.AVALIACAO && user.role === Role.ALUNO) {
+      // procurar matricula
+      const matricula = await this.matriculaService.findByAluno(user.id);
+
+      // verifica se o aluno tem matrícula nessa turma
+      const matriculasFiltradas = matricula?.filter((m) => m.turma.id === pesquisa.tipoId)
+
+      // se aluno não tiver matricula na turma, ele nao pode acessar a pesquisa
+      if (matriculasFiltradas?.length === 0) throw new UnauthorizedException('Aluno não está matriculado nessa turma e não tem acesso a essa pesquisa.')
+    }
+
+    // no caso de gestor, verificar se a turma está no campus dele
+    else if (pesquisa.tipo === Tipo.AVALIACAO && user.role === Role.GESTOR) {
+      // procurar turma
+      const turma = await this.turmaService.findOne(pesquisa.tipoId);
+
+      if (turma.campus.id !== user.campusId) throw new UnauthorizedException('Gestor não está matriculado nessa turma e não tem acesso a essa pesquisa.')
+    }
+  
+    // ver se o usuário está no mesmo campus que o serviço
+    else if (pesquisa.tipo === Tipo.SATISFACAO) {
+      // procurar serviço da pesquisa
+      const servico = await this.servicoService.findOne(pesquisa.tipoId);
+
+      // se usuário não estiver no mesmo campus do serviço, ele nao pode acessar a pesquisa
+      if (servico.campus.id !== user.campusId) throw new UnauthorizedException(`${capitalizeFirstLetter(user.role)} não é desse campus e não tem acesso a essa pesquisa.`)
+    }
+
+    // ultima verificação
+    // caso o aluno tenha acesso mas a pesquisa esteja fechada ou inativa, ele não pode acessar
+    if (user.role === Role.ALUNO && pesquisa.status !== Status.ATIVA) throw new UnauthorizedException('Pesquisa não está ativa. Alunos não podem acessar esse tipo de pesquisa.')
+
+    // usuário tem acesso a pesquisa, então pode seguir
+
+    // pegar as questões
+    const questoes = await this.questoesService.findByPesquisa(pesquisa.id.toString())
+
+    return {
+      ...pesquisa,
+      questoes: questoes
+    }
+  }
+
+
+  async getRelatorio(id: string) {
+    const pesquisa = await this.findOne(id);
+    const objId = new ObjectId(id);
+
+    const filter = {
+      $or: [
+        { pesquisaId: id },
+        { pesquisaId: objId as any },
+        { pesquisaId: String(id) },
+      ],
+    };
+    const questoes = await this.questaoRepo.find({ where: filter as any });
+    const respostas = await this.respostaRepo.find({ where: filter as any });
+
+    return {
+      pesquisa: { ...pesquisa, questoes },
+      respostas,
+      titulo: pesquisa.titulo,
+      estatisticas: {
+        totalQuestoes: questoes.length,
+        totalParticipantes: respostas.length,
+      },
+    };
+  }
+
+    async getRelatorioAvaliacao(id: string, user: { id: number, role: string, campusId: number}) {
+      const resultado = await this.getRelatorio(id);
+
+      // verificar se realmente é avaliação docente
+      if (resultado.pesquisa.tipo !== Tipo.AVALIACAO) throw new BadRequestException('Essa pesquisa não é de avaliação docente e não pode gerar esse tipo de relatório.')
+
+      // verificar se o docente ou gestor tem acesso à pesquisa
+      const turma = await this.turmaService.findOne(resultado.pesquisa.tipoId);
+
+      if (turma.docente.id !== user.id && user.role === Role.DOCENTE) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não ministra essa turma!')
+
+      if (turma.campus.id !== user.campusId && user.role === Role.GESTOR) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não é gestor nesse campus!')
+
+      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas)
+
+      return {
+        id: resultado.pesquisa.id,
+        titulo: resultado.pesquisa.titulo,
+        status: resultado.pesquisa.status,
+        docente: turma.docente.nome,
+        ...relatorio
+      }
+  }
+
+  async create(dto: CreatePesquisaDto, usuario: any) {
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dto.dataFinal ? new Date(dto.dataFinal) : new Date(),
+      publicada: false,
+      finalizada: false, // ATUALIZADO: Alinhado ao seu CreatePesquisaDto
+    });
+
+    const salvo = await this.repo.save(pesquisa);
+
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId:
+        (salvo as any).id?.toString() || (salvo as any)._id?.toString(),
+      acao: 'CRIACAO_PESQUISA',
+      dadosNovos: salvo,
+    });
+
+    return salvo;
+  }
+
+  // função para criar pesquisa de satisfação sobre serviço
+  async createSatisfacao(dto: CreateSatisfacaoDto, campusId: number) {
+    
+    // pesquisas não podem começar no passado
+    if (dto.dataInicio) {
+      const dataInicio = new Date(dto.dataInicio.replace(/-/g, '\/'));
+
+      const hoje = new Date();
+
+      dataInicio.setHours(0, 0, 0, 0);
+      hoje.setHours(0, 0, 0, 0);
+
+      const dateCheck = dataInicio >= hoje;
+
+      if (!dateCheck)
+        throw new BadRequestException(
+          'Data início deve ser maior ou igual a hoje!',
+        );
+    }
+
+    // verificar se serviço existe
+    const servico = await this.servicoService.findOne(dto.servicoId);
+
+    if (!servico) throw new NotFoundException('Serviço não encontrado!');
+
+    // verificar se o gestor é do mesmo campus que o serviço
+    if (servico.campus?.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar uma pesquisa de um serviço do campus ${servico.campus.nome} pois não é o seu campus!`)
+
+    const pesquisaDto = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio).toISOString() : new Date().toISOString(),
+      dataFinal: new Date(dto.dataFinal).toISOString(),
+      publicada: dto.dataInicio
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
+          ? false
+          : true
+        : true,
+      tipo: Tipo.SATISFACAO,
+      tipoId: dto.servicoId,
+      status: dto.dataInicio
+        ? new Date(dto.dataInicio).toISOString() > new Date().toISOString()
+          ? Status.INATIVA
+          : Status.ATIVA
+        : Status.ATIVA,
+    });
+
+    // verificar se pesquisa com mesmo servico ID e mesma dataInicio/dataFinal existem
+    const existing = await this.repo.find({
+      where: {
+        tipoId: dto.servicoId,
+        tipo: Tipo.SATISFACAO,
+        dataFinal: new Date(dto.dataFinal).toISOString(),
+        dataInicio: new Date(dto.dataInicio).toISOString(),
+      },
+      withDeleted: false,
+    });
+
+    // retirar as pesquisas fechadas
+    const existingFiltered = existing.filter((p) => p.status !== Status.FECHADA)
+
+    if (existingFiltered.length > 0)
+      throw new ConflictException(
+        'Pesquisa para este serviço com essas datas existe já existe como ATIVA ou INATIVA.',
+      );
+
+    // criar pesquisa
+    const pesquisa = await this.repo.save(pesquisaDto);
+
+    if (!pesquisa) throw new Error('Pesquisa não foi criada!');
+
+    // adicionar o id de pesquisa para criar as questões
+    const questoes = dto.questoes.map((q) => {
+      const questao: any = {
+        ...q,
+        pesquisaId: pesquisa.id.toString(),
+      };
+
+      // remove campos que são null ou undefined
+      Object.keys(questao).forEach((key) => {
+        if (questao[key] === null || questao[key] === undefined) {
+          delete questao[key];
+        }
+      });
+
+      return questao;
+    });
+
+    // criar as questões
+    const result = await this.questoesService.createMany(questoes);
+
+    if (!result || result.insertedCount === 0) {
+      await this.repo.deleteOne(pesquisa.id);
+
+      throw new Error('Questões não criadas! Pesquisa deletada!');
+    }
+
+    return (
+      HttpCode.apply(201),
+      { message: 'Pesquisa criada com sucesso!', id: pesquisa.id }
+    );
+  }
+
+  // função para criar Avaliação Docente manualmente
+  async createAvaliacao(dto: CreateAvaliacaoDto, campusId: number) {
+    // verifica se a turma existe
+    const turma = await this.turmaService.findOne(dto.turmaId);
+
+    if (!turma) throw new NotFoundException('Turma não encontrada!');
+
+    // verificar se o campusId do gestor é o mesmo da turma
+
+    // caso o campusId venha 0 é porque a função foi chamada pela função abaixo, createAvaliacaoPeriodo()
+    // e a função já tem uma verificação, então pode passar
+    if (campusId !== 0 && turma.campus.id !== campusId) throw new UnauthorizedException(`Gestor não pode criar avaliação docente dessa turma pois não é do seu campus!`)
+
+    // cria data final como {fim do periodo + 180 dias}
+    const dataFinal = new Date(turma?.periodo?.endDate);
+
+    dataFinal.setDate(dataFinal.getDate() + 180);
+
+    // verificar se pesquisa com essas informações já existe
+    const existing = await this.repo.findOne({
+      where: { tipoId: dto.turmaId, tipo: Tipo.AVALIACAO },
+    });
+
+    if (existing) throw new ConflictException("Já existe uma pesquisa para essa turma!")
+
+    const pesquisa = this.repo.create({
+      ...dto,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : new Date(),
+      dataFinal: dataFinal,
+      publicada: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? false
+          : true
+        : true,
+      tipo: Tipo.AVALIACAO,
+      tipoId: dto.turmaId,
+      status: dto.dataInicio
+        ? new Date(dto.dataInicio) > new Date()
+          ? Status.INATIVA
+          : Status.ATIVA
+        : Status.ATIVA,
+    });
+    return await this.repo.save(pesquisa);
+  }
+
+  // função para criar Avaliação Docente a partir do periodo e do curso
+  async createAvaliacaoPeriodo(dto: CreateAvaliacaoPeriodoDto, campusId: number) {
+    const turmas = await this.turmaService.findByCampus(campusId);
+
+    if (!turmas)
+      throw new NotFoundException('Não existem turmas para criar avaliações!');
+
+    // filtra pelo curso e pelo periodo
+    const turmasFilted = turmas.filter(
+      (t) =>
+        t.periodo.id == dto.periodoId && t.disciplina.curso.id == dto.cursoId,
+    );
+
+    if (turmasFilted.length === 0)
+      throw new NotFoundException('Não há turmas nesse curso e/ou período no seu campus!');
+
+    if (dto.dataInicio) {
+      const dateCheck =
+        new Date(dto.dataInicio).getUTCDate() >= new Date().getUTCDate();
+
+      if (!dateCheck)
+        throw new BadRequestException(
+          'Data início deve ser maior ou igual a hoje!',
+        );
+    }
+
+    // criar avaliação para cada turma
+    // contabilizar as pesquisas criadas para retornar
+    let count = 0;
+    let countExisting = 0;
+
+    for (const turma of turmasFilted) {
+      const pesquisaDto: CreateAvaliacaoDto = {
+        titulo: `${turma.disciplina.nome} - Turma ${turma.id}`,
+        descricao: `Avaliação da disciplina ${turma.disciplina.nome} ministrada por ${turma.docente.nome} em ${turma.periodo.ano}.${turma.periodo.semestre}.`,
+        turmaId: turma.id,
+        dataInicio: dto.dataInicio ? dto.dataInicio : new Date().toDateString(),
+      };
+
+      // verificar se pesquisa com essas informações já existe
+      const existing = await this.repo.findOne({
+        where: { tipoId: pesquisaDto.turmaId, tipo: Tipo.AVALIACAO },
+      });
+
+      if (existing) {
+        countExisting++;
+      } else {
+        const pesquisa = await this.createAvaliacao(pesquisaDto, 0);
+
+        if (!pesquisa) throw new Error('Não foi possível criar a pesquisa!');
+
+        count++;
+
+        // INTERAR SOBRE AS QUESTÕES
+        let questoes: CreateQuestaoDto[] = [];
+        for (const [key, value] of Object.entries(CRITERIOS)) {
+          const questao: CreateQuestaoDto = {
+            pesquisaId: pesquisa.id.toString(),
+            pergunta: value.descricao,
+            tipo: TipoQuestao.ESCALA,
+            escalaMax: 6,
+          };
+
+          questoes.push(questao);
+        }
+
+        const comentario: CreateQuestaoDto = {
+          pesquisaId: pesquisa.id.toString(),
+          pergunta:
+            'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+          tipo: TipoQuestao.ABERTA,
+        };
+
+        questoes.push(comentario);
+
+        // aqui chama o createMany de QuestoesService
+        const result = await this.questoesService.createMany(questoes);
+
+        if (!result || result.insertedCount === 0) {
+          await this.repo.deleteOne(pesquisa.id);
+
+          throw new Error('As questões não foram criadas! Pesquisa deletada!');
+        }
+        count++;
+      }
+    }
+
+    if (count == 0) {
+      return (
+        HttpCode.apply(200),
+        {
+          message: `Nenhuma avaliação nova foi criada pois as ${countExisting} turmas desse curso e período já têm pesquisas.`,
+        }
+      );
+    }
+
+    if (countExisting === 0)
+      (HttpCode.apply(201),
+        {
+          message: `${count / 2} ${count / 2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso!`,
+        });
+
+    return (
+      HttpCode.apply(201),
+      {
+        message: `${count / 2} ${count / 2 > 1 ? 'avaliações' : 'avaliação'} criadas com sucesso! ${countExisting} já existia${countExisting > 1 ? 'm' : ''} e não fo${countExisting > 1 ? 'ram' : 'i'} recriada${countExisting > 1 ? 's' : ''}.`,
+      }
+    );
+  }
+
+  // auxiliar : mostra as perguntas das avaliações docente com os critérios
+  async getPreviewAvaliacaoDocente() {
+    let questoes: Array<Object> = [];
+
+    for (const [key, value] of Object.entries(CRITERIOS)) {
+      const questao = {
+        pergunta: value.descricao,
+        tipo: TipoQuestao.ESCALA,
+        escalaMax: 6,
+      };
+      questoes.push(questao);
+    }
+
+    const comentario = {
+      pergunta:
+        'Deixe um comentário de feedback para o docente avaliado. (opcional)',
+      tipo: TipoQuestao.ABERTA,
+    };
+
+    questoes.push(comentario);
+
+    return questoes;
+  }
+
+  // DASHBOARD - funções auxiliares
+  async findByAluno(campusId: number, turmaIds: number[], alunoId: number) {
+    // avaliações docente
+    // não buscar avaliações docente caso não haja turmasId
+    let avaliacoesDocente: any[] = [];
+
+    if (turmaIds.length > 0) {
+      avaliacoesDocente = await this.repo.find({
+        where: {
+          tipoId: { $in: turmaIds },
+          tipo: Tipo.AVALIACAO,
+        },
+      });
+    }
+
+    // pesquisas de satisfação
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO,
+        publicada: true,
+        // aqui entrará a lógica de "não respondidas" futuramente
+      },
+    });
+
+    // filtrar pesquisas de satisfação para mostrar só as do campus do aluno
+    // passo 1 - buscar os serviços naquele campus
+    const servicosCampus = await this.servicoService.servicosByCampus(campusId);
+
+    // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
+    const servicoIds = servicosCampus.map((s) => s.id);
+
+    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+      servicoIds.includes(p.tipoId),
+    );
+
+    // filtrar as pesquisas para mostrar apenas as que o aluno não respondeu
+
+    // junta todos ids para criar os hashes de comparação
+    const todosOsIds = [...avaliacoesDocente, ...filteredSatisfacao].map(p => p.id.toString());
+
+    const hashesParaVerificar = todosOsIds.map(id => generateAnonymousHash(alunoId, id));
+
+    // traz respostas do aluno (hash é alunoId+pesquisaId)
+    const respostasEncontradas = await this.respostaRepo.find({
+      where: { alunoHash: { $in: hashesParaVerificar } } as any,
+      select: ['alunoHash']
+    });
+
+    // procura com set
+    const hashesJaRespondidos = new Set(respostasEncontradas.map(r => r.alunoHash));
+
+    // filtra as duas listas separadamente
+    const avaliacoesFiltradas = avaliacoesDocente.filter(p => 
+      !hashesJaRespondidos.has(generateAnonymousHash(alunoId, p.id.toString()))
+    );
+
+    const satisfacoesFiltradas = filteredSatisfacao.filter(p => 
+      !hashesJaRespondidos.has(generateAnonymousHash(alunoId, p.id.toString()))
+    );
+
+  // retorna o objeto com as chaves separadas
+  return {
+    avaliacoes: avaliacoesFiltradas,
+    satisfacoes: satisfacoesFiltradas
+  };
+  }
+
+  // No PesquisasService
+  async findByDocente(docenteId: number) {
+    const turmasDocente = await this.turmaService.findAllProfessor(docenteId);
+
+    const turmaIds = turmasDocente.turmas
+      .map((t) => t.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    if (turmaIds.length === 0) {
+      return { avaliacoes: [] };
+    }
+
+    const pesquisas = await this.repo.find({
+      where: {
+        tipoId: { $in: turmaIds },
+        tipo: Tipo.AVALIACAO,
+      },
+    });
+
+    // processar relatório geral de todas as pesquisas
+    const pesquisaIds = pesquisas.map(p => String(p.id));
+
+    const todasAsRespostas = await this.respostaRepo.find({
+      where: { pesquisaId: { $in: pesquisaIds } }
+    });
+
+    const todasAsQuestoes = await this.questaoRepo.find({
+      where: { pesquisaId: { $in: pesquisaIds } }
+    });
+
+    const consolidado = await this.prepararRelatorioDocente(todasAsQuestoes, todasAsRespostas);
+
+    return {
+      totalTurmasAvaliado: turmasDocente.turmas.length,
+      totalRespostasRecebidas: todasAsRespostas.length,
+      desempenhoGeral: consolidado.indicadores,
+      mediaGeralHistorica: consolidado.mediaGeral,
+      pontosAtencao: consolidado.pontosAtencao,
+      ultimosComentarios: consolidado.comentarios.slice(-10),
+      avaliacoes: {
+        total: pesquisas.length,
+        ativas: pesquisas.filter((p) => p.status == Status.ATIVA),
+        fechadas: pesquisas.filter((p) => p.status == Status.FECHADA),
+        inativas: pesquisas.filter((p) => p.status == Status.INATIVA),
+      }
+    }; 
+  }
+
+  // função para retornar relatório de critérios agregados por avaliação docente
+  async prepararRelatorioDocente(questoes: any, respostas: any[]) {
+    const metasCriterios: Record<string, { label: string; soma: number; totalRespostas: number }> = {};
+    const comentarios: string[] = [];
+      
+      // mapa reverso para pegar o nome do critério a partir da pergunta
+      const mapaDescricaoParaLabel = new Map<string, string>();
+      Object.entries(CRITERIOS).forEach(([key, info]) => {
+          mapaDescricaoParaLabel.set(info.descricao, info.label);
+      });
+
+      // processa cada resposta
+      respostas.forEach((r) => {
+          const itens = r?.respostas || [];
+          
+          itens.forEach((item: any) => {
+              // pega o texto da pergunta original através do ID da questão
+              const questaoOriginal = questoes.find((q: any) => 
+                  String(q._id || q.id) === String(item.questaoId)
+              );
+
+              if (!questaoOriginal) return;
+
+              const textoPergunta = questaoOriginal.pergunta || questaoOriginal.enunciado;
+              const labelCriterio = mapaDescricaoParaLabel.get(textoPergunta);
+
+              if (labelCriterio) {
+                  // questão de escala 1 a 6
+                  const valorNumerico = parseInt(item.valor);
+                  
+                  if (!isNaN(valorNumerico)) {
+                      if (!metasCriterios[labelCriterio]) {
+                          metasCriterios[labelCriterio] = { label: labelCriterio, soma: 0, totalRespostas: 0 };
+                      }
+                      metasCriterios[labelCriterio].soma += valorNumerico;
+                      metasCriterios[labelCriterio].totalRespostas += 1;
+                  }
+              } else {
+                  // se não está no enum de critérios, tratamos como comentário (pergunta aberta)
+                  if (item.valor && item.valor.trim() !== "") {
+                      comentarios.push(item.valor);
+                  }
+              }
+          });
+      });
+
+      // calcula médias e formata em porcentagem
+      const indicadores = Object.values(metasCriterios).map(criterio => {
+          // média simples de 1 a 6
+          const media = criterio.soma / criterio.totalRespostas;
+          
+          // conversão para porcentagem: 
+          // regra: ((media - 1) / (max - 1)) * 100
+          // onde 1 = 0% e 6 = 100%
+          const porcentagem = ((media - 1) / (6 - 1)) * 100;
+
+          return {
+              criterio: criterio.label,
+              mediaValor: media.toFixed(2),
+              porcentagem: Math.round(porcentagem) + "%",
+              totalVotos: criterio.totalRespostas
+          };
+      });
+
+      // escolher os pontos de atenção
+      const pontosAtencao = {
+        razoavel: indicadores.filter((i) => parseFloat(i.porcentagem) < 60 && parseFloat(i.porcentagem) >= 40).map((i) => i.criterio),
+        alto: indicadores.filter((i) => parseFloat(i.porcentagem) < 40 && parseFloat(i.porcentagem) >= 20).map((i) => i.criterio),
+        critico: indicadores.filter((i) => parseFloat(i.porcentagem) < 20).map((i) => i.criterio)
+      }
+
+      // calcular a media geral
+      const mediaGeral = indicadores.map((i) => parseFloat(i.porcentagem)).reduce((total, current) => total + current, 0) / indicadores.length + "%"
+
+      return {
+          indicadores,
+          comentarios,
+          pontosAtencao,
+          mediaGeral
+      };
+  }
+
+  async findByGestor(campusId: number) {
+    // avaliações docente
+
+    // buscar as turmas do campus do gestor
+    const turmasCampus = await this.turmaService.findByCampus(campusId);
+
+    const turmaIds = turmasCampus.map((t) => t.id);
+
+    // buscar todas as avaliações docente das turmas do campus do gestor
+    let avaliacoesDocente: any[] = [];
+
+    if (turmaIds.length > 0) {
+      avaliacoesDocente = await this.repo.find({
+        where: {
+          tipoId: { $in: turmaIds },
+          tipo: Tipo.AVALIACAO,
+        },
+      });
+    }
+
+    // quantidade máxima de respostas por avaliação
+    const respostasMaximasAvaliacoes = await this.getMaximoRespostas(avaliacoesDocente);
+
+    avaliacoesDocente = avaliacoesDocente.map((a) => ({
+      ...a,
+      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0
+    }));
+
+    // pesquisas de satisfação
+    let pesquisasSatisfacao: any[] = [];
+
+    pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO
+      },
+    });
+
+    // filtrar pesquisas de satisfação para mostrar só as do campus do gestor
+    // passo 1 - buscar os serviços naquele campus
+    const servicosCampus = await this.servicoService.servicosByCampus(campusId);
+
+    // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
+    const servicoIds = servicosCampus.map((s) => s.id);
+
+    let filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+      servicoIds.includes(p.tipoId),
+    );
+
+    // juntar os IDs para retornar as respostas
+    const todasPesquisas = [...avaliacoesDocente, ...filteredSatisfacao]
+
+    // procurar respostas da pesquisa
+    const resultados = await this.respostaRepo.aggregate([
+      {
+        $match: {
+          pesquisaId: { $in: todasPesquisas.map(p => p.id.toString( )) }
+        }
+      },
+      {
+        $group: {
+          _id: "$pesquisaId",
+          total: { $sum: 1 }
+      }
+      }
+    ]).toArray();
+
+    const mapaContagem = new Map(resultados.map(r => [r._id.toString(), r.total]));
+
+    // adicionar o total de respostas
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      respostasRecebidas: mapaContagem.get(p.id.toString()) || 0
+    }));
+
+    avaliacoesDocente = avaliacoesDocente.map(p => {
+      const recebidas = mapaContagem.get(p.id.toString()) || 0;
+
+      return {
+        ...p,
+        respostasRecebidas: recebidas,
+        respostasRestantes: p.maximoRespostas - recebidas,
+      };
+    });
+
+    return {
+      avaliacoesDocente,
+      filteredSatisfacao,
+    };
+  }
+
+  // função auxiliar para descobrir quantos alunos faltam responder avaliacoes
+  async getMaximoRespostas(pesquisas) {
+    // buscar quantas matrículas tem nas turmas
+    const matriculas = await this.matriculaService.findAllPesquisa(pesquisas)
+    
+    return matriculas;
+  }
+
+  async update(id: string, dto: Partial<CreatePesquisaDto>, usuario: any) {
+    const pesquisaAtual = await this.findOne(id);
+
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisaAtual.tipo = Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisaAtual.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    } 
+    else if (pesquisaAtual.tipo = Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisaAtual.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode alterar pesquisa de outro campus!")
+    }
+
+    // Proteção contra body vazio ou nulo
+    const camposEditados = Object.keys(dto || {});
+    if (camposEditados.length === 0) {
+      return { message: 'Nenhuma alteração detectada' };
+    }
+
+    if (pesquisaAtual.publicada) {
+      const apenasDataFinal =
+        camposEditados.length === 1 && camposEditados[0] === 'dataFinal';
+
+      if (!apenasDataFinal) {
+        throw new ForbiddenException(
+          'Apenas o prazo final de pesquisas publicadas pode ser editado.',
+        );
+      }
+    }
+
+    // Auditoria de prazo com proteção adicional de nulidade
+    if (dto.dataFinal && pesquisaAtual.dataFinal) {
+      const novaData = new Date(dto.dataFinal).getTime();
+      const dataAntiga = new Date(pesquisaAtual.dataFinal).getTime();
+
+      if (novaData !== dataAntiga) {
+        await this.auditoriaService.registrar({
+          usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+          usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+          entidade: 'Pesquisa',
+          entidadeId: id,
+          acao: 'ALTERACAO_PRAZO',
+          dadosAnteriores: { dataFinal: pesquisaAtual.dataFinal },
+          dadosNovos: { dataFinal: dto.dataFinal },
+        });
+      }
+    }
+
+    // normalizando campo status para lowercase
+    const updateData: any = { ...dto, status: dto.status?.toLowerCase()  };
+    if (dto.dataInicio) updateData.dataInicio = new Date(dto.dataInicio);
+    if (dto.dataFinal) updateData.dataFinal = new Date(dto.dataFinal);
+
+    await this.repo.updateOne({ _id: new ObjectId(id) }, { $set: updateData });
+
+    return { message: 'Atualização concluída com sucesso' };
+  }
+
+  async publicar(id: string, usuario: any) {
+    await this.findOne(id);
+    await this.repo.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { publicada: true } },
+    );
+
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'PUBLICAR_PESQUISA',
+      dadosNovos: { publicada: true },
+    });
+
+    return { message: 'Pesquisa publicada' };
+  }
+
+  async remove(id: string, usuario: any) {
+    const pesquisa = await this.findOne(id);
+    const objId = new ObjectId(id);
+    const filter = { $or: [{ pesquisaId: id }, { pesquisaId: objId as any }] };
+
+    // verificar se o gestor tentando deletar a pesquisa é do campus dela
+    // caso seja pesquisa de satisfação
+    if (pesquisa.tipo === Tipo.SATISFACAO) {
+      const servico = await this.servicoService.findOne(pesquisa.tipoId);
+
+      if (servico.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    } 
+    else if (pesquisa.tipo === Tipo.AVALIACAO) {
+      const turma = await this.turmaService.findOne(pesquisa.tipoId);
+
+      if (turma.campus.id !== usuario.campusId) throw new UnauthorizedException("Gestor não pode deletar pesquisa de outro campus!")
+    }
+
+    // soft delete das pesquisas
+    await this.repo.updateOne(
+      { _id: pesquisa.id },
+      { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // evento emitado para deletar questoes e respostas da pesquisa
+    this.eventEmitter.emit(
+      'pesquisa.deleted',
+      new PesquisaDeletedEvent([pesquisa.id.toString()])
+    )
+
+    await this.auditoriaService.registrar({
+      usuarioId: String(usuario?.userId || usuario?.id || 'system'),
+      usuarioNome: usuario?.username || usuario?.nome || 'Admin',
+      entidade: 'Pesquisa',
+      entidadeId: id,
+      acao: 'REMOVER_PESQUISA',
+      dadosAnteriores: { titulo: pesquisa.titulo },
+    });
+
+    return { message: 'Pesquisa removida' };
+  }
+
+  // função auxiliar de softDelete
+  async softDelete(tipoId: number, tipo: string) {
+    // encontrando pesquisas para depois emitar evento e deletar dependentes
+    const pesquisasParaDeletar = await this.repo.find({
+      where: { tipo: tipo, tipoId: tipoId, deletedAt: null },
+      select: ['id'] 
+    });
+
+    if (pesquisasParaDeletar.length === 0) return;
+
+    // extrai os IDs em um array (atendendo a strings e objectIds)
+    const pesquisaIds = pesquisasParaDeletar.map(p => p.id);
+    const pesquisaStringIds = pesquisasParaDeletar.map(p => String(p.id));
+
+    // soft delete das pesquisas
+    await this.repo.updateMany(
+      { _id: { $in: pesquisaIds } },
+      { $set: { deletedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // evento emitado para deletar questoes e respostas da pesquisa
+    this.eventEmitter.emit(
+      'pesquisa.deleted',
+      new PesquisaDeletedEvent(pesquisaStringIds)
+    )
+
+    return
+  }
+
+  // função auxiliar de debug temporária
+  async getMongoDump() {
+    const pesquisas = await this.repo.find({ withDeleted: true });
+    const questoes = await this.questaoRepo.find({ withDeleted: true });
+    const respostas = await this.respostaRepo.find({ withDeleted: true });
+
+    return {
+      pesquisas,
+      questoes,
+      respostas
+    };
+  }
+}
+
