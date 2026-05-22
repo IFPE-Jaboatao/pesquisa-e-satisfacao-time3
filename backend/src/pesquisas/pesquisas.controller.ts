@@ -50,7 +50,7 @@ export class PesquisasController {
   }
 
   @Get('avaliacao/criterios')
-  @Roles(Role.ALUNO, Role.GESTOR)
+  @Roles(Role.GESTOR)
   @ApiOperation({ summary: 'Obtém um preview dos critérios de avaliação docente' })
   async getPreviewAvaliacaoDocente() {
     return this.service.getPreviewAvaliacaoDocente();
