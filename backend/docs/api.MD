@@ -1,11 +1,12 @@
 # Endpoints da API
 
-
+---
 
 ## Auth
 
-* POST /auth/login
+### POST /auth/login
 
+---
 
 ## Pesquisas
 
@@ -16,6 +17,8 @@
 * PATCH /pesquisas/:id/publicar
 * DELETE /pesquisas/:id
 
+---
+
 ## Questões
 
 * POST /questoes
@@ -23,8 +26,12 @@
 
 ## Respostas
 
+---
+
 * POST /respostas
 * GET /respostas/relatorio/:pesquisaId
+
+---
 
 ## Users (exclusivo para Admins)
 
@@ -33,6 +40,8 @@
 * GET /users/:id
 * PATCH /users/:id
 * DELETE /users/:id
+
+---
 
 ## Institutional
 
@@ -44,6 +53,8 @@
 * DELETE /campus/:id → remover campus (checar cascade)
 * GET /campus/:id/full → campus + setores + serviços (agregado)
 
+---
+
 ### Setor
 * POST /setor → criar setor (vinculado ao campus)
 * GET /setor → listar setores
@@ -52,6 +63,7 @@
 * DELETE /setor/:id → remover setor
 * GET /setor?campusId=X → listar por campus
 
+---
 
 ### Serviço
 * POST /servico → criar serviço (vinculado ao setor)
@@ -60,6 +72,8 @@
 * PATCH /servico/:id → atualizar serviço
 * DELETE /servico/:id → remover serviço
 * GET /servico?setorId=X → listar por setor
+
+---
 
 ## Academic
 
@@ -71,6 +85,8 @@
 * DELETE /curso/:id → remover curso
 * GET /curso?campusId=X → listar cursos por campus
 
+---
+
 ### Disciplina
 * POST /disciplina → criar disciplina (vinculado ao curso)
 * GET /disciplina → listar disciplinas
@@ -79,12 +95,16 @@
 * DELETE /disciplina/:id → remover disciplina
 * GET /disciplina?cursoId=X → listar disciplinas por curso
 
+---
+
 ### Periodo
 * POST /periodo → criar periodo
 * GET /periodo → listar periodos
 * GET /periodo/:id → buscar periodo
 * PATCH /periodo/:id → atualizar periodo
 * DELETE /periodo/:id → remover periodo
+
+---
 
 ### Turma
 * POST /turma → criar turma (vinculado à disciplina, período e docente)
@@ -95,13 +115,39 @@
 * GET /turma?disciplinaId=X → listar turmas por disciplinas
 * GET /turma/docente/:id → listar turmas de um docente
 
+---
+
 ### Matrícula
-* POST /matricula → criar matricula (vinculada ao aluno e à turma)
-* GET /matricula → listar matriculas
+
+#### GET
+* /academic/matriculas?turmaId=X → listar matriculas por turma
+* /academic/matriculas/aluno/:id → listar matrículas de um aluno
+* /academic/matriculas → listar matriculas
+
+#### POST 
+<details>
+
+<summary>/academic/matriculas</summary>
+
+Cria uma matrícula de um aluno em uma turma.
+
+```json
+JSON Content:
+{
+    "alunoId": number,
+    "turmaId": number
+}
+```
+
+</details>
+
+<br>
+
 * GET /matricula/:id → buscar matricula
 * PATCH /matricula/:id → atualizar matricula
 * DELETE /matricula/:id → remover matricula
-* GET /matricula?turmaId=X → listar matriculas por turma
-* GET /matricula/aluno/:id → listar matrículas de um aluno
+
+
+
 
 ---
