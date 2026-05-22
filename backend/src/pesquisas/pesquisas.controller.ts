@@ -33,8 +33,8 @@ export class PesquisasController {
 
   @Get()
   @Roles(Role.GESTOR)
-  findAll() {
-    return this.service.findAll();
+  findAll(@Req() req) {
+    return this.service.findAllByCampus(req.user.campusId);
   }
 
   @Get('turma/:turmaId')
