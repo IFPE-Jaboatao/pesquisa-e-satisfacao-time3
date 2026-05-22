@@ -31,32 +31,26 @@ export class PesquisasController {
 
   // --- CONSULTA ---
 
-  // endpoint de debug temporário
-  @Get('/dump')
-  debugAll() {
-    return this.service.getMongoDump()
-  }
-
   @Get()
-  @Roles(Role.GESTOR, Role.ADMIN)
-  findAll() {
-    return this.service.findAll();
+  @Roles(Role.GESTOR)
+  findAll(@Req() req) {
+    return this.service.findAllByCampus(req.user.campusId);
   }
 
   @Get('turma/:turmaId')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   findByTurma(@Param('turmaId', ParseIntPipe) turmaId: number) {
     return this.service.findAllByTurma(turmaId);
   }
 
   @Get('avaliacao/criterios')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   async getPreviewAvaliacaoDocente() {
     return this.service.getPreviewAvaliacaoDocente();
   }
 
   @Get(':id')
-  @Roles(Role.ALUNO, Role.GESTOR, Role.ADMIN)
+  @Roles(Role.ALUNO, Role.GESTOR)
   findOne(@Param('id') id: string) {
     this.validarObjectId(id);
     return this.service.findOne(id);
@@ -79,7 +73,7 @@ export class PesquisasController {
    * Endpoint de Relatório corrigido com log de auditoria para debugar o erro "Ref:"
    */
   @Get(':id/relatorio')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async getRelatorio(@Param('id') id: string) {
     this.validarObjectId(id);
 
@@ -100,7 +94,7 @@ export class PesquisasController {
    * 
    */
   @Post('/satisfacao')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async createSatisfacao(@Body() dto: CreateSatisfacaoDto, @Req() req) {
     // // campo para implementar auditoria futuramente
     // const usuario = req.user;
@@ -112,7 +106,7 @@ export class PesquisasController {
    * 
    */
   @Post('avaliacao')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async createAvaliacao(@Body() dto: CreateAvaliacaoDto, @Req() req) {
     // // campo para implementar auditoria futuramente
     // const usuario = req.user;
@@ -120,7 +114,7 @@ export class PesquisasController {
   }
 
   @Post()
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async create(@Body() dto: CreatePesquisaDto, @Req() req: any) {
     // Captura o usuário da requisição para alimentar a auditoria
     const usuario = req.user;
@@ -128,13 +122,13 @@ export class PesquisasController {
   }
 
   @Post('/avaliacao/periodo')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   createAvaliacaoPeriodo(@Body() dto: CreateAvaliacaoPeriodoDto, @Req() req) {
     return this.service.createAvaliacaoPeriodo(dto, req.user.campusId);
   }
 
   @Patch(':id')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async update(
     @Param('id') id: string, 
     @Body() dto: Partial<CreatePesquisaDto>,
@@ -146,14 +140,14 @@ export class PesquisasController {
   }
 
   @Patch(':id/publicar')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async publicar(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
     return await this.service.publicar(id, req.user);
   }
 
   @Delete(':id')
-  @Roles(Role.GESTOR, Role.ADMIN)
+  @Roles(Role.GESTOR)
   async remove(@Param('id') id: string, @Req() req: any) {
     this.validarObjectId(id);
     return await this.service.remove(id, req.user);

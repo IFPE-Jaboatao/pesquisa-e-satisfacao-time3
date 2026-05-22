@@ -65,6 +65,41 @@ export class PesquisasService {
     return await this.repo.find({ order: { _id: 'DESC' }, withDeleted: true });
   }
 
+  async findAllByCampus(campusId: number) {
+    // procurar todos os serviços do campos
+    const servicos = await this.servicoService.servicosByCampus(campusId);
+
+    const servicosIds = servicos.map((s) => s.id)
+
+    // procurar pesquisas de satisfação com esses serviços
+    const pesquisasSatisfacao = await this.repo.find({
+      where: {
+        tipo: Tipo.SATISFACAO,
+        tipoId: {$in: servicosIds}
+      },
+      withDeleted: false
+    })
+
+    // procurar todas as turmas
+    const turmas = await this.turmaService.findByCampus(campusId);
+
+    const turmasIds = turmas.map((t) => t.id);
+
+    const avaliacoesDocente = await this.repo.find({
+      where: {
+        tipo: Tipo.AVALIACAO,
+        tipoId: {$in: turmasIds}
+      },
+      withDeleted: false
+    })
+
+    return {
+      pesquisasSatisfacao,
+      avaliacoesDocente
+    }
+
+  }
+
   async findAllByTurma(turmaId: number) {
     return await this.repo.find({
       where: { turmaId: turmaId },
@@ -936,19 +971,6 @@ export class PesquisasService {
     )
 
     return
-  }
-
-  // função auxiliar de debug temporária
-  async getMongoDump() {
-    const pesquisas = await this.repo.find({ withDeleted: true });
-    const questoes = await this.questaoRepo.find({ withDeleted: true });
-    const respostas = await this.respostaRepo.find({ withDeleted: true });
-
-    return {
-      pesquisas,
-      questoes,
-      respostas
-    };
   }
 }
 
