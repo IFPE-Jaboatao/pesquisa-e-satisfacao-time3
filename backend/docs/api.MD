@@ -106,14 +106,125 @@
 
 ---
 
-### Turma
-* POST /turma → criar turma (vinculado à disciplina, período e docente)
-* GET /turma → listar turmas
-* GET /turma/:id → buscar turma
-* PATCH /turma/:id → atualizar turma
-* DELETE /turma/:id → remover disciplina
-* GET /turma?disciplinaId=X → listar turmas por disciplinas
-* GET /turma/docente/:id → listar turmas de um docente
+### Turmas
+
+#### GET
+
+<details>
+
+<summary>/academic/turmas</summary>
+
+Lista todas as turmas.
+
+</details>
+
+<details>
+
+<summary>/academic/turmas?disciplinaId=</summary>
+
+Lista todas as turmas de uma disciplina específica.
+
+</details>
+
+<details>
+
+<summary>/academic/turmas/docente/:id</summary>
+
+Lista todas as turmas de um docente.
+
+</details>
+
+<details>
+
+<summary>/academic/turmas/:id</summary>
+
+Busca uma turma específica.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/academic/turmas</summary>
+
+Cria uma turma.
+
+```json
+JSON Content:
+{
+    "periodoId": number,
+    "disciplinaId": number,
+    "docenteId": number,
+    "turno": string
+}
+```
+
+**OBS:** Turno deve obrigatoriamente ser uma das opções abaixo:
+    
+    - Manhã
+    - Tarde
+    - Noite
+    - Integral
+    - EAD
+
+</details>
+
+<details>
+
+<summary>/academic/turmas/avaliacoes-disponiveis</summary>
+
+Retorna uma lista de avaliações docentes disponíveis para serem criadas a partir do período e curso especificados.
+
+**Perfis autorizados**: Admin, Gestor
+
+```json
+JSON Content:
+{
+    "periodoId": number,
+    "cursoId": number,
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/academic/turmas/:id</summary>
+
+Atualiza uma turma, evitando duplicações de turma.
+
+```json
+JSON Content:
+{
+    "periodoId": number,
+    "disciplinaId": number,
+    "docenteId": number,
+    "turno": string
+}
+```
+
+**OBS:** Turno deve obrigatoriamente ser uma das opções abaixo:
+    
+    - Manhã
+    - Tarde
+    - Noite
+    - Integral
+    - EAD
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/academic/turmas/:id</summary>
+
+Deleta uma turma.
+
+</details>
 
 ---
 
@@ -170,14 +281,13 @@ JSON Content:
 
 </details>
 
-<br>
 
 #### PATCH
 
 <details>
 
 <summary>/academic/matriculas/:id</summary>
-Atualiza uma matrícula.
+Atualiza uma matrícula, evitando duplicações de matrícula.
 
 ```json
 JSON Content:
@@ -189,8 +299,6 @@ JSON Content:
 
 </details>
 
-<br>
-
 #### DELETE
 
 <details>
@@ -199,11 +307,5 @@ JSON Content:
 Deleta uma matrícula.
 
 </details>
-
-<br>
-
-
-
-
 
 ---
