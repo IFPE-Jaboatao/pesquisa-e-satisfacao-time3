@@ -31,12 +31,6 @@ export class PesquisasController {
 
   // --- CONSULTA ---
 
-  // endpoint de debug temporário
-  @Get('/dump')
-  debugAll() {
-    return this.service.getMongoDump()
-  }
-
   @Get()
   @Roles(Role.GESTOR, Role.ADMIN)
   findAll() {
