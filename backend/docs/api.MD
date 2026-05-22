@@ -117,12 +117,41 @@
 
 ---
 
-### Matrícula
+### Matrículas
 
 #### GET
-* /academic/matriculas?turmaId=X → listar matriculas por turma
-* /academic/matriculas/aluno/:id → listar matrículas de um aluno
-* /academic/matriculas → listar matriculas
+
+<details>
+
+<summary>/academic/matriculas</summary>
+
+Lista todas as matrículas.
+
+</details>
+
+<details>
+
+<summary>/academic/matriculas?turmaId=</summary>
+
+Lista todas as matrículas de uma turma específica.
+
+</details>
+
+<details>
+
+<summary>/academic/matriculas/:id</summary>
+
+Busca uma matrícula específica.
+
+</details>
+
+<details>
+
+<summary>/academic/matriculas/aluno/:id</summary>
+
+Lista todas as matrículas de um aluno.
+
+</details>
 
 #### POST 
 <details>
@@ -143,9 +172,36 @@ JSON Content:
 
 <br>
 
-* GET /matricula/:id → buscar matricula
-* PATCH /matricula/:id → atualizar matricula
-* DELETE /matricula/:id → remover matricula
+#### PATCH
+
+<details>
+
+<summary>/academic/matriculas/:id</summary>
+Atualiza uma matrícula.
+
+```json
+JSON Content:
+{
+    "alunoId": number,
+    "turmaId": number
+}
+```
+
+</details>
+
+<br>
+
+#### DELETE
+
+<details>
+
+<summary>/academic/matriculas/:id</summary>
+Deleta uma matrícula.
+
+</details>
+
+<br>
+
 
 
 
