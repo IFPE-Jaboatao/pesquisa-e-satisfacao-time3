@@ -22,14 +22,14 @@ export class CursoController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN, Role.GESTOR)
+  @Roles(Role.ADMIN)
   findAll(@Query('campusId') campusId?: string) {
     return this.cursoService.findAll(campusId ? +campusId : undefined);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
-  @Roles(Role.ADMIN, Role.GESTOR)
+  @Roles(Role.ADMIN)
   findOne(@Param('id', ParseIntPipe) id: string) {
     return this.cursoService.findOne(+id);
   }

@@ -77,17 +77,85 @@
 
 ## Academic
 
-### Curso
-* POST /curso → criar curso (vinculado ao campus)
-* GET /curso → listar cursos
-* GET /curso/:id → buscar curso
-* PATCH /curso/:id → atualizar curso
-* DELETE /curso/:id → remover curso
-* GET /curso?campusId=X → listar cursos por campus
+### Cursos
+
+#### GET
+
+<details>
+
+<summary>/academic/cursos</summary>
+
+Lista todos os cursos.
+
+</details>
+
+<details>
+
+<summary>/academic/cursos?campusId=</summary>
+
+Lista todos os cursos de um campus específico.
+
+</details>
+
+<details>
+
+<summary>/academic/cursos/:id</summary>
+
+Busca um curso específico.
+
+</details>
+
+#### POST
+
+<details>
+
+<summary>/academic/cursos</summary>
+
+Cria um curso.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "campusId": number,
+}
+```
+
+</details>
+
+#### PATCH
+
+<details>
+
+<summary>/academic/cursos</summary>
+
+Atualiza um curso.
+
+```json
+JSON Content:
+{
+    "nome": string,
+    "campusId": number,
+}
+```
+
+</details>
+
+#### DELETE
+
+<details>
+
+<summary>/academic/cursos</summary>
+
+Deleta um curso.
+
+***Causa deleção em cascada em:*** disciplinas.
+
+</details>
 
 ---
 
-### Disciplina
+### Disciplinas
 
 #### GET
 
@@ -97,6 +165,8 @@
 
 Lista todas as disciplinas.
 
+**Perfis autorizados**: Admin, Gestor
+
 </details>
 
 <details>
@@ -105,6 +175,8 @@ Lista todas as disciplinas.
 
 Lista todas as disciplinas de um curso específico.
 
+**Perfis autorizados**: Admin, Gestor
+
 </details>
 
 <details>
@@ -112,6 +184,8 @@ Lista todas as disciplinas de um curso específico.
 <summary>/academic/disciplinas/:id</summary>
 
 Busca uma disciplina específica.
+
+**Perfis autorizados**: Admin, Gestor
 
 </details>
 
@@ -167,7 +241,7 @@ Deleta uma disciplina.
 
 ---
 
-### Periodo
+### Períodos
 
 #### GET
 
@@ -289,6 +363,8 @@ Lista todas as turmas de uma disciplina específica.
 
 Lista todas as turmas de um docente.
 
+**Perfis autorizados**: Admin, Docente
+
 </details>
 
 <details>
@@ -395,6 +471,8 @@ Deleta uma turma.
 
 Lista todas as matrículas.
 
+**Perfis autorizados**: Admin, Gestor
+
 </details>
 
 <details>
@@ -402,6 +480,8 @@ Lista todas as matrículas.
 <summary>/academic/matriculas?turmaId=</summary>
 
 Lista todas as matrículas de uma turma específica.
+
+**Perfis autorizados**: Admin, Gestor
 
 </details>
 
@@ -418,6 +498,8 @@ Busca uma matrícula específica.
 <summary>/academic/matriculas/aluno/:id</summary>
 
 Lista todas as matrículas de um aluno.
+
+**Perfis autorizados**: Admin, Aluno
 
 </details>
 
