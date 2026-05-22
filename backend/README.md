@@ -1,18 +1,46 @@
 # Pesquisas de Satisfação e Avaliação Docente - Time 3
 
-## Visão Geral
+## Visão Geral - Back-End
 
 API desenvolvida com NestJS para criação e gerenciamento de pesquisas. Gestores criam e publicam pesquisas, alunos respondem de forma anônima. O sistema aplica regras para evitar respostas duplicadas e manter a integridade dos dados.
 
 ---
 
-## Como rodar o projeto
+## Arquitetura e Módulos do Sistema
+
+O projeto é dividido em domínios lógicos bem definidos:
+
+- `Auth & Users`: Autenticação por matrícula e dashboards customizados por perfil (**Admin, Gestor, Docente e Aluno**).
+
+- `Institutional`: Gerenciamento de Campi, Setores e Serviços.
+
+- `Academic`: Controle de Cursos, Disciplinas, Períodos Acadêmicos, Turmas e Matrículas.
+
+- `Surveys`: Engine de criação de pesquisas, banco de questões (`ABERTA, ESCALA, MULTIPLA`) e computação de respostas.
+
+##  Funcionalidades Chave
+
+- **Isolamento Multi-Campus**: Usuários comuns e gestores possuem a visão e ação limitadas estritamente ao seu campusId.
+
+- **Soft Delete Orientado a Eventos**: Exclusões em cascata seguras utilizando eventos internos para evitar registros órfãos entre os bancos MySQL e MongoDB.
+
+- **Garantia de Voto Único Anônimo**: O aluno é validado para não responder duas vezes a mesma pesquisa através de um hash único gerado por HMAC, mantendo sua identidade 100% anônima.
+
+## Como rodar o projeto localmente
+
+### Pré-requisitos
+- Node.js (versão 18 ou superior)
+
+- Instâncias ativas do MySQL e MongoDB
+
+### Passos
 
 1. Clone este repositorio
 
 ```bash
 git clone https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3
 cd pesquisa-e-satisfacao-time3
+cd backend
 ```
 
 2. Instale as dependências
@@ -34,43 +62,6 @@ npm run start:dev
 ```
 
 5. Confira [Endpoints da API](docs/api.MD) para explorar as rotas disponíveis
-
-## Regras de Negócio
-
-Atualmente as regras implementadas são:
-
-- **Bloqueio de edição**: não permite `PATCH` em pesquisa já publicada
-- **Exclusão em cascata**: remover pesquisa apaga questões e respostas vinculadas
-- **Controle de duplicidade**: cruza `anonId` + `fingerprint`
-
-## Fluxo de Uso por Usuário
-
-### Admin
-
-1. Login
-2. Gerencia os usuários
-3. Gerencia informações de campus, serviços, cursos, disciplinas e etc
-4. Visualiza relatórios
-
-### Gestor
-1. Login
-2. Cria pesquisa
-3. Adiciona questões
-4. Publica
-5. Visualiza relatórios
-
-### Docente
-
-1. Login
-2. Visualiza seu próprio relatório
-
-### Aluno
-
-1. Login
-2. Acessa pesquisa
-3. Responde
-4. Envia
-5. Visualiza sua própria resposta
 
 ## 📋 Gerenciamento de Tarefas
 
