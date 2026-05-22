@@ -17,7 +17,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @Controller('surveys/respostas')
 export class RespostasController {
   constructor(private readonly service: RespostasService) {}
