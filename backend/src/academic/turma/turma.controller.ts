@@ -7,8 +7,10 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
 import { CreateAvaliacaoPeriodoDto } from 'src/pesquisas/dto/create-avaliacao-periodo.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('academic/turmas')
+@ApiBearerAuth('access-token')
 export class TurmaController {
   constructor(private readonly turmaService: TurmaService) {}
 

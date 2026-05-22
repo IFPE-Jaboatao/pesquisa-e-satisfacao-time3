@@ -15,9 +15,11 @@ import { RelatoriosService } from './relatorios.service';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../users/user-role.enum';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 // Ajustado para manter a consistência com a rota raiz de pesquisas requisitada
 @Controller('surveys/pesquisas')
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RelatoriosController {
   constructor(

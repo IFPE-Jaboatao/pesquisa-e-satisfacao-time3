@@ -14,7 +14,9 @@ import { CreateQuestaoDto } from './dto/create-questao.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/users/user-role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('surveys/questoes')
 export class QuestoesController {
   constructor(private readonly service: QuestoesService) {}

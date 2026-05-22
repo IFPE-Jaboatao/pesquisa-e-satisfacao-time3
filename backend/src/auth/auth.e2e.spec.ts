@@ -40,7 +40,7 @@ describe('Auth (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ matricula: 'admin', password: finalPassword })
-        .expect(201)
+        .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('access_token');
         });
@@ -122,7 +122,7 @@ describe('Auth (e2e)', () => {
           matricula: 'aluno123',
           password: 'senha_do_aluno'
         })
-        .expect(201);
+        .expect(200);
 
       novoUsuarioToken = res.body.access_token;
       expect(novoUsuarioToken).toBeDefined();
