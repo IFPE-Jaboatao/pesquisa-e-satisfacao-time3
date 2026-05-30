@@ -29,6 +29,24 @@ services:
       retries: 5
       start_period: 40s
 
+    # ==================== MONGODB ====================
+    mongo:
+      image: mongo:6.0
+      container_name: pesquisa-mongo
+      restart: unless-stopped
+      environment:
+        MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}
+      volumes:
+        - mongo_data:/data/db
+      expose:
+        - "27017"
+      healthcheck:
+        test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand({ping:1})\" || exit 1"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 20s
+
   # ==================== BACKEND ====================
   backend:
     build:
@@ -55,8 +73,11 @@ services:
       MAIL_PORT: ${MAIL_PORT:-}
       MAIL_USER: ${MAIL_USER:-}
       MAIL_PASS: ${MAIL_PASS:-}
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/pesquisa_satisfacao}
     depends_on:
       mysql:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
     expose:
       - "3001"
@@ -93,6 +114,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  mongo_data:
     driver: local
   mysql_logs:
     driver: local
