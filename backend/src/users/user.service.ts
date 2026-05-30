@@ -62,7 +62,11 @@ export class UsersService implements OnModuleInit {
   // -------------------------------------------------------------------------
 
   async onModuleInit() {
-    await this.seedAdmin();
+    try {
+      await this.seedAdmin();
+    } catch (error) {
+      console.error('⚠️ Falha ao criar admin seed (aplicação continuará):', error);
+    }
   }
 
   private async seedAdmin() {
