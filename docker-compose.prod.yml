@@ -28,6 +28,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+    networks:
+      - dokploy-network
 
     # ==================== MONGODB ====================
   mongo:
@@ -35,17 +37,21 @@ services:
     container_name: pesquisa-mongo
     restart: unless-stopped
     environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-secure_password}
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}
     volumes:
       - mongo_data:/data/db
     expose:
       - "27017"
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand({ping:1})\" || exit 1"]
+      test: ["CMD-SHELL", 'mongosh --quiet -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "quit(db.adminCommand({ ping: 1 }).ok ? 0 : 2)"']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - dokploy-network
 
   # ==================== BACKEND ====================
   backend:
@@ -73,12 +79,14 @@ services:
       MAIL_PORT: ${MAIL_PORT:-}
       MAIL_USER: ${MAIL_USER:-}
       MAIL_PASS: ${MAIL_PASS:-}
-      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/pesquisa_satisfacao}
+      MONGO_URL: ${MONGO_URL:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-secure_password}@mongo:27017/${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}?authSource=admin}
     depends_on:
       mysql:
         condition: service_healthy
       mongo:
         condition: service_healthy
+    networks:
+      - dokploy-network
     expose:
       - "3001"
     healthcheck:
@@ -111,6 +119,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - dokploy-network
 
 volumes:
   mysql_data:
@@ -119,3 +129,7 @@ volumes:
     driver: local
   mysql_logs:
     driver: local
+
+networks:
+  dokploy-network:
+    external: true
