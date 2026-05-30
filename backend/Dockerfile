@@ -47,7 +47,7 @@ USER nodejs
 
 # Health check
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 --start-period=60s \
-    CMD node -e "require('http').get('http://127.0.0.1:3001', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+    CMD node -e "require('http').get('http://127.0.0.1:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Usar dumb-init como entrypoint para garantir limpeza de processos
 ENTRYPOINT ["dumb-init", "--"]
