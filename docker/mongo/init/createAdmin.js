@@ -1,8 +1,8 @@
 // createAdmin.js - runs only on fresh database initialization
 (function() {
-  const dbName = process.env.MONGO_INITDB_DATABASE || 'pesquisa_satisfacao';
-  const user = process.env.MONGO_INITDB_ROOT_USERNAME || 'root';
-  const pwd = process.env.MONGO_INITDB_ROOT_PASSWORD || 'secure_password';
+  const dbName = process.env.MONGO_INITDB_DATABASE || process.env.MONGO_DATABASE || 'pesquisa_satisfacao';
+  const user = process.env.MONGO_INITDB_ROOT_USERNAME || process.env.MONGO_ROOT_USERNAME || 'root';
+  const pwd = process.env.MONGO_INITDB_ROOT_PASSWORD || process.env.MONGO_ROOT_PASSWORD || 'secure_password';
 
   const adminDB = db.getSiblingDB('admin');
   try {

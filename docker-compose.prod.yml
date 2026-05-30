@@ -37,9 +37,10 @@ services:
     container_name: pesquisa-mongo
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-secure_password}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}
+      # accept Dokploy variable names (MONGO_ROOT_*) or Docker image defaults (MONGO_INITDB_*)
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}
     volumes:
       - mongo_data:/data/db
       - ./docker/mongo/init:/docker-entrypoint-initdb.d:ro
@@ -80,7 +81,8 @@ services:
       MAIL_PORT: ${MAIL_PORT:-}
       MAIL_USER: ${MAIL_USER:-}
       MAIL_PASS: ${MAIL_PASS:-}
-      MONGO_URL: ${MONGO_URL:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-secure_password}@mongo:27017/${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}?authSource=admin}
+      # prefer explicit MONGO_URI if provided by Dokploy, otherwise build from root credentials
+      MONGO_URL: ${MONGO_URI:-${MONGO_URL:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}:${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}@mongo:27017/${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}?authSource=admin}}
     depends_on:
       mysql:
         condition: service_healthy
@@ -142,7 +144,8 @@ services:
     restart: unless-stopped
     environment:
       ME_CONFIG_MONGODB_ADMIN: "true"
-      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-secure_password}@mongo:27017/${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}?authSource=admin}
+      # allow explicit MONGO_URI or fallback to constructed URI using Dokploy vars
+      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL:-${MONGO_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}:${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}@mongo:27017/${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}?authSource=admin}}
       ME_CONFIG_BASICAUTH: "true"
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
