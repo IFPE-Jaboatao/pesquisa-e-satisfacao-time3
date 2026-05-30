@@ -42,5 +42,10 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT) || 3000;
   await app.listen(port, '0.0.0.0');
+  console.log(`Application listening on http://0.0.0.0:${port}`);
 }
-bootstrap();
+
+bootstrap().catch((err) => {
+  console.error('Failed to start application:', err);
+  process.exit(1);
+});

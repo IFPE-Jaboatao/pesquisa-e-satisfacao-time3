@@ -38,6 +38,7 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 
 # Copiar arquivos necessários em produção
 COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs healthcheck.js ./
 
 # Remover dependências de desenvolvimento
 RUN npm prune --production
@@ -45,9 +46,9 @@ RUN npm prune --production
 # Mudar para usuário não-root
 USER nodejs
 
-# Health check
-HEALTHCHECK --interval=15s --timeout=5s --retries=5 --start-period=60s \
-    CMD node -e "require('http').get('http://127.0.0.1:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+# Health check (uses PORT env at runtime)
+HEALTHCHECK --interval=15s --timeout=5s --retries=8 --start-period=120s \
+    CMD ["node", "healthcheck.js"]
 
 # Usar dumb-init como entrypoint para garantir limpeza de processos
 ENTRYPOINT ["dumb-init", "--"]
