@@ -3,8 +3,11 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { logStartupFromEnv } from './config/database-url.util';
 
 async function bootstrap() {
+  logStartupFromEnv();
+
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
