@@ -3,11 +3,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
+# Copiar package.json e package-lock.json (se existir)
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm ci
+RUN npm install --prefer-offline --no-audit
 
 # Copiar código fonte
 COPY . .
