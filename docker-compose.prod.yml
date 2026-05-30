@@ -42,6 +42,7 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}
     volumes:
       - mongo_data:/data/db
+      - ./docker/mongo/init:/docker-entrypoint-initdb.d:ro
     expose:
       - "27017"
     healthcheck:
