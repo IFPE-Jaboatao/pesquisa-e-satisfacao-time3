@@ -96,4 +96,3 @@ volumes:
     driver: local
   mysql_logs:
     driver: local
-    external: true
