@@ -1,6 +1,6 @@
 import { ThemeModeScript } from "flowbite-react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { ThemeInit } from "../.flowbite-react/init";
 import "./globals.css";
 
@@ -13,6 +13,11 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
+  subsets: ["latin"]
+})
 
 export const metadata: Metadata = {
   title: "Pesquisas e Avaliações - IFPE",
@@ -28,17 +33,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-br" className={montserrat.variable} suppressHydrationWarning>
       <head>
         <ThemeModeScript />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`antialiased`}
       >
         <div className="flex min-h-screen flex-col">
 
         <ThemeInit />
-        <main className="flex flex-1">
+        <main className="flex flex-1 flex-col">
         {children}
         </main>
         </div>
