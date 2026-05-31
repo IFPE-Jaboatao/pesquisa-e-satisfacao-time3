@@ -1,0 +1,15 @@
+import { getSessionToken } from './session';
+
+export async function apiFetch(path, init = {}) {
+    const token = await getSessionToken();
+    const headers = new Headers(init.headers);
+    headers.set('Content-Type', 'application/json');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    const res = await fetch(`${process.env.API_BASE_URL}${path}`, {
+        ...init,
+        headers,
+        cache: 'no-store',
+    });
+    return res;
+}

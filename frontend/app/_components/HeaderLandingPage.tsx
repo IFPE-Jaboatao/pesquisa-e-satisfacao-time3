@@ -9,7 +9,7 @@ export default function HeaderLandingPage() {
         </NavbarBrand>
         <NavbarToggle />
         <NavbarCollapse>
-            <NavbarLink as={Link} href="/login">
+            <NavbarLink as={Link} href="/login" className="mr-5">
             Entrar
             </NavbarLink>
         </NavbarCollapse>
