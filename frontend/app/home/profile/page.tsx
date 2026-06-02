@@ -7,19 +7,14 @@ import { Button, Label } from 'flowbite-react';
 import InputLabel from '@/app/_components/InputLabel';
 import LogoutButton from '@/app/_components/LogoutButton';
 import BasicButton from '@/app/_components/BasicButton';
+import { getMe } from '@/services/user.service';
 
 export default async function Profile() {
-    const res = await apiFetch('/users/me');
-
-    if (res.status === 401) {
-        redirect('/login');
+    const user = await getMe();    
+    
+    if (!user) {
+      redirect('/login');
     }
-
-    if (!res.ok) {
-        throw new Error(`Falha ao carregar perfil: ${res.status}`);
-    }
-
-    const user = await res.json();
 
   return (
     <div>

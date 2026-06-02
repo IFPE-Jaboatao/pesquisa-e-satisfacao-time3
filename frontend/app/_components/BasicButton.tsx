@@ -16,8 +16,8 @@ return (
     <form action={goRoute} className="mt-4 self-center pb-5">
             <Button
             type="submit"
-            className="rounded px-4 py-2 font-semibold border"
-            style={{ backgroundColor: 'var(--white-color)', color: 'var(--dark-color)', borderColor: 'var(--grayish-color)'}}
+            className="rounded px-4 py-2 cursor-pointer font-semibold border"
+            style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)', borderColor: 'var(--grayish-color)'}}
             >
             {title}
             </Button>
