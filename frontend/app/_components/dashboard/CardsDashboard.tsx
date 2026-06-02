@@ -22,9 +22,9 @@ export default function CardsDashboard({ items }: Props) {
     }
 
     return (
-        <div className="pr-50 pt-5 pb-4 flex-row flex items-center justify-between"
+        <div className="pr-50 pt-5 pb-4 flex-row flex items-center justify-between max-md:pr-10 shadow-gray-300 shadow-lg"
             style={{ backgroundColor: 'var(--white)'}}>
-        <div className={`${items.length > 3 ? 'grid grid-cols-4' : 'flex'} flex-1 justify-around`}>
+        <div className={`${items.length > 3 ? 'grid grid-cols-4 max-md:grid-cols-2' : 'flex'} flex-1 justify-around max-sm:grid`}>
 
         {items.map(i => (
             <Card key={i.label} value={i.value} label={i.label} />

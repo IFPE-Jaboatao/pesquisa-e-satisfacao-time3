@@ -7,7 +7,7 @@ interface Props {
 
 export function AlunoDashboard({ data }: Props) {
   return (
-    <div className="flex-1 p-1 ml-70 mr-70">
+    <div className="flex-1 p-1 ml-70 mr-70 max-sm:ml-10 max-sm:mr-10 max-md:mr-15 max-md:ml-15 max-lg:ml-30 max-lg:mr-30">
 
               <TopTitleButtons
                 title="Pesquisas de Satisfação"
