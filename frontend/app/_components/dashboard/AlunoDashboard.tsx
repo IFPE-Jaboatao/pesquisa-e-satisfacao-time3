@@ -1,11 +1,42 @@
+import CardsDashboard from "./CardsDashboard";
+import TopTitleButtons from "./TopTitleButtons";
+
 interface Props {
   data: any;
 }
 
 export function AlunoDashboard({ data }: Props) {
   return (
-    <div className="grid gap-4">
-        <p>aluno cards</p>
-    </div>
+    <div className="flex-1 p-1 ml-70 mr-70">
+
+              <TopTitleButtons
+                title="Pesquisas de Satisfação"
+                title_backgroundcolor="var(--color-secondary)"
+                button1_title="Ver Lista"
+                button1_route="/buscar-pesquisas"
+              />
+        
+              <div className="">
+                <CardsDashboard items={[
+                  {value: data.avaliacoesResponder, label: 'Responder'},
+                ]} />
+        
+                </div>
+
+              <TopTitleButtons
+                title="Avaliações Docente"
+                title_backgroundcolor="var(--color-alt-secondary)"
+                button1_title="Ver Lista"
+                button1_route="/buscar-avaliacoes"
+              />
+        
+              <div className="self-center flex-1">
+                <CardsDashboard items={[
+                  {value: data.satisfacoesResponder, label: 'Responder'},
+                ]} />
+        
+                </div>
+        
+            </div>
   );
 }

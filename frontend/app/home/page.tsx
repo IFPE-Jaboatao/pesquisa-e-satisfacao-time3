@@ -18,13 +18,11 @@ export default async function HomePage() {
   console.log(dashboardData)
 
   return (
-    <div>
+    <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
       <Header nome={user.nome} role={user.role} index={1} />
 
-      <div className='flex-1 justify-center flex'>
+      <div className='flex-1 justify-center flex flex-col'>
         <DashboardRenderer role={user.role} data={dashboardData} />
-
-        <LogoutButton />
 
       </div>
     </div>
