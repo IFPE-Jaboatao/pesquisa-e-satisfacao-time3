@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function DashboardRenderer({ role, data }: Props) {
-    console.log(role)
+
   switch (role) {
     case UserRole.ADMIN:
       return <AdminDashboard data={data} />;

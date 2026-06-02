@@ -15,7 +15,6 @@ export default async function HomePage() {
   }
 
   const dashboardData = await getDashboard(user.role);
-  console.log(dashboardData)
 
   return (
     <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>

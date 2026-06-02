@@ -1,5 +1,9 @@
+import { Progress } from "flowbite-react";
 import CardsDashboard from "./CardsDashboard";
 import TopTitleButtons from "./TopTitleButtons";
+import ProgressBar from "./ProgressBar";
+import CriteriosDocente from "./CriteriosDocente";
+import KpiDocente from "./KpiDocente";
 
 interface Props {
   data: any;
@@ -31,8 +35,18 @@ export function DocenteDashboard({ data }: Props) {
               buttons={false}
             />
       
-            <div className="self-center flex-1">
-              <p>Graficos em breve...</p>
+            <div className="self-center flex-1 shadow-gray-300 shadow-lg mb-5">
+              <div className="p-4 flex flex-row max-lg:flex-col justify-center items-center gap-5 align-middle" style={{ backgroundColor: 'var(--white)'}}>
+                <div className="flex-2">
+                <CriteriosDocente items={data.avaliacoes.desempenhoGeral} />
+                </div>
+
+              <div className="flex-1">
+                <KpiDocente value={Number(data.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
+              </div>
+
+              </div>
+
               </div>
       
           </div>
