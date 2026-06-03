@@ -57,9 +57,10 @@ export default function LoginForm() {
                 {pending ? 'Entrando…' : 'Entrar'}
             </Button>
 
-      {state?.error && <p className="text-red-600">{state.error}</p>}
-
         </div>
+
+        {state?.error && <p className="text-red-600 text-center mt-5 font-semibold">{state.error}</p>}
+
         </form>
     </div>
   );

@@ -18,7 +18,7 @@ export async function alterarSenhaAction(prevState: ActionState, formData: FormD
         else if (res.status === 401) return { error: 'Senha atual incorreta!', success: false}
         else return { error: res.statusText, success: false };
     }
-    console.log("estou aqui prontinho para enviar a lacrada")
+
     return { success: true, error: ''}
 
 }

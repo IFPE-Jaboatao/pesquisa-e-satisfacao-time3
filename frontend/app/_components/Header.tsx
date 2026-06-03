@@ -13,11 +13,11 @@ export default function Header({ role, nome, index }: HeaderProps) {
         <Navbar style={{ backgroundColor: 'var(--color-primary)'}}>
         <div className="flex flex-row flex-5 items-center">
             <NavbarBrand as={Link} href="/" className="flex">
-            <img src="/pesquisa-logo.svg" className="mr-3 h-6 sm:h-12" alt="Pesquisas e Avaliações Logo" />
+            <img src="/pesquisa-logo.svg" className="mr-3 h-12" alt="Pesquisas e Avaliações Logo" />
         </NavbarBrand>
             <div className="flex flex-col">
                 <h1
-                className="text-3xl font-semibold align-middle"
+                className="text-3xl max-sm:text-2xl font-semibold align-middle"
                 style={{ color: 'var(--light-color)'}}
                 >Dashboard - {role.slice(0,1).toUpperCase() + role.slice(1)}</h1>
 
@@ -37,11 +37,14 @@ export default function Header({ role, nome, index }: HeaderProps) {
         <NavbarToggle />
         
         <NavbarCollapse>
-            <NavbarLink as={Link} href="/home/profile" className="mr-5">
+            <NavbarLink as={Link} href="/home/profile" className="mr-5 font-semibold flex flex-row justify-between items-center">
                 {nome}
+                <Link href='/home/profile' className="md:hidden">
+                    <Avatar img="/user-placeholder.png" alt="avatar of Jese" rounded />
+                </Link>
             </NavbarLink>
         </NavbarCollapse>
-        <Link href='/home/profile'>
+        <Link href='/home/profile' className="max-md:hidden">
             <Avatar img="/user-placeholder.png" alt="avatar of Jese" rounded />
         </Link>
         </Navbar>

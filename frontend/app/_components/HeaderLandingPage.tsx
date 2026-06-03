@@ -5,14 +5,11 @@ export default function HeaderLandingPage() {
     return (
         <Navbar style={{ backgroundColor: 'var(--color-primary)'}}>
             <NavbarBrand as={Link} href="/">
-            <img src="/pesquisa-logo.svg" className="mr-3 h-6 sm:h-12" alt="Pesquisas e Avaliações Logo" />
+            <img src="/pesquisa-logo.svg" className="mr-3 h-12" alt="Pesquisas e Avaliações Logo" />
         </NavbarBrand>
-        <NavbarToggle />
-        <NavbarCollapse>
-            <NavbarLink as={Link} href="/login" className="mr-5">
+            <Link href="/login" className="mr-5 font-semibold border-0" style={{ color: 'var(--white)'}}>
             Entrar
-            </NavbarLink>
-        </NavbarCollapse>
+            </Link>
         </Navbar>
     )
 }
