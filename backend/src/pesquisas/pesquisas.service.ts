@@ -772,6 +772,17 @@ export class PesquisasService {
       servicoIds.includes(p.tipoId),
     );
 
+    // adicionar o nome do serviço e do setor para cada pesquisa de satisfação
+    const servicosMap = new Map(servicosCampus.map(s => [s.id, s.nome]));
+    const setoresMap = new Map(servicosCampus.map(s => [s.id, s.setorNome]));
+    const setoresIds = new Map (servicosCampus.map(s => [s.id, s.setorId]));
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      nomeServico: servicosMap.get(p.tipoId) || 'Serviço Desconhecido',
+      nomeSetor: setoresMap.get(p.tipoId) || 'Setor Desconecido',
+      setorId: setoresIds.get(p.tipoId) || null
+    }));
+
     // juntar os IDs para retornar as respostas
     const todasPesquisas = [...avaliacoesDocente, ...filteredSatisfacao]
 

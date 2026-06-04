@@ -104,7 +104,8 @@ export class ServicoService {
     return servicos.map((servico) => ({
       id: servico.id,
       nome: servico.nome,
-      setorId: servico.setor?.id
+      setorId: servico.setor?.id,
+      setorNome: servico.setor?.nome,
     }));
   }
 
