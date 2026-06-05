@@ -185,6 +185,11 @@ export class UsersService implements OnModuleInit {
         descricao: s.descricao,
         dataInicio: s.dataInicio,
         dataFinal: s.dataFinal,
+        nomeServico: s.nomeServico,
+        nomeSetor: s.nomeSetor,
+        setorId: s.setorId,
+        tipoId: s.tipoId,
+        status: s.status
       })),
       avaliacoes: avaliacoes.map((a) => {
       // busca os dados da turma no map usando o tipoId da pesquisa

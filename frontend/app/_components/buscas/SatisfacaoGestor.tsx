@@ -3,6 +3,7 @@ import { useState } from "react";
 import BuscaTitulo from "./BuscaTitulo";
 import SatisfacaoCard from "./SatisfacaoCard";
 import { LabelGray } from "../InputLabel";
+import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 
 interface Props {
   data: any;
@@ -64,7 +65,7 @@ export function SatisfacaoGestor({ data }: Props) {
     return (
         <div className="flex flex-1 flex-col">
             <div className="flex flex-row max-sm:flex-col rounded justify-between gap-2 p-2 pl-4 pb-4" style={{backgroundColor: 'var(--white)'}}>
-                <div className="flex flex-col gap-4 items-baseline">
+                <div className="flex flex-col gap-4 items-baseline lg:flex-1 lg:pr-30">
                     <BuscaTitulo title="Pesquisas de Satisfações" />
 
                     <div className="flex flex-row gap-2 items-center">
@@ -74,7 +75,7 @@ export function SatisfacaoGestor({ data }: Props) {
                         style={{color: 'var(--dark-color)', borderColor: 'var(--grayish-color)'}}
                         value={search} onChange={(e) => setSearch(e.target.value)}  />
                         
-                        <div className="rounded-full w-7 h-7" style={{ backgroundColor: 'var(--grayish-color)'}}></div>
+                        <MagnifyingGlassCircleIcon height={35} style={{color: `var(--grayish-color)`}} />
                     </div>
                 </div>
 
@@ -136,6 +137,7 @@ export function SatisfacaoGestor({ data }: Props) {
             <div className="flex flex-1 flex-col gap-5 mt-2 mb-2 mr-15 ml-15 max-md:mr-5 max-md:ml-5 max-sm:mr-2 max-sm:ml-2">
                 {pesquisasFiltradas?.map((p) => (
                     <SatisfacaoCard
+                    aluno={false}
                     key={p.id}
                     id={p.id}
                     titulo={p.titulo}

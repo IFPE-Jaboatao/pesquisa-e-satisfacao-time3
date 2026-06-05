@@ -558,9 +558,21 @@ export class PesquisasService {
     // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
     const servicoIds = servicosCampus.map((s) => s.id);
 
-    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+    let filteredSatisfacao: any[] = pesquisasSatisfacao.filter((p) =>
       servicoIds.includes(p.tipoId),
     );
+
+    // trazendo mais detalhes para pesquisa no frontend
+      // adicionar o nome do serviço e do setor para cada pesquisa de satisfação
+    const servicosMap = new Map(servicosCampus.map(s => [s.id, s.nome]));
+    const setoresMap = new Map(servicosCampus.map(s => [s.id, s.setorNome]));
+    const setoresIds = new Map (servicosCampus.map(s => [s.id, s.setorId]));
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      nomeServico: servicosMap.get(p.tipoId) || 'Serviço Desconhecido',
+      nomeSetor: setoresMap.get(p.tipoId) || 'Setor Desconecido',
+      setorId: setoresIds.get(p.tipoId) || null
+    }));
 
     // filtrar as pesquisas para mostrar apenas as que o aluno não respondeu
 

@@ -11,8 +11,9 @@ interface Props {
     setorId: number,
     nomeServico: string,
     nomeSetor: string,
-    maximoRespostas: number,
-    respostasRebecidas: number
+    maximoRespostas?: number,
+    respostasRebecidas?: number,
+    aluno: boolean
 }
 
 export default function SatisfacaoCard({
@@ -27,7 +28,8 @@ export default function SatisfacaoCard({
     nomeServico,
     nomeSetor,
     maximoRespostas,
-    respostasRebecidas
+    respostasRebecidas,
+    aluno
 }: Props) {
     const dataInicioFormatada = new Date(dataInicio).toLocaleDateString('pt-br');
     const dataFinalFormatada = new Date(dataFinal).toLocaleDateString('pt-br');
@@ -72,27 +74,32 @@ export default function SatisfacaoCard({
                 </div>
         <div className="p-2 pl-6 mt-2 rounded flex flex-row max-md:flex-col justify-between" style={{backgroundColor: 'var(--white)'}}>
             <div className="max-md:grid max-md:grid-cols-2 flex flex-row flex-1 justify-between mr-4 lg:mr-40">
-            <div className="flex flex-col">
+            <div className="flex flex-col lg:flex-1 lg:pr-30">
                 <p className="font-semibold text-xl">{titulo}</p>
                 <p>{descricao}</p>
-                <div className="mt-1 flex flex-row max-md:justify-around justify-between max-sm:flex-col">
+                <div className="mt-1 flex flex-row max-md:justify-around justify-between max-sm:flex-col lg:justify-start lg:gap-10">
                     <p className="italic">Setor: {nomeSetor}</p>
                     <p className="italic">Serviço: {nomeServico}</p>
                 </div>
             </div>
-
-            <div className="border-l-2 max-md:border-0 pl-3 flex justify-center items-center flex-col" style={{borderColor: 'var(--light-color)'}}>
-                <p><span className="text-4xl">{respostasRebecidas}</span>/{maximoRespostas}</p>
-                <p>respostas</p>
-            </div>
+            
+            {!aluno ?
+                (
+                    <div className="border-l-2 max-md:border-0 pl-3 flex justify-center items-center flex-col" style={{borderColor: 'var(--light-color)'}}>
+                    <p><span className="text-4xl">{respostasRebecidas}</span>/{maximoRespostas}</p>
+                    <p>respostas</p>
+                </div>
+                )
+                : ''}
+            
             </div>
             
             <div className="flex flex-col max-md:flex-row max-md:justify-between max-md:content-center max-md:mr-8 mr-2">
                 <div className="flex flex-col justify-center max-sm:text-sm">
-                <p>{inicioVerbo} {dataInicioFormatada}</p>
+                {!aluno ? <p>{inicioVerbo} {dataInicioFormatada}</p> : ''}
                 <p>{finalVerbo} {dataFinalFormatada}</p>
                 </div>
-                <BasicButton route={`/buscar-pesquisas-satisfacao/${id}`} title="Ver Pesquisa" />
+                <BasicButton route={`/buscar-pesquisas-satisfacao/${id}`} title={!aluno ? "Ver Pesquisa" : "Responder"} />
             </div>
             
         </div>
