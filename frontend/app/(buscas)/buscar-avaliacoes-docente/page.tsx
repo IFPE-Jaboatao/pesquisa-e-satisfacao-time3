@@ -12,7 +12,7 @@ export default async function BuscarAvaliacoesDocente() {
     redirect('/login');
   }
 
-  if (user.role === UserRole.ADMIN || user.role === UserRole.DOCENTE) {
+  if (user.role === UserRole.ADMIN) {
     redirect('/unauthorized')
   }
 
