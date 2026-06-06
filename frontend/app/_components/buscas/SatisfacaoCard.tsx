@@ -7,13 +7,14 @@ interface Props {
     dataInicio: string,
     dataFinal: string,
     status: string,
-    servicoId: number,
-    setorId: number,
-    nomeServico: string,
-    nomeSetor: string,
+    servicoId?: number,
+    setorId?: number,
+    detalheNome_2: string,
+    detalheNome_1: string,
     maximoRespostas?: number,
     respostasRebecidas?: number,
-    aluno: boolean
+    aluno: boolean,
+    avaliacao: boolean
 }
 
 export default function SatisfacaoCard({
@@ -25,11 +26,12 @@ export default function SatisfacaoCard({
     status,
     servicoId,
     setorId,
-    nomeServico,
-    nomeSetor,
+    detalheNome_2,
+    detalheNome_1,
     maximoRespostas,
     respostasRebecidas,
-    aluno
+    aluno,
+    avaliacao
 }: Props) {
     const dataInicioFormatada = new Date(dataInicio).toLocaleDateString('pt-br');
     const dataFinalFormatada = new Date(dataFinal).toLocaleDateString('pt-br');
@@ -77,9 +79,9 @@ export default function SatisfacaoCard({
             <div className="flex flex-col lg:flex-1 lg:pr-30">
                 <p className="font-semibold text-xl">{titulo}</p>
                 <p>{descricao}</p>
-                <div className="mt-1 flex flex-row max-md:justify-around justify-between max-sm:flex-col lg:justify-start lg:gap-10">
-                    <p className="italic">Setor: {nomeSetor}</p>
-                    <p className="italic">Serviço: {nomeServico}</p>
+                <div className="mt-1 flex flex-row max-md:justify-around gap-10 max-sm:flex-col max-sm:gap-1 lg:justify-start lg:gap-10">
+                    <p className="italic">{!avaliacao ? 'Setor' : 'Turma'}: {detalheNome_1}</p>
+                    <p className="italic">{!avaliacao ? 'Serviço' : 'Turno'}: {detalheNome_2}</p>
                 </div>
             </div>
             
@@ -99,7 +101,7 @@ export default function SatisfacaoCard({
                 {!aluno ? <p>{inicioVerbo} {dataInicioFormatada}</p> : ''}
                 <p>{finalVerbo} {dataFinalFormatada}</p>
                 </div>
-                <BasicButton route={`/buscar-pesquisas-satisfacao/${id}`} title={!aluno ? "Ver Pesquisa" : "Responder"} />
+                <BasicButton route={`/buscar-${!avaliacao ? 'pesquisas-satisfacao' : 'avaliacoes-docente'}/${id}`} title={!aluno ? "Ver Detalhes" : "Responder"} />
             </div>
             
         </div>

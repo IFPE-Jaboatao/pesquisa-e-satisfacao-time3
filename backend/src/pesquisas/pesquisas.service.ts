@@ -761,7 +761,16 @@ export class PesquisasService {
 
     avaliacoesDocente = avaliacoesDocente.map((a) => ({
       ...a,
-      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0
+      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0,
+      turno: turmasCampus.find((t) => t.id === a.tipoId)?.turno || 'Desconhecido',
+      disciplinaId: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.id || null,
+      disciplina: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.nome || 'Desconhecida',
+      periodoId: turmasCampus.find((t) => t.id === a.tipoId)?.periodo.id || null,
+      periodo: turmasCampus.find((t) => t.id === a.tipoId)?.periodo.ano + '.' + turmasCampus.find((t) => t.id === a.tipoId)?.periodo.semestre || 'Desconhecido',
+      docenteId: turmasCampus.find((t) => t.id === a.tipoId)?.docente.id || null,
+      docente: turmasCampus.find((t) => t.id === a.tipoId)?.docente.nome || 'Desconhecido',
+      cursoId: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.curso.id || null,
+      curso: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.curso.nome || 'Desconhecido',
     }));
 
     // pesquisas de satisfação

@@ -138,6 +138,7 @@ export function SatisfacaoGestor({ data }: Props) {
                 {pesquisasFiltradas?.map((p) => (
                     <SatisfacaoCard
                     aluno={false}
+                    avaliacao={false}
                     key={p.id}
                     id={p.id}
                     titulo={p.titulo}
@@ -149,8 +150,8 @@ export function SatisfacaoGestor({ data }: Props) {
                     maximoRespostas={p.maximoRespostas}
                     respostasRebecidas={p.respostasRecebidas}
 
-                    nomeServico={p.nomeServico}
-                    nomeSetor={p.nomeSetor}
+                    detalheNome_2={p.nomeServico}
+                    detalheNome_1={p.nomeSetor}
                     servicoId={p.tipoId}
                     setorId={p.setorId}
                     status={p.status}

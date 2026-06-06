@@ -113,6 +113,7 @@ export function SatisfacaoAluno({ data }: Props) {
                 {pesquisasFiltradas?.map((p) => (
                     <SatisfacaoCard
                     aluno={true}
+                    avaliacao={false}
                     key={p.id}
                     id={p.id}
                     titulo={p.titulo}
@@ -121,8 +122,8 @@ export function SatisfacaoAluno({ data }: Props) {
                     dataFinal={p.dataFinal}
                     dataInicio={p.dataInicio}
 
-                    nomeServico={p.nomeServico}
-                    nomeSetor={p.nomeSetor}
+                    detalheNome_2={p.nomeServico}
+                    detalheNome_1={p.nomeSetor}
                     servicoId={p.tipoId}
                     setorId={p.setorId}
                     status={p.status}
