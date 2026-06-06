@@ -201,10 +201,15 @@ export class UsersService implements OnModuleInit {
         descricao: a.descricao,
         dataInicio: a.dataInicio,
         dataFinal: a.dataFinal,
+        disciplinaId: dadosTurma?.disciplina?.id,
         disciplina: dadosTurma?.disciplina?.nome || 'Disciplina não encontrada',
+        docenteId: dadosTurma?.docente?.id,
         docente: dadosTurma?.docente?.nome || 'Docente não informado',
         turmaId: a.tipoId,
-        turno: dadosTurma?.turno
+        turno: dadosTurma?.turno,
+        periodo: dadosTurma?.periodo?.ano && dadosTurma?.periodo?.semestre ? `${dadosTurma.periodo.ano}.${dadosTurma.periodo.semestre}` : 'Período não informado',
+        periodoId: dadosTurma?.periodo?.id,
+        status: a.status
       };
     })
   }

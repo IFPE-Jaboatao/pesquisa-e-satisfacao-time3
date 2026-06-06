@@ -538,6 +538,7 @@ export class PesquisasService {
         where: {
           tipoId: { $in: turmaIds },
           tipo: Tipo.AVALIACAO,
+          status: Status.ATIVA
         },
       });
     }
@@ -547,6 +548,7 @@ export class PesquisasService {
       where: {
         tipo: Tipo.SATISFACAO,
         publicada: true,
+        status: Status.ATIVA
         // aqui entrará a lógica de "não respondidas" futuramente
       },
     });

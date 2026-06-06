@@ -18,7 +18,7 @@ export function AlunoDashboard({ data }: Props) {
         
               <div className="">
                 <CardsDashboard items={[
-                  {value: data.avaliacoesResponder, label: 'Responder'},
+                  {value: data.satisfacoesResponder, label: 'Responder'},
                 ]} />
         
                 </div>
@@ -32,7 +32,7 @@ export function AlunoDashboard({ data }: Props) {
         
               <div className="self-center flex-1">
                 <CardsDashboard items={[
-                  {value: data.satisfacoesResponder, label: 'Responder'},
+                  {value: data.avaliacoesResponder, label: 'Responder'},
                 ]} />
         
                 </div>
