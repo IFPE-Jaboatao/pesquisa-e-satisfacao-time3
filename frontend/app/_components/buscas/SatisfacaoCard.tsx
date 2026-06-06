@@ -97,7 +97,7 @@ export default function SatisfacaoCard({
             </div>
             
             <div className="flex flex-col max-md:flex-row max-md:justify-between max-md:content-center max-md:mr-8 mr-2">
-                <div className="flex flex-col justify-center max-sm:text-sm">
+                <div style={{borderColor: 'var(--grayish-color)'}} className="flex flex-col justify-center max-sm:text-sm max-sm:border-t">
                 {!aluno ? <p>{inicioVerbo} {dataInicioFormatada}</p> : ''}
                 <p>{finalVerbo} {dataFinalFormatada}</p>
                 </div>

@@ -35,6 +35,7 @@ import { generateAnonymousHash } from 'src/common/utils/hash.util';
 import { RelatoriosService } from 'src/relatorios/relatorios.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PesquisaDeletedEvent } from 'src/shared/events/pesquisa-deleted.event';
+import { disconnect } from 'process';
 
 @Injectable()
 export class PesquisasService {
@@ -620,12 +621,28 @@ export class PesquisasService {
       return { avaliacoes: [] };
     }
 
-    const pesquisas = await this.repo.find({
+    let pesquisas: any[] = await this.repo.find({
       where: {
         tipoId: { $in: turmaIds },
         tipo: Tipo.AVALIACAO,
       },
     });
+
+    // quantidade máxima de respostas por avaliação
+    const respostasMaximasAvaliacoes = await this.getMaximoRespostas(pesquisas);
+
+    // adicionar campos de período, disciplina e turno para cada pesquisa a partir da turma
+    pesquisas = pesquisas.map((p) => ({
+      ...p,
+      maximoRespostas: respostasMaximasAvaliacoes[p.tipoId] || 0,
+      turno: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.turno || 'Desconhecido',
+      disciplinaId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.disciplina.id || null,
+      disciplina: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.disciplina.nome || 'Desconhecida',
+      periodoId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.id || null,
+      periodo: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.ano + '.' + turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.semestre || 'Desconhecido',
+      cursoId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.curso.id || null,
+      curso: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.curso.nome || 'Desconhecido',
+    }));
 
     // processar relatório geral de todas as pesquisas
     const pesquisaIds = pesquisas.map(p => String(p.id));
@@ -633,6 +650,12 @@ export class PesquisasService {
     const todasAsRespostas = await this.respostaRepo.find({
       where: { pesquisaId: { $in: pesquisaIds } }
     });
+
+    // adicionar quantidade de respostas em cada pesquisa
+      pesquisas = pesquisas.map(p => ({
+        ...p,
+        respostasRecebidas: todasAsRespostas.filter(r => String(r.pesquisaId) === String(p.id)).length
+      }));
 
     const todasAsQuestoes = await this.questaoRepo.find({
       where: { pesquisaId: { $in: pesquisaIds } }

@@ -18,7 +18,7 @@ export function AvaliacaoRenderer({ role, data }: Props) {
       return <AvaliacaoGestor data={data} />;
 
     case UserRole.DOCENTE:
-      return <AvaliacaoDocente data={data} />;
+      return <AvaliacaoDocente data={data.avaliacoes.avaliacoes} />;
 
     default:
       return (
