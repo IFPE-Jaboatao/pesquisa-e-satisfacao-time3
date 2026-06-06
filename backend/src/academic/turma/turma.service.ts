@@ -166,7 +166,9 @@ export class TurmaService {
       relations: {
         docente: true,
         periodo: true,
-        disciplina: true,
+        disciplina: {
+          curso: true
+        },
       },
       withDeleted: false
     });
@@ -185,6 +187,10 @@ export class TurmaService {
           nome: turma?.disciplina.nome,
         },
         periodo: turma?.periodo,
+        curso: {
+          id: turma?.disciplina.curso.id,
+          nome: turma?.disciplina.curso.nome
+        }
       })),
     };
   }

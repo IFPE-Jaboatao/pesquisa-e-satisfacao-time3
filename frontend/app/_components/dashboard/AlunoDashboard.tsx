@@ -13,12 +13,12 @@ export function AlunoDashboard({ data }: Props) {
                 title="Pesquisas de Satisfação"
                 title_backgroundcolor="var(--color-secondary)"
                 button1_title="Ver Lista"
-                button1_route="/buscar-pesquisas"
+                button1_route="/buscar-pesquisas-satisfacao"
               />
         
               <div className="">
                 <CardsDashboard items={[
-                  {value: data.avaliacoesResponder, label: 'Responder'},
+                  {value: data.satisfacoesResponder, label: 'Responder'},
                 ]} />
         
                 </div>
@@ -27,12 +27,12 @@ export function AlunoDashboard({ data }: Props) {
                 title="Avaliações Docente"
                 title_backgroundcolor="var(--color-alt-secondary)"
                 button1_title="Ver Lista"
-                button1_route="/buscar-avaliacoes"
+                button1_route="/buscar-avaliacoes-docente"
               />
         
               <div className="self-center flex-1">
                 <CardsDashboard items={[
-                  {value: data.satisfacoesResponder, label: 'Responder'},
+                  {value: data.avaliacoesResponder, label: 'Responder'},
                 ]} />
         
                 </div>

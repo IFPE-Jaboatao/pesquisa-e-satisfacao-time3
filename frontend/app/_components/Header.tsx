@@ -37,11 +37,9 @@ export default function Header({ role, nome, index }: HeaderProps) {
         <NavbarToggle />
         
         <NavbarCollapse>
-            <NavbarLink as={Link} href="/home/profile" className="mr-5 font-semibold flex flex-row justify-between items-center">
+            <NavbarLink as={Link} href="/home/profile" className="mr-5 font-semibold flex flex-row justify-between items-center" style={{color: "var(--light-color)"}}>
                 {nome}
-                <Link href='/home/profile' className="md:hidden">
-                    <Avatar img="/user-placeholder.png" alt="avatar of Jese" rounded />
-                </Link>
+                <Avatar img="/user-placeholder.png" alt="avatar of Jese" className="md:hidden" rounded />
             </NavbarLink>
         </NavbarCollapse>
         <Link href='/home/profile' className="max-md:hidden">

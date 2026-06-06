@@ -13,7 +13,7 @@ export function GestorDashboard({ data }: Props) {
             title="Pesquisas de Satisfação"
             title_backgroundcolor="var(--color-secondary)"
             button1_title="Ver Lista"
-            button1_route="/buscar-pesquisas"
+            button1_route="/buscar-pesquisas-satisfacao"
             button2_title="Criar Pesquisa"
             button2_route="/criar-pesquisa"
           />
@@ -31,7 +31,7 @@ export function GestorDashboard({ data }: Props) {
             title="Avaliações Docente"
             title_backgroundcolor="var(--color-alt-secondary)"
             button1_title="Ver Lista"
-            button1_route="/buscar-avaliacoes"
+            button1_route="/buscar-avaliacoes-docente"
             button2_title="Criar Avaliação"
             button2_route="/criar-avaliacao"
           />

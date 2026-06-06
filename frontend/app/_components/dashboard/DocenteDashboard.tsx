@@ -17,7 +17,7 @@ export function DocenteDashboard({ data }: Props) {
               title="Minhas Avaliações"
               title_backgroundcolor="var(--color-alt-secondary)"
               button1_title="Ver Lista"
-              button1_route="/buscar-avaliacoes"
+              button1_route="/buscar-avaliacoes-docente"
             />
       
             <div className="self-center flex-1">
@@ -38,11 +38,14 @@ export function DocenteDashboard({ data }: Props) {
             <div className="self-center flex-1 shadow-gray-300 shadow-lg mb-5">
               <div className="p-4 flex flex-row max-lg:flex-col justify-center items-center gap-5 align-middle" style={{ backgroundColor: 'var(--white)'}}>
                 <div className="flex-2">
-                <CriteriosDocente items={data.avaliacoes.desempenhoGeral} />
+                  {data.avaliacoes.totalRespostasRecebidas > 0
+                  ? <CriteriosDocente items={data.avaliacoes.desempenhoGeral} />
+                : <p>Nenhuma resposta ainda...</p>}
+                
                 </div>
 
               <div className="flex-1">
-                <KpiDocente value={Number(data.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
+                <KpiDocente value={data.avaliacoes.mediaGeralHistorica === 'NaN%' ? 0 : Number(data.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
               </div>
 
               </div>
