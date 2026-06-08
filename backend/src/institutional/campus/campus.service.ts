@@ -41,6 +41,26 @@ export class CampusService {
     return this.campusRepo.find();
   }
 
+  // listar todos os campi com total de setores e cursos
+  async findAllWithDetails() {
+    const campi = await this.campusRepo.find({
+      relations: {
+        setores: true,
+        cursos: true
+      }
+    });
+
+    return campi.map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      cidade: c.cidade,
+      setores: c?.setores?.length,
+      cursos: c?.cursos?.length,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt
+    }));
+  }
+
   // listar todos os campi deletados
   async findAllDeleted() {
     return this.campusRepo.find({ where: { deletedAt: Not(IsNull()) }, withDeleted: true });

@@ -138,16 +138,22 @@ export class TurmaService {
   // função auxiliar para dashboard do admin
   async findAllResumo() {
     const turmas = await this.turmaRepo.find({
-      relations: { disciplina: { curso: true}, periodo: true, docente: true },
+      relations: { disciplina: { curso: true}, periodo: true, docente: true, matriculas: true },
       withDeleted: false
     });
 
     return turmas.map((turma) => ({
       id: turma?.id,
       turno: turma?.turno,
-      disciplina: turma?.disciplina.nome,
+      disciplina: {
+        id: turma?.disciplina?.id,
+        nome: turma?.disciplina?.nome 
+      },
       periodo: `${turma?.periodo.ano}.${turma?.periodo.semestre}`,
       docente: { id: turma.docente?.id, nome: turma.docente?.nome },
+      matriculas: turma?.matriculas?.length,
+      createdAt: turma.createdAt,
+      updatedAt: turma.updatedAt
     }));
   }
 

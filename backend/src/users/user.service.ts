@@ -149,7 +149,11 @@ export class UsersService implements OnModuleInit {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      campus: user.campus?.nome ? user.campus?.nome : null
+      campusId: user.campus?.id,
+      campus: user.campus?.nome ? user.campus?.nome : null,
+      campusCidade: user.campus?.cidade ? user.campus?.cidade : null, 
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     };
   }
 
@@ -279,7 +283,7 @@ export class UsersService implements OnModuleInit {
       // DASHBOARD GESTOR
   async getDashboardAdmin() {
     // info de institutional
-    const campus = await this.campusService.findAll();
+    const campus = await this.campusService.findAllWithDetails();
 
     const setores = await this.setorServico.findAll();
 
@@ -343,7 +347,9 @@ export class UsersService implements OnModuleInit {
         role: u.role,
         email: u.email,
         campusId: u.campus?.id,
-        campus: u.campus?.nome 
+        campus: u.campus?.nome,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
       }))
     };
   }

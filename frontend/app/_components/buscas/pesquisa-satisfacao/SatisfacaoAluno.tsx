@@ -1,28 +1,21 @@
 "use client";
 import { useState } from "react";
-import BuscaTitulo from "./BuscaTitulo";
+import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "./SatisfacaoCard";
-import { LabelGray } from "../InputLabel";
+import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 
 interface Props {
   data: any;
 }
 
-export function SatisfacaoGestor({ data }: Props) {
+export function SatisfacaoAluno({ data }: Props) {
     const [search, setSearch] = useState('');
     const [setorSearch, setSetorSearch] = useState('');
     const [servicoSearch, setServicoSearch] = useState('');
-    const [statusSearch, setStatusSearch] = useState('');
-
-    // lista para filtro de Status
-    const tiposStatus = [{'nome': 'ativa', 'nomeFormatado': 'Ativa'},
-        {'nome': 'inativa', 'nomeFormatado': 'Inativa'},
-        {'nome': 'fechada', 'nomeFormatado': 'Fechada'}
-    ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.satisfacoes.ativas, ...data.satisfacoes.inativas, ...data.satisfacoes.fechadas];
+    const todasPesquisas = [...data.satisfacoes];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
@@ -34,11 +27,8 @@ export function SatisfacaoGestor({ data }: Props) {
         // 3. filtro por serviço
         const bateServico = servicoSearch === '' || p.tipoId === Number(servicoSearch);
 
-        // 4. filtro por status
-        const bateStatus = statusSearch === '' || p.status === statusSearch;
-
         // aplica todos os filtros ao mesmo tempo
-        return bateTexto && bateSetor && bateServico && bateStatus;
+        return bateTexto && bateSetor && bateServico;
     });
 
     // junta os setores presentes nas pesquisas para usar no filtro de Setor
@@ -115,21 +105,6 @@ export function SatisfacaoGestor({ data }: Props) {
                         </select>
                     </div>
 
-                    <div className="flex flex-row items-center content-center gap-1">
-                        <p className="font-semibold">Status:</p>
-                        <select name="setor" className="border rounded"
-                        onChange={(e) => setStatusSearch(e.target.value)}
-                        >
-                        <option value="">Todos</option>
-                        
-                        {tiposStatus.map((status) => (
-                            <option  key={status.nome} value={status.nome}>
-                                {status.nomeFormatado}
-                            </option>
-                        ))}
-                    </select>
-
-                    </div>
                 </div>
             </div>
         </div>
@@ -137,7 +112,7 @@ export function SatisfacaoGestor({ data }: Props) {
             <div className="flex flex-1 flex-col gap-5 mt-2 mb-2 mr-15 ml-15 max-md:mr-5 max-md:ml-5 max-sm:mr-2 max-sm:ml-2">
                 {pesquisasFiltradas?.map((p) => (
                     <SatisfacaoCard
-                    aluno={false}
+                    aluno={true}
                     avaliacao={false}
                     key={p.id}
                     id={p.id}
@@ -146,9 +121,6 @@ export function SatisfacaoGestor({ data }: Props) {
 
                     dataFinal={p.dataFinal}
                     dataInicio={p.dataInicio}
-
-                    maximoRespostas={p.maximoRespostas}
-                    respostasRebecidas={p.respostasRecebidas}
 
                     detalheNome_2={p.nomeServico}
                     detalheNome_1={p.nomeSetor}

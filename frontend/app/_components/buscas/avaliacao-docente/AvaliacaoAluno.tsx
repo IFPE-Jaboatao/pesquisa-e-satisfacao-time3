@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import BuscaTitulo from "./BuscaTitulo";
-import SatisfacaoCard from "./SatisfacaoCard";
+import SatisfacaoCard from "./pesquisa-satisfacao/SatisfacaoCard";
 import { LabelGray } from "../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 
@@ -9,48 +9,34 @@ interface Props {
   data: any;
 }
 
-export default function AvaliacaoGestor({ data }: Props) {
+export default function AvaliacaoAluno({ data }: Props) {
     const [search, setSearch] = useState('');
-    const [cursoSearch, setCursoSearch] = useState('');
     const [docenteSearch, setDocenteSearch] = useState('');
     const [disciplinaSearch, setDisciplinaSearch] = useState('');
     const [periodoSearch, setPeriodoSearch] = useState('');
     const [turnoSearch, setTurnoSearch] = useState('');
-    const [statusSearch, setStatusSearch] = useState('');
-
-    // lista para filtro de Status
-    const tiposStatus = [{'nome': 'ativa', 'nomeFormatado': 'Ativa'},
-        {'nome': 'inativa', 'nomeFormatado': 'Inativa'},
-        {'nome': 'fechada', 'nomeFormatado': 'Fechada'}
-    ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.avaliacoes.ativas, ...data.avaliacoes.inativas, ...data.avaliacoes.fechadas];
+    const todasPesquisas = [...data.avaliacoes];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
         const bateTexto = p.titulo.toLowerCase().includes(search.toLowerCase());
 
-        // 2. filtro por curso
-        const bateCurso = cursoSearch === '' || p.cursoId === Number(cursoSearch);
-
-        // 3. filtro por disciplina
+        // 2. filtro por disciplina
         const bateDisciplina = disciplinaSearch === '' || p.disciplinaId === Number(disciplinaSearch);
 
-        // 4. filtro por periodo
+        // 3. filtro por periodo
         const batePeriodo = periodoSearch === '' || p.periodoId === Number(periodoSearch);
 
-        // 5. filtro por docente
+        // 4. filtro por docente
         const bateDocente = docenteSearch === '' || p.docenteId === Number(docenteSearch);
 
-        // 6. filtro por serviço
+        // 5. filtro por turno
         const bateTurno = turnoSearch === '' || p.turno === turnoSearch;
 
-        // 7. filtro por status
-        const bateStatus = statusSearch === '' || p.status === statusSearch;
-
         // aplica todos os filtros ao mesmo tempo
-        return bateTexto && bateCurso && bateDisciplina && batePeriodo && bateDocente && bateTurno && bateStatus;
+        return bateTexto && bateDisciplina && batePeriodo && bateDocente && bateTurno;
     });
 
     // junta os periodos presentes nas pesquisas para usar no filtro de Periodo
@@ -76,12 +62,9 @@ export default function AvaliacaoGestor({ data }: Props) {
         new Map(
             todasPesquisas
             .filter(p => p.disciplinaId)
-            .map(p => [p.disciplinaId, { id: p.disciplinaId, nome: p.disciplina, cursoId: p.cursoId }])
+            .map(p => [p.disciplinaId, { id: p.disciplinaId, nome: p.disciplina }])
         ).values()
         );
-
-    // filtra as disciplinas a partir do curso selecionado
-    const disciplinasFiltradas = disciplinasMap.filter((s) => s.cursoId === Number(cursoSearch) || '');
 
     // junta as docentes presentes nas pesquisas para usar no filtro de Docente
     const docentesMap = Array.from(
@@ -123,31 +106,14 @@ export default function AvaliacaoGestor({ data }: Props) {
                 <div className="grid-cols-2 items-center
                  grid max-md:flex max-md:flex-col gap-2 max-md:items-end max-sm:items-start">
 
-                    <div className="flex flex-row items-center justify-end content-center gap-1">
-                        <p className="font-semibold">Curso:</p>
-                        <select name="curso" className="border rounded max-w-40 lg:max-w-max"
-                        onChange={(e) => setCursoSearch(e.target.value)}
-                        >
-                            <option value="">Todos os Cursos</option>
-                            
-                            {cursosMap.map((curso) => (
-                                <option  key={curso.id} value={curso.id}>
-                                    {curso.nome}
-                                </option>
-                            ))}
-                        </select>
-
-                    </div>
-
                     <div className="flex flex-row justify-center content-center gap-1">
                         <p className="font-semibold">Disciplina:</p>
                         <select name="disciplina" className="border rounded"
                         onChange={(e) => setDisciplinaSearch(e.target.value)}
-                        disabled={cursoSearch === ''}
                         >
-                        <option value="">{cursoSearch === '' ? 'Escolha um curso' : 'Todos as Disciplinas'}</option>
+                        <option value="">Todas as Disciplinas</option>
                         
-                        {disciplinasFiltradas.map((disciplina) => (
+                        {disciplinasMap.map((disciplina) => (
                             <option  key={disciplina.id} value={disciplina.id}>
                                 {disciplina.nome}
                             </option>
@@ -203,22 +169,6 @@ export default function AvaliacaoGestor({ data }: Props) {
 
                     </div>
 
-                    <div className="flex flex-row justify-center content-center gap-1">
-                        <p className="font-semibold">Status:</p>
-                        <select name="status" className="border rounded"
-                        onChange={(e) => setStatusSearch(e.target.value)}
-                        >
-                        <option value="">Todos</option>
-                        
-                        {tiposStatus.map((status) => (
-                            <option  key={status.nome} value={status.nome}>
-                                {status.nomeFormatado}
-                            </option>
-                        ))}
-                    </select>
-
-                    </div>
-
                 </div>
             </div>
         </div>
@@ -226,7 +176,7 @@ export default function AvaliacaoGestor({ data }: Props) {
             <div className="flex flex-1 flex-col gap-5 mt-2 mb-2 mr-15 ml-15 max-md:mr-5 max-md:ml-5 max-sm:mr-2 max-sm:ml-2">
                 {pesquisasFiltradas?.map((p) => (
                     <SatisfacaoCard
-                    aluno={false}
+                    aluno={true}
                     avaliacao={true}
                     key={p.id}
                     id={p.id}
@@ -240,7 +190,7 @@ export default function AvaliacaoGestor({ data }: Props) {
                     respostasRebecidas={p.respostasRecebidas}
 
                     detalheNome_2={p.turno}
-                    detalheNome_1={p.tipoId}
+                    detalheNome_1={p.turmaId}
 
                     status={p.status}
                     /> 

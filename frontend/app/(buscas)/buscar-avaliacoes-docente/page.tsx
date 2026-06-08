@@ -1,4 +1,4 @@
-import { AvaliacaoRenderer } from "@/app/_components/buscas/AvaliacaoRenderer";
+import { AvaliacaoRenderer } from "@/app/_components/buscas/avaliacao-docente/AvaliacaoRenderer";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDashboard } from "@/services/dashboard.service";

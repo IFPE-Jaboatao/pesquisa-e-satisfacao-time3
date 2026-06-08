@@ -53,7 +53,7 @@ export class CursoService {
   async findAll(campusId?: number) {
     const cursos = await this.cursoRepo.find({
       where: campusId ? { campus: { id:campusId } } : {},
-      relations: { campus: true },
+      relations: { campus: true, disciplinas: true },
         withDeleted: false
     })
 
@@ -61,6 +61,7 @@ export class CursoService {
       id: curso.id,
       nome: curso.nome,
       campusId: curso.campus?.id,
+      campus: curso.campus?.nome,
       createdAt: curso.createdAt,
       updatedAt: curso.updatedAt,
       disciplinas: curso.disciplinas
