@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import BasicButton from "../BasicButton";
+import BasicButton from "../../BasicButton";
 
 interface User {
     id: number,

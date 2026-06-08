@@ -283,7 +283,7 @@ export class UsersService implements OnModuleInit {
       // DASHBOARD GESTOR
   async getDashboardAdmin() {
     // info de institutional
-    const campus = await this.campusService.findAll();
+    const campus = await this.campusService.findAllWithDetails();
 
     const setores = await this.setorServico.findAll();
 

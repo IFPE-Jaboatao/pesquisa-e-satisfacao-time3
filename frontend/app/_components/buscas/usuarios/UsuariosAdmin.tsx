@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import BuscaTitulo from "./BuscaTitulo";
-import SatisfacaoCard from "./SatisfacaoCard";
-import { LabelGray } from "../InputLabel";
+import BuscaTitulo from "../BuscaTitulo";
+import SatisfacaoCard from "../SatisfacaoCard";
+import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 import { Button } from "flowbite-react";
 import UsuarioCard from "./UsuarioCard";
@@ -107,11 +107,7 @@ export default function UsuariosAdmin({ data }: Props) {
                 </div>
             </div>
 
-        
             </div>
-            <div>
-            <p>Ordenar por criacao</p>
-        </div>
         </div>
             
             <div className="max-md:grid max-md:grid-cols-2 max-sm:flex max-sm:flex-col grid grid-cols-3 gap-3 mt-2 mb-2 mr-15 ml-15 max-md:mr-3 max-md:ml-3 max-sm:mr-2 max-sm:ml-2">

@@ -1,3 +1,4 @@
+import EntidadesAdmin from "@/app/_components/buscas/entidades/EntidadesAdmin";
 import UsuariosAdmin from "@/app/_components/buscas/usuarios/UsuariosAdmin";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
@@ -5,7 +6,7 @@ import { getDashboard } from "@/services/dashboard.service";
 import { getMe } from "@/services/user.service";
 import { redirect } from "next/navigation";
 
-export default async function BuscarUsuarios() {
+export default async function BuscarEntidades() {
     const user = await getMe();    
 
     if (!user) {
@@ -22,7 +23,7 @@ export default async function BuscarUsuarios() {
         <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
             <Header index={0} nome={user.nome} role={user.role} />
 
-            <UsuariosAdmin data={dashboardData.users} />
+            <EntidadesAdmin data={dashboardData} />
         </div>
     )
 }
