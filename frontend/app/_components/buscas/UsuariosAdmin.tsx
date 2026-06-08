@@ -59,7 +59,7 @@ export default function UsuariosAdmin({ data }: Props) {
             <div className="flex flex-col p-2 pl-4 pb-4 rounded m-1" style={{backgroundColor: 'var(--white)'}}>
             <div className="flex flex-row max-sm:flex-col justify-between gap-2">
                 <div className="flex flex-col flex-1 gap-4 items-baseline lg:flex-1 lg:pr-30">
-                    <BuscaTitulo title="Avaliações Docente" />
+                    <BuscaTitulo title="Usuários" />
 
                     <div className="flex flex-row gap-2 items-center">
                         <input
@@ -80,12 +80,12 @@ export default function UsuariosAdmin({ data }: Props) {
                     <div className="flex flex-col flex-1 gap-1">
                         <p className="font-semibold">Perfil</p>
                         <div className="flex flex-row flex-1 max-lg:flex-1 gap-2 max-md:grid max-md:grid-cols-2 max-sm:flex max-sm:flex-col max-sm:mb-2">
-                            <Button className={`hover:bg-green-900 flex-1 max-sm:pb-2 max-sm:pt-2 bg-green-${roleSearch === `admin` ? `400` : `600`}`} onClick={(e) => setRoleSearch('admin')}>Admin</Button>
-                            <Button className={`hover:bg-blue-900 flex-1 max-sm:pb-2 max-sm:pt-2 bg-blue-${roleSearch === `gestor` ? `700` : `600`}`} onClick={(e) => setRoleSearch('gestor')}>Gestor</Button>
-                            <Button className={`hover:bg-red-800 flex-1 max-sm:pb-2 max-sm:pt-2 bg-red-${roleSearch === `docente` ? `400` : `600`}`} onClick={(e) => setRoleSearch('docente')}>Docente</Button>
-                            <Button className={`hover:bg-amber-700 hover:text-white flex-1 max-sm:pb-2 max-sm:pt-2 text-black bg-amber-${roleSearch === `aluno` ? `600` : `400`}`} onClick={(e) => setRoleSearch('aluno')}>Aluno</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `admin` ? `#1B7A55` : `#1B7A20`}`}} className={`hover:bg-green-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('admin')}>Admin</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `gestor` ? `#1B64A2` : `#1B64F2`}`}} className={`hover:bg-blue-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('gestor')}>Gestor</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `docente` ? `#E02424` : `#E02424`}`}} className={`hover:bg-red-800 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('docente')}>Docente</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `aluno` ? `#FFBA00` : `#FFBA00`}`}} className={`hover:text-white flex-1 max-sm:pb-2 max-sm:pt-2 text-black`} onClick={(e) => setRoleSearch('aluno')}>Aluno</Button>
                         </div>
-                            <Button className={`hover:bg-green-900 bg-green-${roleSearch === `` ? `400` : `700`}`} onClick={(e) => setRoleSearch('')}>Todos</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `` ? `var(--color-tertiary)` : `var(--color-primary)`}`}} className={`hover:bg-green-900`} onClick={(e) => setRoleSearch('')}>Todos</Button>
                     </div>
 
                     <div className="flex flex-col self-start items-start justify-end content-center gap-1">
