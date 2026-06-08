@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import BuscaTitulo from "./BuscaTitulo";
-import SatisfacaoCard from "./SatisfacaoCard";
+import BuscaTitulo from "../BuscaTitulo";
+import SatisfacaoCard from "../pesquisa-satisfacao/SatisfacaoCard";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 
 interface Props {

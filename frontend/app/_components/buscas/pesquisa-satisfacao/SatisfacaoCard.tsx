@@ -1,4 +1,4 @@
-import BasicButton from "../BasicButton";
+import BasicButton from "../../BasicButton";
 
 interface Props {
     id: string,
