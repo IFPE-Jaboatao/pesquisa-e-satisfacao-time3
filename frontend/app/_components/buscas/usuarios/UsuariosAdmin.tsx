@@ -39,7 +39,7 @@ export default function UsuariosAdmin({ data }: Props) {
         const bateRole = roleSearch === '' || u.role === roleSearch;
 
         // 3. filtro por campus
-        const bateCampus = campusSearch === '' || u.campusId === Number(campusSearch);
+        const bateCampus = campusSearch === '' || u.campusId === Number(campusSearch) || Number(campusSearch) === 0 && u.campusId == undefined;
 
         // aplica todos os filtros ao mesmo tempo
         return bateNome  && bateRole && bateCampus;
@@ -100,6 +100,9 @@ export default function UsuariosAdmin({ data }: Props) {
                                     {campus.nome}
                                 </option>
                             ))}
+                            <option key={0} value={0}>
+                                Sem campus
+                            </option>
                         </select>
 
                     </div>

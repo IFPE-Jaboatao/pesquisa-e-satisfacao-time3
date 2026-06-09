@@ -84,7 +84,7 @@ export class UsersController {
     @Req() req,
   ) {
     // impede patch com body vazio
-    if (dto.matricula === undefined && dto.password === undefined && dto.email === undefined && dto.nome === undefined && dto.role === undefined) {
+    if (dto.matricula === undefined && dto.password === undefined && dto.email === undefined && dto.nome === undefined && dto.role === undefined && dto.campusId === undefined) {
       throw new BadRequestException('Não foram fornecidos dados para atualização!');
     }
 

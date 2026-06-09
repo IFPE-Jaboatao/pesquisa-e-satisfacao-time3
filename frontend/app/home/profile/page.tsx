@@ -36,6 +36,8 @@ export default async function Profile() {
                 <InputLabel value={user.email} disabled={true} label='Email' />
 
                 <InputLabel value={user.role.slice(0, 1).toUpperCase() + user.role.slice(1)} disabled={true} label='Perfil' />
+
+                <InputLabel value={user.campus || 'Nenhum'} disabled={true} label='Campus' />
             </div>
 
             <BasicButton title='Alterar Senha' route='/home/profile/alterar-senha' />

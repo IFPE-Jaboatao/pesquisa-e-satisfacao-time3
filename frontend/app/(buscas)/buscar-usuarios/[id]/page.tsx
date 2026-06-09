@@ -1,5 +1,8 @@
+import UsuarioForm from "@/app/_components/buscas/usuarios/UsuarioForm";
 import Header from "@/app/_components/Header";
+import { LabelGray } from "@/app/_components/InputLabel";
 import { UserRole } from "@/app/types/UserRole.enum";
+import { getCampi } from "@/services/campus.service";
 import { getMe, getUser } from "@/services/user.service"
 import { redirect } from "next/navigation";
 
@@ -21,23 +24,17 @@ export default async function Usuario({ params }: UsuarioDetalheProps) {
     }
 
     const user = await getUser({id: Number(id)})
+
+    const campi = await getCampi();
     
     return (
         <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
             <Header index={0} nome={admin.nome} role={admin.role} />
-            <div>
-            <p>dados do usuario</p>
+            <div className="m-5 flex justify-center flex-row">
             {!user ? (
                 <div>Usuário não encontrado.</div>
             ) : (
-                <div>
-                    <p>{user.nome}</p>
-                    <p>{user.email}</p>
-                    <p>{user.id}</p>
-                    <p>{user.role}</p>
-                    <p>{user.campusId}</p>
-                    <p>{user.campus}</p>
-                </div>
+                <UsuarioForm user={user} campi={campi} selfEdit={admin.id === user.id} />
             )}
             </div>
         </div>

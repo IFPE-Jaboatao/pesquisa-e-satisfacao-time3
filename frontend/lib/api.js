@@ -27,5 +27,21 @@ export async function apiPatch(path, data, init = {}) {
         method: 'PATCH',
         body: JSON.stringify(data)
     });
+
+    return res;
+}
+
+export async function apiDelete(path, init = {}) {
+    const token = await getSessionToken();
+    const headers = new Headers(init.headers);
+    headers.set('Content-Type', 'application/json');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    const res = await fetch(`${process.env.API_BASE_URL}${path}`, {
+        ...init,
+        headers,
+        cache: 'no-store',
+        method: 'DELETE',
+    });
     return res;
 }

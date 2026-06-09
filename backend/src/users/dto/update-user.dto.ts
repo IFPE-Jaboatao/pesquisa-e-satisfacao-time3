@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength, ValidateIf } from 'class-validator';
 import { Role } from '../user-role.enum';
 
 export class UpdateUserDto {
@@ -24,4 +24,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(Role)
   role?: Role
+
+  @IsOptional()
+  @IsNumber({}, { message: 'O campusId deve ser um número.' })
+  campusId?: number;
 }

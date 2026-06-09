@@ -59,7 +59,7 @@ export default function UsuarioCard({
 
                     <div className="flex flex-row gap-2">
                         <p className="italic">Campus:</p>
-                        <p>{campus}</p>
+                        <p>{campus || 'nenhum'}</p>
                     </div>
                 </div>
 

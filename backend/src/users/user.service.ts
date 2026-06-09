@@ -27,6 +27,7 @@ import { TurmaService } from 'src/academic/turma/turma.service';
 import { CursoService } from 'src/academic/curso/curso.service';
 import { DisciplinaService } from 'src/academic/disciplina/disciplina.service';
 import { Status } from 'src/pesquisas/pesquisa-status.enum';
+import { Campus } from 'src/institutional/campus/entities/campus.entity';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -411,6 +412,16 @@ export class UsersService implements OnModuleInit {
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
+
+    if (dto.campusId) {
+      const campusExists = await this.campusService.findOne(dto.campusId);
+
+      if (!campusExists) {
+        throw new NotFoundException('Campus não encontrado!')
+      }
+    }
+
+    user.campus = {id: dto.campusId} as Campus;
 
     Object.assign(user, dto);
 
