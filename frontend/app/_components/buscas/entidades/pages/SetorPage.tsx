@@ -1,5 +1,5 @@
 import { Setor } from "../interfaces"
-import { LabelValueItalic } from "../InstitutionalCards"
+import { LabelValueItalic, LabelValueItalicLink } from "../InstitutionalCards"
 import Link from "next/link"
 import BackButton from "../BackButton"
 import { backgroundContainerCard } from "./CampusPage"
@@ -22,9 +22,11 @@ export default function SetorPage({
 
                 <hr />
 
-                <LabelValueItalic label="Campus" value={setor.campusNome || ''} />
-                <LabelValueItalic label="Criado em" value={setor.createdAt ? new Date(setor.createdAt).toLocaleString('pt-br') : ''} />
-                <LabelValueItalic label="Atualizado em" value={setor.updatedAt ? new Date(setor.updatedAt).toLocaleString('pt-br') : ''} />
+                <div className="max-sm:flex max-sm:flex-col max-sm:gap-3">
+                    <LabelValueItalicLink href={`/buscar-entidades/campi/${setor.campusId}`} label="Campus" value={setor.campusNome || ''} />
+                    <LabelValueItalic label="Criado em" value={setor.createdAt ? new Date(setor.createdAt).toLocaleString('pt-br') : ''} />
+                    <LabelValueItalic label="Atualizado em" value={setor.updatedAt ? new Date(setor.updatedAt).toLocaleString('pt-br') : ''} />
+                </div>
 
                 <div className="flex flex-1 flex-col mt-5">
 

@@ -92,7 +92,7 @@ export default function SetorRenderer({
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"
-                        aria-description="Botão para voltar para tela de buscar usuários"
+                        aria-description="Botão para voltar para tela de buscar entidades institucionais e acadêmicas"
                         aria-label="Voltar"
                         style={{ backgroundColor: 'var(--grayish-color)'}}
                         type="button"

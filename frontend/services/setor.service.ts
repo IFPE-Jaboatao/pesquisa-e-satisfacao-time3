@@ -15,3 +15,19 @@ export async function getSetorFull({id}: {id: number}) {
 
   return response.json();
 }
+
+export async function getSetoresByCampus({campusId}: {campusId: number}) {
+  
+  const response = await apiFetch(`/institutional/setores?campusId=${campusId}`);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+        return {error: 'Erro ao procurar setores.'}
+    }
+    const text = await response.json();
+
+    return {error: `Erro ${response.status}: ${text.message}`}
+  }
+
+  return response.json();
+}

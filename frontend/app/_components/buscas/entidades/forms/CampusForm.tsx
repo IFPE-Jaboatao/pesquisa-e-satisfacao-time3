@@ -97,7 +97,7 @@ export default function CampusForm({
         <div className={`flex-1 gap-10 flex mt-7 justify-around ${successMessage ? 'hidden': ''}`}>
         
             <Button
-            aria-label="Atualizar dados do usuário"
+            aria-label="Atualizar dados do campus"
             style={{ backgroundColor: 'var(--color-tertiary)'}}
             className="cursor-pointer"
             disabled={editNome === campus.nome && editCidade === campus.cidade}

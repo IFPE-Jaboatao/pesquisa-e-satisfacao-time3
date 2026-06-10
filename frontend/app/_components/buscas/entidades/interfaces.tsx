@@ -1,6 +1,11 @@
 export interface Servico {
     id: number,
     nome: string,
+    setor?: {
+        id: number,
+        nome: string,
+        campus?: Campus
+    }
     createdAt: string,
     updatedAt: string,
 }
