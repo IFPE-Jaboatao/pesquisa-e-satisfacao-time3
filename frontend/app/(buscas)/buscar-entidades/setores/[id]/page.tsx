@@ -4,7 +4,7 @@ import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
 import { getSetorFull } from "@/services/setor.service";
-import SetorRenderer from "@/app/_components/buscas/entidades/SetorRenderer";
+import SetorRenderer from "@/app/_components/buscas/entidades/renderers/SetorRenderer";
 import { getCampi } from "@/services/campus.service";
 
 interface SetorDetalheProps {

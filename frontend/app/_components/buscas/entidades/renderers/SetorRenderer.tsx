@@ -1,21 +1,21 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Servico, Setor } from "./interfaces"
+import { Campus, Setor } from "../interfaces"
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteServicoAction } from "@/actions/servicos";
-import ServicoPage from "./pages/ServicoPage";
-import ServicoForm from "./forms/ServicoForm";
+import { deleteSetorAction } from "@/actions/setores";
+import SetorPage from "../pages/institutional/SetorPage";
+import SetorForm from "../forms/institutional/SetorForm";
 
 interface Props {
-    servico: Servico,
-    setores: Setor[]
+    setor: Setor,
+    campi: Campus[]
 }
 
-export default function ServicoRenderer({
-    servico,
-    setores
+export default function SetorRenderer({
+    setor,
+    campi
     }: Props) { 
         const router = useRouter();
 
@@ -38,9 +38,9 @@ export default function ServicoRenderer({
 
         }, [showDeletedError])
 
-        // chama a action pra deletar o serviço
+        // chama a action pra deletar o setor
         async function handleDelete() {
-            const res = await deleteServicoAction({id: servico.id});
+            const res = await deleteSetorAction({id: setor.id});
 
             if (res.error) {
                 setShowDeletedError(true);
@@ -57,13 +57,13 @@ export default function ServicoRenderer({
         }
 
         return(
-            <div className="bg-white p-5 rounded max-h-max justify-center flex flex-col flex-1 lg:ml-20 lg:mr-20">
+            <div className="bg-white shadow-2xl p-5 rounded max-h-max justify-center flex flex-col flex-1 lg:ml-20 lg:mr-20">
                 
                 {!showEdit ? 
 
-                <ServicoPage servico={servico} /> : 
+                <SetorPage setor={setor} /> : 
 
-                <ServicoForm servico={servico} setores={setores} />}
+                <SetorForm setor={setor} campi={campi} />}
 
                 <div className={`flex flex-row justify-between ${deleted ? 'hidden': ''}`}>
 
@@ -87,8 +87,8 @@ export default function ServicoRenderer({
                     <div className="mt-5 flex flex-col justify-center">
                         <CheckCircleIcon color='green' className="h-8 flex flex-col items-center" />
                         <p className="text-center">
-                            Serviço <span className="font-semibold">"{servico.nome}"</span>
-                            do Setor <span className="font-semibold">"{servico.setor?.nome}"</span> deletado com sucesso!</p>
+                            Setor <span className="font-semibold">"{setor.nome}"</span>
+                            do Campus <span className="font-semibold">"{setor.campusNome}"</span> deletado com sucesso!</p>
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"

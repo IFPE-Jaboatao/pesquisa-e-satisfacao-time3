@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getSetoresByCampus, getSetorFull } from "@/services/setor.service";
 import { getServico } from "@/services/servico.service";
 import { Setor } from "@/app/_components/buscas/entidades/interfaces";
-import ServicoRenderer from "@/app/_components/buscas/entidades/ServicoRenderer";
+import ServicoRenderer from "@/app/_components/buscas/entidades/renderers/ServicoRenderer";
 
 interface ServicoDetalheProps {
   params: Promise<{ id: string }>;

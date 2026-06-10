@@ -4,7 +4,7 @@ import { UserRole } from "@/app/types/UserRole.enum";
 import { getCampusFull } from "@/services/campus.service";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import CampusRenderer from "@/app/_components/buscas/entidades/CampusRenderer";
+import CampusRenderer from "@/app/_components/buscas/entidades/renderers/CampusRenderer";
 
 interface CampusDetalheProps {
   params: Promise<{ id: string }>;

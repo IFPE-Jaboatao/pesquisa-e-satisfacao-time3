@@ -4,29 +4,27 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Campus, Setor } from "../interfaces";
-import { updateSetorAction } from "@/actions/setores";
+import { Campus } from "../../interfaces";
+import { updateCampusAction } from "@/actions/campi";
 
 interface Props {
-    setor: Setor,
-    campi: Campus[]
+    campus: Campus
 }
 
-export default function SetorForm({
-    setor,
-    campi
+export default function CampusForm({
+    campus
     }: Props) {
 
     const router = useRouter();
     
-    // // adiciona setorId a updateSetorAction
-    const updateSetorWithId = updateSetorAction.bind(null, setor.id);
+    // // adiciona campusId a updateCampusAction
+    const updateCampusWithId = updateCampusAction.bind(null, campus.id);
 
-    const [state, formAction, pending] = useActionState(updateSetorWithId, { error: '', success: false, message: ''});
+    const [state, formAction, pending] = useActionState(updateCampusWithId, { error: '', success: false, message: ''});
 
     // // campos para edição
-    const [editNome, setEditNome] = useState(setor.nome);
-    const [editCampusId, setEditCampusId] = useState(setor.campusId);
+    const [editNome, setEditNome] = useState(campus.nome);
+    const [editCidade, setEditCidade] = useState(campus.cidade);
 
     // // variável para controlar a exibição quando a edição foi feita e o admin não pode mais alterar nada
     const [successMessage, setSucessMessage] = useState(false);
@@ -45,7 +43,7 @@ export default function SetorForm({
             setSucessMessage(true);
             const timer = setTimeout(() => {
                 setSucessMessage(false);
-                router.push(`/buscar-entidades/setores/${setor.id}`);
+                router.push(`/buscar-entidades/campi/${campus.id}`);
             }, 3000);
 
             return () => clearTimeout(timer);
@@ -56,7 +54,7 @@ export default function SetorForm({
     <div className="rounded-sm flex flex-col bg-white flex-1">
         <div className="flex flex-row items-center flex-1 gap-1">
 
-            <h2 style={{ color: 'var(--color-primary)'}} className='font-bold text-2xl p-1'>Editar Setor</h2>
+            <h2 style={{ color: 'var(--color-primary)'}} className='font-bold text-2xl p-1'>Editar Campus</h2>
 
         </div>
 
@@ -79,17 +77,17 @@ export default function SetorForm({
         </div>
 
         <div className="flex flex-row gap-2 items-center justify-around">
-            <Label style={{ color: 'var(--dark-color)'}}>Campus:</Label>
+            <Label style={{ color: 'var(--dark-color)'}}>Cidade:</Label>
             <select
-            name="campusId"
+            name="cidade"
             className={`${basicInput}`}
-            value={editCampusId}
+            value={editCidade}
             style={{ borderColor: borderColorInput}}
-            onChange={(e) => setEditCampusId(Number(e.target.value))}
+            onChange={(e) => setEditCidade(e.target.value)}
                 >        
-                    {campi.map((c: Campus) => (
-                        <option key={c.id} value={c.id}>
-                            {c.nome}
+                    {cidades.map((c) => (
+                        <option key={c.cidade} value={c.cidade}>
+                            {c.cidade}
                         </option>
                     ))}
                 </select>
@@ -99,10 +97,10 @@ export default function SetorForm({
         <div className={`flex-1 gap-10 flex mt-7 justify-around ${successMessage ? 'hidden': ''}`}>
         
             <Button
-            aria-label="Atualizar dados do setor"
+            aria-label="Atualizar dados do campus"
             style={{ backgroundColor: 'var(--color-tertiary)'}}
             className="cursor-pointer"
-            disabled={editNome === setor.nome && editCampusId === setor.campusId}
+            disabled={editNome === campus.nome && editCidade === campus.cidade}
             type="submit">
                 {pending ? 'Atualizando...' : 'Atualizar'}
             </Button>
@@ -112,7 +110,7 @@ export default function SetorForm({
         {!successMessage ? '' : (
             <div className="mt-5 flex flex-col justify-center">
                 <CheckCircleIcon color='green' className="h-8" />
-                 <p className="text-center font-semibold" style={{color: 'var(--color-secondary)'}}>Setor atualizado com sucesso!</p>
+                 <p className="text-center font-semibold" style={{color: 'var(--color-secondary)'}}>Campus atualizado com sucesso!</p>
                  <p className="text-center italic">Estamos atualizando a página...</p>
 
             </div>
@@ -124,3 +122,23 @@ export default function SetorForm({
     </div>
   );
 }
+
+export const cidades = [
+    { 'cidade': 'Abreu e Lima'},
+    { 'cidade': 'Afogados da Ingazeira'},
+    { 'cidade': 'Barreiros',},
+    { 'cidade': 'Belo Jardim',},
+    { 'cidade': 'Cabo de Santo Agostinho',},
+    { 'cidade': 'Caruaru'},
+    { 'cidade': 'EAD',},
+    { 'cidade': 'Garanhuns'},
+    { 'cidade': 'Igarassu'},
+    { 'cidade': 'Ipojuca'}, 
+    { 'cidade': 'Jaboatão dos Guararapes'},
+    { 'cidade': 'Olinda'},
+    { 'cidade': 'Palmares'},
+    { 'cidade': 'Paulista'},
+    { 'cidade': 'Pesqueira'},
+    { 'cidade': 'Recife'},
+    { 'cidade': 'Vitória de Santo Antão'}
+]

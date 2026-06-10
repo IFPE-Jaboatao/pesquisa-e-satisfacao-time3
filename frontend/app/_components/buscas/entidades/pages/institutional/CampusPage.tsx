@@ -1,10 +1,10 @@
 import { Button } from "flowbite-react"
-import { Campus } from "../interfaces"
+import { Campus } from "../../interfaces"
 import InputLabel from "@/app/_components/InputLabel"
-import { LabelValueItalic } from "../InstitutionalCards"
+import { LabelValueItalic } from "../../InstitutionalCards"
 import BasicButton from "@/app/_components/BasicButton"
 import Link from "next/link"
-import BackButton from "../BackButton"
+import BackButton from "../../BackButton"
 
 interface Props {
     campus: Campus

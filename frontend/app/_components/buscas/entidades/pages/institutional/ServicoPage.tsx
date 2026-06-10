@@ -1,7 +1,7 @@
-import { Servico, Setor } from "../interfaces"
-import { LabelValueItalic, LabelValueItalicLink } from "../InstitutionalCards"
+import { Servico, Setor } from "../../interfaces"
+import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
 import Link from "next/link"
-import BackButton from "../BackButton"
+import BackButton from "../../BackButton"
 
 interface Props {
     servico: Servico
