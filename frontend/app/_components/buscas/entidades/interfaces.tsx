@@ -8,6 +8,8 @@ export interface Servico {
 export interface Setor {
     id: number,
     nome: string,
+    campusId?: number,
+    campusNome?: string,
     createdAt?: string,
     updatedAt?: string,
     servicos?: Servico[]
