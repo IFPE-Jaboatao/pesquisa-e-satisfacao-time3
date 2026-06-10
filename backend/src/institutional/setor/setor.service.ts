@@ -80,6 +80,23 @@ export class SetorService {
     };
   }
 
+  
+  async findOneFull(id: number) {
+    const setor = await this.setorRepo.findOne({where: {id}, relations: {campus: true, servicos: true}, withDeleted: false});
+
+    if (!setor) throw new NotFoundException("Setor não encontrado!")
+
+    return {
+      id: setor.id,
+      nome: setor.nome,
+      campusId: setor.campus?.id,
+      campusNome: setor.campus?.nome,
+      createdAt: setor.createdAt,
+      updatedAt: setor.updatedAt,
+      servicos: setor.servicos
+    };
+  }
+
     // função auxiliar para soft delete cascade vindo de campus
   async findByCampus(campusId: number) {
     // retorna os cursos do campus deletado

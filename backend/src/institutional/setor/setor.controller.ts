@@ -35,6 +35,13 @@ export class SetorController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get(':id/full')
+  @Roles(Role.ADMIN)
+  findOneFull(@Param('id', ParseIntPipe) id: string) {
+    return this.setorService.findOneFull(+id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.ADMIN)
   update(@Param('id', ParseIntPipe) id: string, @Body() updateSetorDto: UpdateSetorDto) {

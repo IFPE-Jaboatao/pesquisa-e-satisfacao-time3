@@ -1,36 +1,14 @@
 import BasicButton from "../../BasicButton"
 import { CreatedUpdatedCard, LabelValueItalic, TopTitle } from "./InstitutionalCards"
-
-interface Curso {
-    id: number,
-    nome: string,
-    campusId: number,
-    campus: string,
-    disciplinas: any[],
-    createdAt: string,
-    updatedAt: string
-}
+import { Curso, Disciplina } from "./interfaces"
 
 interface CursoObj {
     curso: Curso
 }
 
-interface Disciplina {
-    id: number,
-    nome: string,
-    codigo: string,
-    cursoId: number,
-    curso: string,
-    campusId: number,
-    campus: string,
-    createdAt: string,
-    updatedAt: string
-}
-
 interface DisciplinaObj {
     disciplina: Disciplina
 }
-
 
 interface Turma {
     id: number,

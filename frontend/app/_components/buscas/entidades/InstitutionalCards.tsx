@@ -1,3 +1,4 @@
+import Link from "next/link"
 import BasicButton from "../../BasicButton"
 
 interface Campus {
@@ -155,6 +156,15 @@ export function LabelValueItalic({label, value}: {label: string, value:string}) 
             <p className="italic">{label}:</p>
             <p>{value}</p>
         </div>
+    )
+}
+
+export function LabelValueItalicLink({label, value, href}: {label: string, value:string, href: string}) {
+    return (
+        <Link href={href} className="flex flex-row gap-2 hover:text-cyan-600 rounded max-w-max">
+            <p className="italic">{label}:</p>
+            <p>{value}</p>
+        </Link>
     )
 }
 
