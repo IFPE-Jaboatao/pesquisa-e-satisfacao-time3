@@ -41,7 +41,7 @@ export default function DisciplinaPage({
                                     key={t.id}
                                     title={`Nº ${t.id} - ${t.turno}`}
                                     label="Matrículas"
-                                    value={t.matriculas?.length}
+                                    value={t.matriculas?.length || 0}
                                     href={`/buscar-entidades/turmas/${t.id}`}
                                     />
                             ))}

@@ -45,7 +45,7 @@ export class MatriculaService {
     });
 
     if (exists) {
-      throw new ConflictException('Matr[icula já existe!');
+      throw new ConflictException('Matrícula já existe!');
     }
 
     // busca paralela
@@ -268,7 +268,7 @@ export class MatriculaService {
         turma: {
           docente: true,
           periodo: true,
-          disciplina: true,
+          disciplina: { curso: { campus: true }},
         },
       },
       withDeleted: false
@@ -290,6 +290,8 @@ export class MatriculaService {
         },
       },
       aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
+      createdAt: matricula.createdAt,
+      updatedAt: matricula.updatedAt
     };
   }
 

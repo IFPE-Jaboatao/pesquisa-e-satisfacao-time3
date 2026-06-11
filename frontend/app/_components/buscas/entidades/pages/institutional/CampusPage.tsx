@@ -94,7 +94,7 @@ export function Card({title, label, value, string, italic, href}: {title:string,
         style={{backgroundColor: 'var(--white)'}}
         className={`p-1`}>
             <p className="font-semibold">{title}</p>
-            <p className={`${italic ? 'italic' : ''}`}>{label}: {value || string || ''}</p>
+            <p className={`${italic ? 'italic' : ''}`}>{label}: {value || string || '0'}</p>
         </Link>
     )
 }

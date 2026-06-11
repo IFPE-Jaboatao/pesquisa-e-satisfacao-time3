@@ -34,7 +34,7 @@ export interface Curso {
     id: number,
     nome: string,
     campusId?: number,
-    campus?: string,
+    campus?: Campus,
     campusNome?:string,
     disciplinas: any[],
     createdAt: string,
