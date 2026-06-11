@@ -10,3 +10,14 @@ export async function getPeriodos() {
 
   return response.json();
 }
+
+export async function getPeriodo({ id }: { id: number }) {
+  
+  const response = await apiFetch(`/academic/periodos/${id}`);
+
+  if (response.status === 404) {
+    throw new Error('Erro ao procurar período.')
+  }
+
+  return response.json();
+}

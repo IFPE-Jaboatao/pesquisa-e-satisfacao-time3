@@ -1,7 +1,6 @@
 import { Matricula } from "../../interfaces"
 import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
 import BackButton from "../../BackButton"
-import { backgroundContainerCard, Card } from "../institutional/CampusPage"
 
 interface Props {
     matricula: Matricula
