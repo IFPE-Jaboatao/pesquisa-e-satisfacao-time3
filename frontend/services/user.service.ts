@@ -34,3 +34,22 @@ export async function getUser({id}: {id: number}) {
 
     return user;
 }
+
+export async function getDocentesByCampus({id}: {id: number}) {
+    const res = await apiFetch('/users/docentes/' + id);
+
+    if (res.status === 401) {
+        return false
+    }
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            return null; // Retorna null se os usuários não foram encontrados
+        }
+        throw new Error(`Falha ao carregar usuários: ${res.status}`);
+    }
+
+    const users = await res.json();
+
+    return users.users;
+}

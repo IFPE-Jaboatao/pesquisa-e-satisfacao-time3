@@ -46,7 +46,7 @@ export interface Disciplina {
     nome: string,
     codigo: string,
     cursoId?: number,
-    curso?: string,
+    curso?: Curso,
     cursoNome?: string,
     campusId?: number,
     campus?: string,

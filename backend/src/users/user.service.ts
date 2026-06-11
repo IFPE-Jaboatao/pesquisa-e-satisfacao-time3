@@ -158,6 +158,30 @@ export class UsersService implements OnModuleInit {
     };
   }
 
+    async findDocentesByCampus(campusId: string | number) {
+    const id = Number(campusId);
+
+    const users = await this.repo.find({
+      where: { campus: { id: id }, role: Role.DOCENTE },
+      relations: { campus: true },
+      withDeleted: false
+    });
+
+    if (!users) throw new NotFoundException('Usuários não encontrados');
+
+    return {
+      users: users?.map((u) => ({
+        id: u.id,
+        matricula: u.matricula,
+        nome: u.nome,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
+      }))
+    }
+  }
+
   // DASHBOARDS
 
   async getDashboardAluno(userId: number, campusId: number) {

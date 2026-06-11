@@ -38,6 +38,9 @@ export class TurmaService {
     @InjectRepository(User, 'mysql')
     private usersRepo: Repository<User>,
 
+    @InjectRepository(Matricula, 'mysql')
+    private matriculaRepo: Repository<Matricula>,
+
     private readonly eventEmitter: EventEmitter2
   ) {}
 
@@ -206,7 +209,7 @@ export class TurmaService {
 
     const turma = await this.turmaRepo.findOne({
       where: { id },
-      relations: { disciplina: { curso: { campus: true} }, periodo: true, docente: true },
+      relations: { disciplina: { curso: { campus: true} }, periodo: true, docente: true, matriculas: { aluno: true } },
       withDeleted: false
     });
 
@@ -220,7 +223,17 @@ export class TurmaService {
       periodo: turma.periodo,
       docente: { id: turma.docente.id, matricula: turma.docente.matricula, nome: turma.docente.nome, email: turma.docente.email },
       createdAt: turma.createdAt,
-      updatedAt: turma.updatedAt
+      updatedAt: turma.updatedAt,
+      matriculas: turma.matriculas?.map((m) => ({
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        aluno: {
+          id: m.aluno.id,
+          matricula: m.aluno.matricula,
+          nome: m.aluno.nome
+        }
+      }))
     };
   }
 
