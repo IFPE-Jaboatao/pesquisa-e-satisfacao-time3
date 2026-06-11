@@ -33,8 +33,9 @@ export interface Campus {
 export interface Curso {
     id: number,
     nome: string,
-    campusId: number,
-    campus: string,
+    campusId?: number,
+    campus?: string,
+    campusNome?:string,
     disciplinas: any[],
     createdAt: string,
     updatedAt: string
