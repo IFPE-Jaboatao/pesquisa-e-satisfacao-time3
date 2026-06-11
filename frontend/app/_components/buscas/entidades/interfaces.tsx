@@ -33,8 +33,9 @@ export interface Campus {
 export interface Curso {
     id: number,
     nome: string,
-    campusId: number,
-    campus: string,
+    campusId?: number,
+    campus?: Campus,
+    campusNome?:string,
     disciplinas: any[],
     createdAt: string,
     updatedAt: string
@@ -44,10 +45,54 @@ export interface Disciplina {
     id: number,
     nome: string,
     codigo: string,
-    cursoId: number,
-    curso: string,
-    campusId: number,
-    campus: string,
+    cursoId?: number,
+    curso?: Curso,
+    cursoNome?: string,
+    campusId?: number,
+    campus?: string,
+    campusNome?: string,
+    createdAt?: string,
+    updatedAt?: string,
+    turmas?: Turma[]
+}
+
+export interface Turma {
+    id: number,
+    turno: string,
+    periodo?: Periodo,
+    docente?: User,
+    campus?: Campus,
+    disciplina?: Disciplina,
     createdAt: string,
-    updatedAt: string
+    updatedAt: string,
+    matriculas?: Matricula[]
+}
+
+export interface Periodo {
+    id: number,
+    ano: number,
+    semestre: number,
+    startDate?: string,
+    endDate?: string,
+    createdAt?: string,
+    updatedAt?: string
+}
+
+export interface Matricula {
+    id: number,
+    aluno?: User,
+    turma?: Turma,
+    createdAt?: string,
+    updatedAt?: string
+}
+
+export interface User {
+    id: number,
+    nome: string,
+    email?: string,
+    matricula?: string,
+    role?: string,
+    campusId?: number,
+    createdAt?: string,
+    updatedAt?: string
 }

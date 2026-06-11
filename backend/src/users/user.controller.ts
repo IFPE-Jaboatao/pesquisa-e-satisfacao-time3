@@ -51,6 +51,13 @@ export class UsersController {
     return this.service.findOne(req.user.id);
   }
 
+  // Ver as próprias informações
+  @UseGuards(JwtAuthGuard)
+  @Get('/docentes/:campusId')
+  findDocentesByCampus(@Param('campusId', ParseIntPipe) campusId: string) {
+    return this.service.findDocentesByCampus(campusId);
+  }
+
   // Ver usuários deletados (Apenas Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

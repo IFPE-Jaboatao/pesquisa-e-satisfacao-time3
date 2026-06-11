@@ -87,14 +87,14 @@ export default function CampusPage({
 
 export const backgroundContainerCard = 'm-1 grid grid-cols-4 gap-1 border p-1 max-sm:grid-cols-2';
 
-export function Card({title, label, value, href}: {title:string, label:string, value:number, href: string}) {
+export function Card({title, label, value, string, italic, href}: {title:string, label:string, value?:number, string?: string, italic?: boolean, href: string}) {
     return (
         <Link
         href={href}
         style={{backgroundColor: 'var(--white)'}}
-        className="p-1">
+        className={`p-1`}>
             <p className="font-semibold">{title}</p>
-            <p>{label}: {value}</p>
+            <p className={`${italic ? 'italic' : ''}`}>{label}: {value || string || '0'}</p>
         </Link>
     )
 }
