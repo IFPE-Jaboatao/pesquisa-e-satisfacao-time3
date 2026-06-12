@@ -66,7 +66,7 @@ export class PesquisasController {
 
   // retorna a pesquisa e as suas questões
   @Get(':id/complete')
-  @Roles(Role.ALUNO, Role.GESTOR)
+  @Roles(Role.ALUNO, Role.GESTOR, Role.DOCENTE)
   async findOneComplete(@Param('id') id: string, @Req() req) {
     this.validarObjectId(id);
     const user = {
