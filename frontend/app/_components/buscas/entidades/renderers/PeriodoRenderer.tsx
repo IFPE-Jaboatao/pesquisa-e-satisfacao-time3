@@ -1,16 +1,9 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Curso, Disciplina, Periodo, Turma, User } from "../interfaces";
+import { Periodo  } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteCursoAction } from "@/actions/cursos";
-import DisciplinaPage from "../pages/academic/DisciplinaPage";
-import DisciplinaForm from "../forms/academic/DisciplinaForm";
-import { deleteDisciplinaAction } from "@/actions/disciplinas";
-import { deleteTurmaAction } from "@/actions/turmas";
-import TurmaPage from "../pages/academic/TurmaPage";
-import TurmaForm from "../forms/academic/TurmaForm";
 import { deletePeriodoAction } from "@/actions/periodos";
 import PeriodoPage from "../pages/academic/PeriodoPage";
 import PeriodoForm from "../forms/academic/PeriodoForm";

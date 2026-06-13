@@ -3,27 +3,36 @@ import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 import { Button } from "flowbite-react";
-import { Style } from "util";
-import { CampiCard, ServicoCard, SetorCard } from "./InstitutionalCards";
-import { CursoCard, DisciplinaCard, MatriculaCard, PeriodoCard, TurmaCard } from "./AcademicCards";
+import { CampiCard, Campus, Servico, ServicoCard, Setor, SetorCard } from "./InstitutionalCards";
+import { CursoCard, DisciplinaCard, Matricula, MatriculaCard, Periodo, PeriodoCard, Turma, TurmaCard } from "./AcademicCards";
+import { Curso, Disciplina } from "./interfaces";
+
+export type ItemBusca = {
+  nome?: string;
+  ano?: string | number;
+  id?: string | number;
+  aluno?: {
+    matricula?: string | number;
+  };
+};
 
 interface Dashboard {
     institutional: {
-        campus: any[],
-        setores: any[],
-        servicos: any[]
+        campus: Campus[],
+        setores: Setor[],
+        servicos: Servico[]
     },
     academic: {
-        cursos: any[],
-        disciplinas: any[],
-        turmas: any[],
-        periodos: any[],
-        matriculas: any[]
+        cursos: Curso[],
+        disciplinas: Disciplina[],
+        turmas: Turma[],
+        periodos: Periodo[],
+        matriculas: Matricula[]
     }
 }
 
 interface Props {
-  data: any;
+  data: Dashboard;
 }
 
 export default function EntidadesAdmin({ data }: Props) {
@@ -54,7 +63,7 @@ export default function EntidadesAdmin({ data }: Props) {
 
     // 2. filtra os dados dinamicamente com base no input de pesquisa do usuário (search)
     const listaAtual = getListaPorEntidade();
-    const dadosFiltrados = listaAtual.filter((item: any) => {
+    const dadosFiltrados = listaAtual.filter((item: ItemBusca) => {
         if (!search) return true; // se não tem busca, mostra tudo
  
         // dependendo da entidade selecionada a busca pode ser feita com base em campos diferentes
@@ -69,16 +78,16 @@ export default function EntidadesAdmin({ data }: Props) {
             return <p className="col-span-3 text-center py-4">Nenhum resultado encontrado...</p>;
         }
 
-        return dadosFiltrados.map((u: any) => {
+        return dadosFiltrados.map((u) => {
             switch (entidadeSearch) {
-                case 'Campi': return <CampiCard key={u.id} campus={u} />;
-                case 'Setores': return <SetorCard key={u.id} setor={u} />;
-                case 'Serviços': return <ServicoCard key={u.id} servico={u} />;
-                case 'Cursos': return <CursoCard key={u.id} curso={u} />;
-                case 'Disciplinas': return <DisciplinaCard key={u.id} disciplina={u} />;
-                case 'Períodos': return <PeriodoCard key={u.id} periodo={u} />;
-                case 'Turmas': return <TurmaCard key={u.id} turma={u} />;
-                case 'Matrículas': return <MatriculaCard key={u.id} matricula={u} />;
+                case 'Campi': return <CampiCard key={u.id} campus={u as Campus} />;
+                case 'Setores': return <SetorCard key={u.id} setor={u as Setor} />;
+                case 'Serviços': return <ServicoCard key={u.id} servico={u as Servico} />;
+                case 'Cursos': return <CursoCard key={u.id} curso={u as Curso} />;
+                case 'Disciplinas': return <DisciplinaCard key={u.id} disciplina={u as Disciplina} />;
+                case 'Períodos': return <PeriodoCard key={u.id} periodo={u as Periodo} />;
+                case 'Turmas': return <TurmaCard key={u.id} turma={u as Turma} />;
+                case 'Matrículas': return <MatriculaCard key={u.id} matricula={u as Matricula} />;
                 default: return <div key="error">Entidade não reconhecida.</div>;
             }
         });
@@ -123,14 +132,14 @@ export default function EntidadesAdmin({ data }: Props) {
 
                     <div className="flex flex-col flex-1 gap-1">
                         <div className="gap-2 grid grid-cols-4 max-sm:grid-cols-2 max-sm:mb-2">
-                            <Button style={{backgroundColor: `${entidadeSearch === `Campi` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Campi` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Campi')}>Campi</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Setores` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Setores` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Setores')}>Setores</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Serviços` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Serviços` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Serviços')}>Serviços</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Períodos` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Períodos` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Períodos')}>Períodos</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Cursos` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Cursos` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Cursos')}>Cursos</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Disciplinas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Disciplinas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Disciplinas')}>Disciplinas</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Turmas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Turmas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Turmas')}>Turmas</Button>
-                            <Button style={{backgroundColor: `${entidadeSearch === `Matrículas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Matrículas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={(e) => setEntidadeSearch('Matrículas')}>Matrículas</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Campi` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Campi` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Campi')}>Campi</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Setores` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Setores` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Setores')}>Setores</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Serviços` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Serviços` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Serviços')}>Serviços</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Períodos` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Períodos` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Períodos')}>Períodos</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Cursos` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Cursos` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Cursos')}>Cursos</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Disciplinas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Disciplinas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Disciplinas')}>Disciplinas</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Turmas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Turmas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Turmas')}>Turmas</Button>
+                            <Button style={{backgroundColor: `${entidadeSearch === `Matrículas` ? btnBackgroundHighlithed : btnBackgroundNormal}`, color: `${entidadeSearch === `Matrículas` ? btnTextHighlighted : btnTextNormal}`}} className={btnEstiloBasico} onClick={() => setEntidadeSearch('Matrículas')}>Matrículas</Button>
                         </div>
                     </div>
 

@@ -3,7 +3,6 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDashboard } from "@/services/dashboard.service";
 import { getMe } from "@/services/user.service";
-import { Roboto_Flex } from "next/font/google";
 import { redirect } from "next/navigation";
 
 export default async function BuscarPesquisasSatisfacao() {

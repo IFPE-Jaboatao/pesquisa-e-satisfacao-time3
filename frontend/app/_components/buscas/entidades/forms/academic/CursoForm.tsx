@@ -4,7 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Campus, Curso, Setor } from "../../interfaces";
+import { Campus, Curso  } from "../../interfaces";
 import { updateCursoAction } from "@/actions/cursos";
 
 interface Props {
@@ -50,7 +50,7 @@ export default function CursoForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, curso.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

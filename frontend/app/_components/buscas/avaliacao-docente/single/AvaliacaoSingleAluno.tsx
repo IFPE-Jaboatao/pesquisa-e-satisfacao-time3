@@ -1,9 +1,13 @@
 interface Props {
-    avaliacao: any
+    avaliacao?: {
+        id: string,
+        titulo: string,
+        descricao: string
+    }
 }
 
 export default function AvaliacaoSingleAluno({ avaliacao }: Props) {
     return (
-        <div>Hi</div>
+        <div>{avaliacao?.titulo}</div>
     )
 }

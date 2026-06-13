@@ -1,10 +1,8 @@
 "use client";
 
-import { loginAction } from "@/actions/auth";
 import { deleteUserAction, updateUserAction } from "@/actions/users";
-import { getCampi } from "@/services/campus.service";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
-import { Button, ButtonGroup, Label, TextInput } from "flowbite-react";
+import { Button, Label } from "flowbite-react";
 import { redirect, useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
@@ -141,7 +139,7 @@ export default function UsuarioForm({
             return () => clearTimeout(timer);
         }
 
-    }, [state, showDeletedError])
+    }, [state, showDeletedError, router, user.id])
 
   return (
     <div className="p-2 m-10 max-h-max max-w-max rounded-sm flex flex-col bg-white lg:max-w-200 lg:w-100">

@@ -3,7 +3,6 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import SetorRenderer from "@/app/_components/buscas/entidades/renderers/SetorRenderer";
 import { getCampi } from "@/services/campus.service";
 import { getCursoFull } from "@/services/curso.service";
 import CursoRenderer from "@/app/_components/buscas/entidades/renderers/CursoRenderer";

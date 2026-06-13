@@ -4,8 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Curso, Disciplina, Periodo, Turma, User } from "../../interfaces";
-import { updateDisciplinaAction } from "@/actions/disciplinas";
+import { Disciplina, Periodo, Turma, User } from "../../interfaces";
 import { updateTurmaAction } from "@/actions/turmas";
 
 interface Props {
@@ -65,7 +64,7 @@ export default function TurmaForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, turma.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

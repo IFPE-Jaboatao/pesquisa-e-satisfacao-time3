@@ -1,9 +1,7 @@
 import AlterarSenhaForm from "@/app/_components/AlterarSenhaForm";
-import BasicButton from "@/app/_components/BasicButton";
 import Header from "@/app/_components/Header";
 import { getMe } from "@/services/user.service";
 import { redirect } from "next/navigation";
-import { useState } from "react";
 
 export default async function AlterarSenha() {
     const user = await getMe();    

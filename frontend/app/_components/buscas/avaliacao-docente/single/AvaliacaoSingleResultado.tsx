@@ -4,7 +4,33 @@ import KpiDocente from "@/app/_components/dashboard/KpiDocente"
 import { BellAlertIcon, ExclamationCircleIcon, FaceSmileIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/16/solid"
 
 interface Props {
-    avaliacao: any
+    avaliacao: {
+        id: string,
+        titulo: string,
+        descricao: string,
+        turmaId: number,
+        turno: string,
+        curso: string,
+        dataInicio: string,
+        dataFinal: string,
+        respostasRecebidas: number,
+        maximoRespostas: number,
+        comentarios: string[],
+        indicadores: {
+            criterio: string,
+            totalVotos: number,
+            mediaValor: string,
+            porcentagem: string
+        }[],
+        mediaGeral: string,
+        pontosAtencao: {
+            critico: string[],
+            alto: string[],
+            razoavel: string[]
+        }
+    
+    }
+    
 }
 
 export default function AvaliacaoSingleResultado({ avaliacao }: Props) {
@@ -24,8 +50,8 @@ export default function AvaliacaoSingleResultado({ avaliacao }: Props) {
 
                     <div className="flex flex-row justify-between w-max gap-20 mt-5">
                         <div>
-                            <p><span className="">Início:</span> {new Date(avaliacao.dataInicio.split('T', 1)).toLocaleDateString('pt-br')}</p>
-                            <p><span className="">Término:</span> {new Date(avaliacao.dataFinal.split('T', 1)).toLocaleDateString('pt-br')}</p>  
+                            <p><span className="">Início:</span> {new Date(avaliacao.dataInicio).toLocaleDateString('pt-br')}</p>
+                            <p><span className="">Término:</span> {new Date(avaliacao.dataFinal).toLocaleDateString('pt-br')}</p>  
                         </div>
                         <div>
                             <p><span className="">Respostas:</span> {avaliacao.respostasRecebidas}/{avaliacao.maximoRespostas}</p>

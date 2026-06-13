@@ -3,12 +3,17 @@ import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "../pesquisa-satisfacao/SatisfacaoCard";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
+import { AvaliacaoDocenteDocente } from "./interface";
 
 interface Props {
-  data: any;
+  avaliacoes?: {
+    ativas?: AvaliacaoDocenteDocente[],
+    inativas?: AvaliacaoDocenteDocente[],
+    fechadas?: AvaliacaoDocenteDocente[]
+  };
 }
 
-export default function AvaliacaoDocente({ data }: Props) {
+export default function AvaliacaoDocente({ avaliacoes }: Props) {
     const [search, setSearch] = useState('');
     const [cursoSearch, setCursoSearch] = useState('');
     const [disciplinaSearch, setDisciplinaSearch] = useState('');
@@ -23,7 +28,7 @@ export default function AvaliacaoDocente({ data }: Props) {
     ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.ativas, ...data.inativas, ...data.fechadas];
+    const todasPesquisas = [...avaliacoes?.ativas || [], ...avaliacoes?.inativas || [], ...avaliacoes?.fechadas || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
@@ -77,15 +82,6 @@ export default function AvaliacaoDocente({ data }: Props) {
 
     // filtra as disciplinas a partir do curso selecionado
     const disciplinasFiltradas = disciplinasMap.filter((s) => s.cursoId === Number(cursoSearch) || '');
-
-    // junta as docentes presentes nas pesquisas para usar no filtro de Docente
-    const docentesMap = Array.from(
-        new Map(
-            todasPesquisas
-            .filter(p => p.docenteId)
-            .map(p => [p.docenteId, { id: p.docenteId, nome: p.docente }])
-        ).values()
-        );
 
     // junta os turnos presentes nas pesquisas para usar no filtro de Turno
     const turnosMap = Array.from(
@@ -221,7 +217,7 @@ export default function AvaliacaoDocente({ data }: Props) {
                     respostasRebecidas={p.respostasRecebidas}
 
                     detalheNome_2={p.turno}
-                    detalheNome_1={p.tipoId}
+                    detalheNome_1={p.tipoId.toString()}
 
                     status={p.status}
                     /> 

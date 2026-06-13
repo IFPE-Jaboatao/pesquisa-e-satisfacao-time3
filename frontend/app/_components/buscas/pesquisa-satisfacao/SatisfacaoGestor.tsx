@@ -2,14 +2,18 @@
 import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "./SatisfacaoCard";
-import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
+import { PesquisaSatisfacaoGestor } from "./interface";
 
 interface Props {
-  data: any;
+    satisfacoes?: {
+        ativas?: PesquisaSatisfacaoGestor[],
+        inativas?: PesquisaSatisfacaoGestor[],
+        fechadas?: PesquisaSatisfacaoGestor[]
+  };
 }
 
-export function SatisfacaoGestor({ data }: Props) {
+export function SatisfacaoGestor({ satisfacoes }: Props) {
     const [search, setSearch] = useState('');
     const [setorSearch, setSetorSearch] = useState('');
     const [servicoSearch, setServicoSearch] = useState('');
@@ -22,7 +26,7 @@ export function SatisfacaoGestor({ data }: Props) {
     ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.satisfacoes.ativas, ...data.satisfacoes.inativas, ...data.satisfacoes.fechadas];
+    const todasPesquisas = [...satisfacoes?.ativas || [], ...satisfacoes?.inativas || [], ...satisfacoes?.fechadas || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)

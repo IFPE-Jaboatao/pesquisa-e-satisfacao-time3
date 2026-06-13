@@ -1,9 +1,6 @@
 // src/app/profile/page.js
 import { redirect } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
-import { logoutAction } from '@/actions/auth';
 import Header from '@/app/_components/Header';
-import { Button, Label } from 'flowbite-react';
 import InputLabel from '@/app/_components/InputLabel';
 import LogoutButton from '@/app/_components/LogoutButton';
 import BasicButton from '@/app/_components/BasicButton';

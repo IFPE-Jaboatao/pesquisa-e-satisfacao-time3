@@ -3,12 +3,13 @@ import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "../pesquisa-satisfacao/SatisfacaoCard";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
+import { AvaliacaoDocenteAluno } from "./interface";
 
 interface Props {
-  data: any;
+    avaliacoes?: AvaliacaoDocenteAluno[]
 }
 
-export default function AvaliacaoAluno({ data }: Props) {
+export default function AvaliacaoAluno({ avaliacoes }: Props) {
     const [search, setSearch] = useState('');
     const [docenteSearch, setDocenteSearch] = useState('');
     const [disciplinaSearch, setDisciplinaSearch] = useState('');
@@ -16,7 +17,7 @@ export default function AvaliacaoAluno({ data }: Props) {
     const [turnoSearch, setTurnoSearch] = useState('');
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.avaliacoes];
+    const todasPesquisas = [...avaliacoes || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
@@ -44,15 +45,6 @@ export default function AvaliacaoAluno({ data }: Props) {
             todasPesquisas
             .filter(p => p.periodoId)
             .map(p => [p.periodoId, { id: p.periodoId, periodo: p.periodo }])
-        ).values()
-        );
-
-    // junta os cursos presentes nas pesquisas para usar no filtro de Curso
-    const cursosMap = Array.from(
-        new Map(
-            todasPesquisas
-            .filter(p => p.cursoId)
-            .map(p => [p.cursoId, { id: p.cursoId, nome: p.curso }])
         ).values()
         );
 
@@ -185,11 +177,8 @@ export default function AvaliacaoAluno({ data }: Props) {
                     dataFinal={p.dataFinal}
                     dataInicio={p.dataInicio}
 
-                    maximoRespostas={p.maximoRespostas}
-                    respostasRebecidas={p.respostasRecebidas}
-
                     detalheNome_2={p.turno}
-                    detalheNome_1={p.turmaId}
+                    detalheNome_1={p.turmaId.toString()}
 
                     status={p.status}
                     /> 

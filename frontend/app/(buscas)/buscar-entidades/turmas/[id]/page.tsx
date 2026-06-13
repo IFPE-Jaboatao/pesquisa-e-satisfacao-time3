@@ -3,12 +3,7 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDocentesByCampus, getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import SetorRenderer from "@/app/_components/buscas/entidades/renderers/SetorRenderer";
-import { getCampi } from "@/services/campus.service";
-import { getCursoFull, getCursosByCampus } from "@/services/curso.service";
-import CursoRenderer from "@/app/_components/buscas/entidades/renderers/CursoRenderer";
-import { getDisciplina, getDisciplinaByCurso } from "@/services/disciplina.service";
-import DisciplinaRenderer from "@/app/_components/buscas/entidades/renderers/DisciplinaRenderer";
+import { getDisciplinaByCurso } from "@/services/disciplina.service";
 import { getTurma } from "@/services/turma.service";
 import { getPeriodos } from "@/services/periodo.service";
 import TurmaRenderer from "@/app/_components/buscas/entidades/renderers/TurmaRenderer";

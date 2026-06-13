@@ -4,8 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Campus, Curso, Periodo, Setor } from "../../interfaces";
-import { updateCursoAction } from "@/actions/cursos";
+import { Periodo } from "../../interfaces";
 import { updatePeriodoAction } from "@/actions/periodos";
 
 interface Props {
@@ -53,7 +52,7 @@ export default function PeriodoForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, periodo.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

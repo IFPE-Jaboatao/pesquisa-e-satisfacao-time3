@@ -1,4 +1,5 @@
-import { Avatar, Navbar, NavbarBrand, NavbarCollapse, NavbarContext, NavbarLink, NavbarToggle } from "flowbite-react";
+import { Avatar, Navbar, NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -13,7 +14,7 @@ export default function Header({ role, nome, index }: HeaderProps) {
         <Navbar style={{ backgroundColor: 'var(--color-primary)'}}>
         <div className="flex flex-row flex-5 items-center">
             <NavbarBrand as={Link} href="/" className="flex">
-            <img src="/pesquisa-logo.svg" className="mr-3 h-12" alt="Pesquisas e Avaliações Logo" />
+            <Image src="/pesquisa-logo.svg" className="mr-3" width={50} height={50} alt="Pesquisas e Avaliações Logo" />
         </NavbarBrand>
             <div className="flex flex-col">
                 <h1

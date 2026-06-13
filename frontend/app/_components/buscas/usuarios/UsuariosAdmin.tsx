@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
-import SatisfacaoCard from "../pesquisa-satisfacao/SatisfacaoCard";
-import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 import { Button } from "flowbite-react";
 import UsuarioCard from "./UsuarioCard";
@@ -80,12 +78,12 @@ export default function UsuariosAdmin({ data }: Props) {
                     <div className="flex flex-col flex-1 gap-1">
                         <p className="font-semibold">Perfil</p>
                         <div className="flex flex-row flex-1 max-lg:flex-1 gap-2 max-md:grid max-md:grid-cols-2 max-sm:flex max-sm:flex-col max-sm:mb-2">
-                            <Button style={{backgroundColor: `${roleSearch === `admin` ? `#1B7A55` : `#1B7A20`}`}} className={`hover:bg-green-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('admin')}>Admin</Button>
-                            <Button style={{backgroundColor: `${roleSearch === `gestor` ? `#1B64A2` : `#1B64F2`}`}} className={`hover:bg-blue-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('gestor')}>Gestor</Button>
-                            <Button style={{backgroundColor: `${roleSearch === `docente` ? `#E02424` : `#E02424`}`}} className={`hover:bg-red-800 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={(e) => setRoleSearch('docente')}>Docente</Button>
-                            <Button style={{backgroundColor: `${roleSearch === `aluno` ? `#FFBA00` : `#FFBA00`}`}} className={`hover:text-white flex-1 max-sm:pb-2 max-sm:pt-2 text-black`} onClick={(e) => setRoleSearch('aluno')}>Aluno</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `admin` ? `#1B7A55` : `#1B7A20`}`}} className={`hover:bg-green-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={() => setRoleSearch('admin')}>Admin</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `gestor` ? `#1B64A2` : `#1B64F2`}`}} className={`hover:bg-blue-900 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={() => setRoleSearch('gestor')}>Gestor</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `docente` ? `#E02424` : `#E02424`}`}} className={`hover:bg-red-800 flex-1 max-sm:pb-2 max-sm:pt-2`} onClick={() => setRoleSearch('docente')}>Docente</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `aluno` ? `#FFBA00` : `#FFBA00`}`}} className={`hover:text-white flex-1 max-sm:pb-2 max-sm:pt-2 text-black`} onClick={() => setRoleSearch('aluno')}>Aluno</Button>
                         </div>
-                            <Button style={{backgroundColor: `${roleSearch === `` ? `var(--color-tertiary)` : `var(--color-primary)`}`}} className={`hover:bg-green-900`} onClick={(e) => setRoleSearch('')}>Todos</Button>
+                            <Button style={{backgroundColor: `${roleSearch === `` ? `var(--color-tertiary)` : `var(--color-primary)`}`}} className={`hover:bg-green-900`} onClick={() => setRoleSearch('')}>Todos</Button>
                     </div>
 
                     <div className="flex flex-col self-start items-start justify-end content-center gap-1">

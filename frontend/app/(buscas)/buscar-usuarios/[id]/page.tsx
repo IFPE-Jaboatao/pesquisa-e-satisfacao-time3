@@ -1,6 +1,5 @@
 import UsuarioForm from "@/app/_components/buscas/usuarios/UsuarioForm";
 import Header from "@/app/_components/Header";
-import { LabelGray } from "@/app/_components/InputLabel";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getCampi } from "@/services/campus.service";
 import { getMe, getUser } from "@/services/user.service"

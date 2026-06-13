@@ -50,7 +50,7 @@ export default function SetorForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, setor.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

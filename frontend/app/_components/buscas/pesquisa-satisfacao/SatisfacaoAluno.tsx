@@ -2,20 +2,21 @@
 import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "./SatisfacaoCard";
-import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
+import { PesquisaSatisfacaoAluno } from "./interface";
+
 
 interface Props {
-  data: any;
+    satisfacoes?: PesquisaSatisfacaoAluno[]
 }
 
-export function SatisfacaoAluno({ data }: Props) {
+export function SatisfacaoAluno({ satisfacoes }: Props) {
     const [search, setSearch] = useState('');
     const [setorSearch, setSetorSearch] = useState('');
     const [servicoSearch, setServicoSearch] = useState('');
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.satisfacoes];
+    const todasPesquisas = [...satisfacoes || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)

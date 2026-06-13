@@ -4,9 +4,6 @@ import { Matricula } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteTurmaAction } from "@/actions/turmas";
-import TurmaPage from "../pages/academic/TurmaPage";
-import TurmaForm from "../forms/academic/TurmaForm";
 import { deleteMatriculaAction } from "@/actions/matriculas";
 import MatriculaPage from "../pages/academic/MatriculaPage";
 
