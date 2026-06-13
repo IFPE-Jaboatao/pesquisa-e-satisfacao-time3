@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import BasicButton from "../../BasicButton";
 
 interface User {
@@ -19,7 +18,6 @@ export default function UsuarioCard({
     nome,
     email,
     role,
-    campusId,
     campus,
     createdAt,
     updatedAt,

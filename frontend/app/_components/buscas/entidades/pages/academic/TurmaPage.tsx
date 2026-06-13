@@ -1,4 +1,4 @@
-import { Disciplina, Matricula, Turma } from "../../interfaces"
+import { Matricula, Turma } from "../../interfaces"
 import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
 import BackButton from "../../BackButton"
 import { backgroundContainerCard, Card } from "../institutional/CampusPage"

@@ -1,13 +1,9 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Curso, Disciplina, Periodo, Turma, User } from "../interfaces";
+import { Disciplina, Periodo, Turma, User } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteCursoAction } from "@/actions/cursos";
-import DisciplinaPage from "../pages/academic/DisciplinaPage";
-import DisciplinaForm from "../forms/academic/DisciplinaForm";
-import { deleteDisciplinaAction } from "@/actions/disciplinas";
 import { deleteTurmaAction } from "@/actions/turmas";
 import TurmaPage from "../pages/academic/TurmaPage";
 import TurmaForm from "../forms/academic/TurmaForm";
@@ -96,7 +92,7 @@ export default function TurmaRenderer({
                         <CheckCircleIcon color='green' className="h-8 flex flex-col items-center" />
                         <p className="text-center">
                             Turma N° <span className="font-semibold">{turma.id} </span>
-                            da Disciplina <span className="font-semibold">"{turma.disciplina?.nome}"</span> deletada com sucesso!</p>
+                            da Disciplina <span className="font-semibold">{turma.disciplina?.nome}</span> deletada com sucesso!</p>
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"

@@ -9,8 +9,9 @@ interface Props {
 
 export default function CardsDashboard({ items }: Props) {
     let total = 0;
+
     if (items.length > 1) {
-        total = items.reduce((sum, item) => sum + item.value, 0);
+        total = items.reduce((sum, item) => sum + item.value || 0, 0);
     }
 
     function Card({value, label}: CardItem) {

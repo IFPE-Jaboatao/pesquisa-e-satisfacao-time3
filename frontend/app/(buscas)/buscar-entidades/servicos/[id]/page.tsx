@@ -3,9 +3,8 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import { getSetoresByCampus, getSetorFull } from "@/services/setor.service";
+import { getSetoresByCampus } from "@/services/setor.service";
 import { getServico } from "@/services/servico.service";
-import { Setor } from "@/app/_components/buscas/entidades/interfaces";
 import ServicoRenderer from "@/app/_components/buscas/entidades/renderers/ServicoRenderer";
 
 interface ServicoDetalheProps {

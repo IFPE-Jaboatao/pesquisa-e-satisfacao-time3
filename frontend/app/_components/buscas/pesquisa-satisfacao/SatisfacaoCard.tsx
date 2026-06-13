@@ -24,8 +24,6 @@ export default function SatisfacaoCard({
     dataInicio,
     dataFinal,
     status,
-    servicoId,
-    setorId,
     detalheNome_2,
     detalheNome_1,
     maximoRespostas,

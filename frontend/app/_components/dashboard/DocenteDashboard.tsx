@@ -1,12 +1,24 @@
-import { Progress } from "flowbite-react";
 import CardsDashboard from "./CardsDashboard";
 import TopTitleButtons from "./TopTitleButtons";
-import ProgressBar from "./ProgressBar";
-import CriteriosDocente from "./CriteriosDocente";
+import CriteriosDocente, { CriterioItem } from "./CriteriosDocente";
 import KpiDocente from "./KpiDocente";
+import { AvaliacaoDocenteDocente } from "../buscas/avaliacao-docente/interface";
 
 interface Props {
-  data: any;
+  data?: DashboardDocente;
+}
+
+export interface DashboardDocente {
+  avaliacoes: {
+    avaliacoes: {
+      ativas: AvaliacaoDocenteDocente[],
+      inativas: AvaliacaoDocenteDocente[],
+      fechadas: AvaliacaoDocenteDocente[],
+    },
+    totalRespostasRecebidas: number,
+    desempenhoGeral: CriterioItem[],
+    mediaGeralHistorica: string
+  }
 }
 
 export function DocenteDashboard({ data }: Props) {
@@ -22,9 +34,9 @@ export function DocenteDashboard({ data }: Props) {
       
             <div className="self-center flex-1">
               <CardsDashboard items={[
-                {value: data.avaliacoes.avaliacoes.ativas.length, label: 'Abertas'},
-                {value: data.avaliacoes.avaliacoes.fechadas.length, label: 'Finalizadas'},
-                {value: data.avaliacoes.avaliacoes.inativas.length, label: 'À Começar'},
+                {value: data?.avaliacoes.avaliacoes.ativas.length || 0, label: 'Abertas'},
+                {value: data?.avaliacoes.avaliacoes.fechadas.length || 0, label: 'Finalizadas'},
+                {value: data?.avaliacoes.avaliacoes.inativas.length || 0, label: 'À Começar'},
               ]} />
       
               </div>
@@ -38,14 +50,14 @@ export function DocenteDashboard({ data }: Props) {
             <div className="self-center flex-1 shadow-gray-300 shadow-lg mb-5">
               <div className="p-4 flex flex-row max-lg:flex-col justify-center items-center gap-5 align-middle" style={{ backgroundColor: 'var(--white)'}}>
                 <div className="flex-2">
-                  {data.avaliacoes.totalRespostasRecebidas > 0
-                  ? <CriteriosDocente items={data.avaliacoes.desempenhoGeral} />
+                  {data?.avaliacoes.totalRespostasRecebidas && data?.avaliacoes.totalRespostasRecebidas > 0
+                  ? <CriteriosDocente items={data?.avaliacoes.desempenhoGeral  || []} />
                 : <p>Nenhuma resposta ainda...</p>}
                 
                 </div>
 
               <div className="flex-1">
-                <KpiDocente value={data.avaliacoes.mediaGeralHistorica === 'NaN%' ? 0 : Number(data.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
+                <KpiDocente value={data?.avaliacoes.mediaGeralHistorica === 'NaN%' ? 0 : Number(data?.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
               </div>
 
               </div>

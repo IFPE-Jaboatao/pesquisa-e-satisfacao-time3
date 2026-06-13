@@ -2,14 +2,18 @@
 import { useState } from "react";
 import BuscaTitulo from "../BuscaTitulo";
 import SatisfacaoCard from "../pesquisa-satisfacao/SatisfacaoCard";
-import { LabelGray } from "../../InputLabel";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
+import { AvaliacaoDocenteGestor } from "./interface";
 
 interface Props {
-  data: any;
+    avaliacoes?: {
+        ativas?: AvaliacaoDocenteGestor[],
+        inativas?: AvaliacaoDocenteGestor[],
+        fechadas?: AvaliacaoDocenteGestor[]
+    }
 }
 
-export default function AvaliacaoGestor({ data }: Props) {
+export default function AvaliacaoGestor({ avaliacoes }: Props) {
     const [search, setSearch] = useState('');
     const [cursoSearch, setCursoSearch] = useState('');
     const [docenteSearch, setDocenteSearch] = useState('');
@@ -25,7 +29,7 @@ export default function AvaliacaoGestor({ data }: Props) {
     ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...data.avaliacoes.ativas, ...data.avaliacoes.inativas, ...data.avaliacoes.fechadas];
+    const todasPesquisas = [...avaliacoes?.ativas || [], ...avaliacoes?.inativas || [], ...avaliacoes?.fechadas || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
@@ -240,7 +244,7 @@ export default function AvaliacaoGestor({ data }: Props) {
                     respostasRebecidas={p.respostasRecebidas}
 
                     detalheNome_2={p.turno}
-                    detalheNome_1={p.tipoId}
+                    detalheNome_1={p.tipoId.toString()}
 
                     status={p.status}
                     /> 

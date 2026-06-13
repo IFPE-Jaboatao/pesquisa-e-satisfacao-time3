@@ -1,12 +1,9 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Campus, Curso, Servico, Setor } from "../interfaces"
+import { Campus, Curso } from "../interfaces"
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteServicoAction } from "@/actions/servicos";
-import ServicoPage from "../pages/institutional/ServicoPage";
-import ServicoForm from "../forms/institutional/ServicoForm";
 import { deleteCursoAction } from "@/actions/cursos";
 import CursoPage from "../pages/academic/CursoPage";
 import CursoForm from "../forms/academic/CursoForm";
@@ -90,8 +87,8 @@ export default function CursoRenderer({
                     <div className="mt-5 flex flex-col justify-center">
                         <CheckCircleIcon color='green' className="h-8 flex flex-col items-center" />
                         <p className="text-center">
-                            Curso <span className="font-semibold">"{curso.nome}"</span>
-                            do Campus <span className="font-semibold">"{curso.campusNome}"</span> deletado com sucesso!</p>
+                            Curso <span className="font-semibold">{curso.nome}</span>
+                            do Campus <span className="font-semibold">{curso.campusNome}</span> deletado com sucesso!</p>
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"

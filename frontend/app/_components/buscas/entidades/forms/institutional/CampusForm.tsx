@@ -48,7 +48,7 @@ export default function CampusForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, campus.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

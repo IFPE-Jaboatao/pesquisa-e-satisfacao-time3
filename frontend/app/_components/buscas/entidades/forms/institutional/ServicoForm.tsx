@@ -4,8 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Campus, Servico, Setor } from "../../interfaces";
-import { updateSetorAction } from "@/actions/setores";
+import { Servico, Setor } from "../../interfaces";
 import { updateServicoAction } from "@/actions/servicos";
 
 interface Props {
@@ -51,7 +50,7 @@ export default function ServicoForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, servico.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">

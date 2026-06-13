@@ -10,7 +10,7 @@ interface DisciplinaObj {
     disciplina: Disciplina
 }
 
-interface Turma {
+export interface Turma {
     id: number,
     turno: string,
     disciplina: {
@@ -31,7 +31,7 @@ interface TurmaObj {
     turma: Turma
 }
 
-interface Periodo {
+export interface Periodo {
     id: number,
     ano: number,
     semestre: number,
@@ -45,7 +45,7 @@ interface PeriodoObj {
     periodo: Periodo
 }
 
-interface Matricula {
+export interface Matricula {
     id: number,
     aluno: {
         id: number,
@@ -79,7 +79,7 @@ export function CursoCard({ curso }: CursoObj) {
 
             <div className="flex flex-col justify-between">
                 <div className="flex flex-col">
-                    <LabelValueItalic label="Campus" value={curso.campus} />
+                    <LabelValueItalic label="Campus" value={curso?.campus?.nome} />
                 </div>
 
                 <div className="flex flex-row max-lg:flex-col max-sm:flex-row justify-between mt-1">
@@ -110,7 +110,7 @@ export function DisciplinaCard({ disciplina }: DisciplinaObj) {
             <div className="flex flex-col justify-between">
                 <div className="flex flex-col">
                     
-                    <LabelValueItalic label="Curso" value={disciplina.curso} />
+                    <LabelValueItalic label="Curso" value={disciplina.curso?.nome} />
 
                     <LabelValueItalic label="Campus" value={disciplina.campus} />
 

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import BasicButton from "../../BasicButton"
 
-interface Campus {
+export interface Campus {
     id: number,
     nome: string,
     cidade: string,
@@ -15,7 +15,7 @@ interface CampusObj {
     campus: Campus
 }
 
-interface Setor {
+export interface Setor {
     id: number,
     nome: string,
     campusId: number,
@@ -30,7 +30,7 @@ interface SetorObj {
 }
 
 
-interface Servico {
+export interface Servico {
     id: number,
     nome: string,
     setorId: number,
@@ -54,7 +54,7 @@ export function CampiCard({ campus }: CampusObj) {
 
             <div className="flex flex-col justify-between">
                 <div className="flex flex-col">
-                    <LabelValueItalic label="Cidade" value={campus.cidade} />
+                    <LabelValueItalic label="Cidade" value={campus.cidade || ''} />
                 </div>
 
                 <div className="flex flex-row max-lg:flex-col max-sm:flex-row justify-between mt-1">
@@ -141,7 +141,7 @@ export function ServicoCard({ servico }: ServicoObj) {
     )
 }
 
-export function TopTitle({label, value}: {label: string, value:string}) {
+export function TopTitle({label, value}: {label: string, value?:string}) {
     return(
             <div className="flex flex-row justify-start gap-2 items-center">
                 <p className="font-bold text-sm">{label}</p>
@@ -150,7 +150,7 @@ export function TopTitle({label, value}: {label: string, value:string}) {
     )
 }
 
-export function LabelValueItalic({label, value}: {label: string, value:string}) {
+export function LabelValueItalic({label, value}: {label: string, value?:string}) {
     return (
         <div className="flex flex-row gap-2">
             <p className="italic">{label}:</p>
@@ -168,11 +168,11 @@ export function LabelValueItalicLink({label, value, href}: {label: string, value
     )
 }
 
-export function CreatedUpdatedCard({createdAt, updatedAt}: {createdAt: string, updatedAt: string}) {
+export function CreatedUpdatedCard({createdAt, updatedAt}: {createdAt?: string, updatedAt?: string}) {
     return (
         <div className="flex flex-col justify-end items-end">
-            <p className="max-lg:text-sm">Criado em: {createdAt.split(`T`)[0]}</p>
-            <p className="max-lg:text-sm">Atualizado em: {updatedAt.split(`T`)[0]}</p>
+            <p className="max-lg:text-sm">Criado em: {createdAt}</p>
+            <p className="max-lg:text-sm">Atualizado em: {updatedAt}</p>
         </div>
     )
 }

@@ -36,7 +36,7 @@ export interface Curso {
     campusId?: number,
     campus?: Campus,
     campusNome?:string,
-    disciplinas: any[],
+    disciplinas: Disciplina[],
     createdAt: string,
     updatedAt: string
 }

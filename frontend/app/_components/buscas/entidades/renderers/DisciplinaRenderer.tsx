@@ -4,7 +4,6 @@ import { Curso, Disciplina } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
-import { deleteCursoAction } from "@/actions/cursos";
 import DisciplinaPage from "../pages/academic/DisciplinaPage";
 import DisciplinaForm from "../forms/academic/DisciplinaForm";
 import { deleteDisciplinaAction } from "@/actions/disciplinas";
@@ -88,8 +87,8 @@ export default function DisciplinaRenderer({
                     <div className="mt-5 flex flex-col justify-center">
                         <CheckCircleIcon color='green' className="h-8 flex flex-col items-center" />
                         <p className="text-center">
-                            Disciplina <span className="font-semibold">"{disciplina.nome}"</span>
-                            do Curso <span className="font-semibold">"{disciplina.cursoNome}"</span> deletada com sucesso!</p>
+                            Disciplina <span className="font-semibold">{disciplina.nome}</span>
+                            do Curso <span className="font-semibold">{disciplina.cursoNome}</span> deletada com sucesso!</p>
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"

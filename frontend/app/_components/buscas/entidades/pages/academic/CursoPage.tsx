@@ -2,7 +2,6 @@ import { Curso, Disciplina } from "../../interfaces"
 import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
 import BackButton from "../../BackButton"
 import { backgroundContainerCard, Card } from "../institutional/CampusPage"
-import { CardOnlyTitle } from "../institutional/SetorPage"
 
 interface Props {
     curso: Curso
