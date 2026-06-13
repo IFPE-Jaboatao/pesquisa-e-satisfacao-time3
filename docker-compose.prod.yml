@@ -1,0 +1,170 @@
+services:
+  # ==================== DATABASE ====================
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --log_bin_trust_function_creators=1
+      - --max_connections=1000
+      - --max_allowed_packet=256M
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST:-%}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pesquisa_satisfacao}
+      MYSQL_USER: ${MYSQL_USER:-pesquisa}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secure_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_logs:/var/log/mysql
+      - ./docker/mysql/healthcheck.sh:/usr/local/bin/mysql-healthcheck.sh:ro
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD-SHELL", "sh /usr/local/bin/mysql-healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - dokploy-network
+
+  # ==================== MONGODB ====================
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      # accept Dokploy variable names (MONGO_ROOT_*) or Docker image defaults (MONGO_INITDB_*)
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo/init:/docker-entrypoint-initdb.d:ro
+      - ./docker/mongo/healthcheck.sh:/usr/local/bin/mongo-healthcheck.sh:ro
+    expose:
+      - "27017"
+    healthcheck:
+      test: ["CMD-SHELL", "sh /usr/local/bin/mongo-healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+    networks:
+      - dokploy-network
+
+  # ==================== BACKEND ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: ${MYSQL_USER:-pesquisa}
+      DB_PASS: ${MYSQL_PASSWORD:-secure_password}
+      DB_NAME: ${MYSQL_DATABASE:-pesquisa_satisfacao}
+      DB_LOGGING: ${DB_LOGGING:-false}
+      JWT_SECRET: ${JWT_SECRET:-changeme}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      MONGO_URI: ${MONGO_URI:-}
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-${MONGO_INITDB_ROOT_USERNAME:-root}}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-${MONGO_INITDB_ROOT_PASSWORD:-secure_password}}
+      MONGO_DATABASE: ${MONGO_DATABASE:-${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    networks:
+      - dokploy-network
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 120s
+
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-/api}
+      VITE_APP_NAME: ${VITE_APP_NAME:-Pesquisa e Satisfação}
+    depends_on:
+      backend:
+        condition: service_healthy
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - dokploy-network
+
+  # ==================== ADMIN WEB CLIENT (MySQL) ====================
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    depends_on:
+      - mysql
+    networks:
+      - dokploy-network
+    expose:
+      - "8080"
+
+  # ==================== MONGO WEB CLIENT ====================
+  mongo-express:
+    image: mongo-express:latest
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMIN: "true"
+      # allow explicit MONGO_URI or fallback to constructed URI using Dokploy vars
+      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL:-${MONGO_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}:${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}@mongo:27017/${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}?authSource=admin}}
+      ME_CONFIG_BASICAUTH: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
+    depends_on:
+      - mongo
+    networks:
+      - dokploy-network
+    expose:
+      - "8081"
+
+volumes:
+  mysql_data:
+    driver: local
+  mongo_data:
+    driver: local
+  mysql_logs:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true
