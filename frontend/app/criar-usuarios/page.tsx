@@ -33,7 +33,7 @@ export default function CriarUsuariosAdmin() {
       if (!token) return;
 
       try {
-        const response = await fetch("http://localhost:3000/users/dashboard/admin", {
+        const response = await fetch(`${process.env.API_BASE_URL}/users/dashboard/admin`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -100,7 +100,7 @@ export default function CriarUsuariosAdmin() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/users", {
+      const response = await fetch(`${process.env.API_BASE_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

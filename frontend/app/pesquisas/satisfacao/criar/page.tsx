@@ -55,7 +55,7 @@ export default function CriarPesquisaSatisfacao() {
       if (!token) return;
 
       try {
-        const response = await fetch("http://localhost:3000/institutional/servico", {
+        const response = await fetch(`${process.env.API_BASE_URL}/institutional/servico`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -167,7 +167,7 @@ export default function CriarPesquisaSatisfacao() {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/surveys/pesquisas/satisfacao", {
+      const response = await fetch(`${process.env.API_BASE_URL}/surveys/pesquisas/satisfacao`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
