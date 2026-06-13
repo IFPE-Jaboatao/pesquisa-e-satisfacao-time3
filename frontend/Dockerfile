@@ -3,38 +3,41 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copiar package.json e package-lock.json (se existir)
 COPY package*.json ./
-
-# Instalar dependências
 RUN npm install --prefer-offline --no-audit
 
-# Copiar código fonte
 COPY . .
 
-# Build da aplicação Vite
+ARG API_BASE_URL
+ENV API_BASE_URL=$API_BASE_URL
+
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Stage 2: Runtime
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Copiar arquivo de configuração nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN apk add --no-cache dumb-init
 
-# Copiar build do stage anterior para pasta do nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
-# Criar usuário não-root
-RUN addgroup -g 101 -S nginx 2>/dev/null && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -c "Nginx web server" -G nginx nginx 2>/dev/null || true
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Health check
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
+COPY --chown=nodejs:nodejs healthcheck.js ./
+
+USER nodejs
+
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 --start-period=30s \
-    CMD wget -q --spider http://127.0.0.1:80/ || exit 1
+    CMD ["node", "healthcheck.js"]
 
-# Expor porta
-EXPOSE 80
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
