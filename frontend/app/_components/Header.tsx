@@ -1,3 +1,5 @@
+'use client'; // Necessário para permitir o uso de 'as={Link}' do Flowbite sem quebrar o Server Component do Next.js.
+
 import { Avatar, Navbar, NavbarBrand, NavbarCollapse, NavbarContext, NavbarLink, NavbarToggle } from "flowbite-react";
 import Link from "next/link";
 
