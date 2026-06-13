@@ -51,7 +51,7 @@ export class SetorService {
   async findAll(campusId?: number) {
     const setores = await this.setorRepo.find({
       where: campusId ? { campus: { id: campusId } } : {},
-      relations: { campus: true },
+      relations: { campus: true, servicos: true },
       withDeleted: false
     });
 
@@ -59,6 +59,8 @@ export class SetorService {
       id: setor.id,
       nome: setor.nome,
       campusId: setor.campus?.id,
+      campus: setor.campus?.nome,
+      servicos: setor.servicos?.length,
       createdAt: setor.createdAt,
       updatedAt: setor.updatedAt
     }));
@@ -75,6 +77,23 @@ export class SetorService {
       campusId: setor.campus?.id,
       createdAt: setor.createdAt,
       updatedAt: setor.updatedAt
+    };
+  }
+
+  
+  async findOneFull(id: number) {
+    const setor = await this.setorRepo.findOne({where: {id}, relations: {campus: true, servicos: true}, withDeleted: false});
+
+    if (!setor) throw new NotFoundException("Setor não encontrado!")
+
+    return {
+      id: setor.id,
+      nome: setor.nome,
+      campusId: setor.campus?.id,
+      campusNome: setor.campus?.nome,
+      createdAt: setor.createdAt,
+      updatedAt: setor.updatedAt,
+      servicos: setor.servicos
     };
   }
 

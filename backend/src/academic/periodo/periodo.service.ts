@@ -9,6 +9,7 @@ import { PeriodoDeletedEvent } from 'src/shared/events/periodo-deleted.event';
 import { FindOptionsUtils } from 'typeorm/browser';
 import { createSecretKey } from 'crypto';
 import { not } from 'supertest/lib/cookies';
+import { TurmaService } from '../turma/turma.service';
 
 @Injectable()
 export class PeriodoService {
@@ -16,7 +17,7 @@ export class PeriodoService {
   @InjectRepository(Periodo, 'mysql')
   private periodoRepo: Repository<Periodo>,
 
-  private readonly eventEmitter: EventEmitter2
+  private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(createPeriodoDto: CreatePeriodoDto) {

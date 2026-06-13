@@ -38,6 +38,9 @@ export class TurmaService {
     @InjectRepository(User, 'mysql')
     private usersRepo: Repository<User>,
 
+    @InjectRepository(Matricula, 'mysql')
+    private matriculaRepo: Repository<Matricula>,
+
     private readonly eventEmitter: EventEmitter2
   ) {}
 
@@ -138,16 +141,22 @@ export class TurmaService {
   // função auxiliar para dashboard do admin
   async findAllResumo() {
     const turmas = await this.turmaRepo.find({
-      relations: { disciplina: { curso: true}, periodo: true, docente: true },
+      relations: { disciplina: { curso: true}, periodo: true, docente: true, matriculas: true },
       withDeleted: false
     });
 
     return turmas.map((turma) => ({
       id: turma?.id,
       turno: turma?.turno,
-      disciplina: turma?.disciplina.nome,
+      disciplina: {
+        id: turma?.disciplina?.id,
+        nome: turma?.disciplina?.nome 
+      },
       periodo: `${turma?.periodo.ano}.${turma?.periodo.semestre}`,
       docente: { id: turma.docente?.id, nome: turma.docente?.nome },
+      matriculas: turma?.matriculas?.length,
+      createdAt: turma.createdAt,
+      updatedAt: turma.updatedAt
     }));
   }
 
@@ -166,7 +175,9 @@ export class TurmaService {
       relations: {
         docente: true,
         periodo: true,
-        disciplina: true,
+        disciplina: {
+          curso: true
+        },
       },
       withDeleted: false
     });
@@ -185,6 +196,10 @@ export class TurmaService {
           nome: turma?.disciplina.nome,
         },
         periodo: turma?.periodo,
+        curso: {
+          id: turma?.disciplina.curso.id,
+          nome: turma?.disciplina.curso.nome
+        }
       })),
     };
   }
@@ -194,7 +209,7 @@ export class TurmaService {
 
     const turma = await this.turmaRepo.findOne({
       where: { id },
-      relations: { disciplina: { curso: { campus: true} }, periodo: true, docente: true },
+      relations: { disciplina: { curso: { campus: true} }, periodo: true, docente: true, matriculas: { aluno: true } },
       withDeleted: false
     });
 
@@ -208,7 +223,17 @@ export class TurmaService {
       periodo: turma.periodo,
       docente: { id: turma.docente.id, matricula: turma.docente.matricula, nome: turma.docente.nome, email: turma.docente.email },
       createdAt: turma.createdAt,
-      updatedAt: turma.updatedAt
+      updatedAt: turma.updatedAt,
+      matriculas: turma.matriculas?.map((m) => ({
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        aluno: {
+          id: m.aluno.id,
+          matricula: m.aluno.matricula,
+          nome: m.aluno.nome
+        }
+      }))
     };
   }
 

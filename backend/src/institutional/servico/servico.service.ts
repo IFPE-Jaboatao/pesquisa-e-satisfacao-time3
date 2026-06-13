@@ -53,7 +53,7 @@ export class ServicoService {
   async findAll(setorId?: number) {
     const servicos = await this.servicoRepo.find({
       where: setorId ? { setor: { id: setorId } } : {},
-      relations: { setor: true },
+      relations: { setor: { campus: true} },
       withDeleted: false
       });
 
@@ -61,6 +61,9 @@ export class ServicoService {
       id: servico.id,
       nome: servico.nome,
       setorId: servico.setor?.id,
+      setor: servico.setor?.nome,
+      campusId: servico.setor?.campus?.id,
+      campus: servico.setor?.campus?.nome,
       createdAt: servico.createdAt,
       updatedAt: servico.updatedAt
       }));
@@ -104,7 +107,8 @@ export class ServicoService {
     return servicos.map((servico) => ({
       id: servico.id,
       nome: servico.nome,
-      setorId: servico.setor?.id
+      setorId: servico.setor?.id,
+      setorNome: servico.setor?.nome,
     }));
   }
 

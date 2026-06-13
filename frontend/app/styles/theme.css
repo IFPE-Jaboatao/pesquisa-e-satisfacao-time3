@@ -1,0 +1,17 @@
+:root {
+    --color-primary: #1E5128;
+    --color-secondary: #4E9F3D;
+    --color-tertiary: #058D4D;
+    --color-alt-primary: #217379;
+    --color-alt-secondary: #3C979E;
+    --dark-color: #05040F;
+    --light-color: #F6F6F6;
+    --grayish-color: #919191;
+    --highlight: #88DD39;
+    --error: #DF3535;
+    --white: rgb(255, 255, 255);
+    --tab-active: #4d9f3d81;
+    --edit-blue: #1b64f2;
+    --orange-alert: #ff9900;
+    --yellow-alert: #f0cc01;
+}

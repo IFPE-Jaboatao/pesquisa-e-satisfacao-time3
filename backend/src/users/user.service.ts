@@ -27,6 +27,7 @@ import { TurmaService } from 'src/academic/turma/turma.service';
 import { CursoService } from 'src/academic/curso/curso.service';
 import { DisciplinaService } from 'src/academic/disciplina/disciplina.service';
 import { Status } from 'src/pesquisas/pesquisa-status.enum';
+import { Campus } from 'src/institutional/campus/entities/campus.entity';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -153,8 +154,36 @@ export class UsersService implements OnModuleInit {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      campus: user.campus?.nome ? user.campus?.nome : null
+      campusId: user.campus?.id,
+      campus: user.campus?.nome ? user.campus?.nome : null,
+      campusCidade: user.campus?.cidade ? user.campus?.cidade : null, 
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     };
+  }
+
+    async findDocentesByCampus(campusId: string | number) {
+    const id = Number(campusId);
+
+    const users = await this.repo.find({
+      where: { campus: { id: id }, role: Role.DOCENTE },
+      relations: { campus: true },
+      withDeleted: false
+    });
+
+    if (!users) throw new NotFoundException('Usuários não encontrados');
+
+    return {
+      users: users?.map((u) => ({
+        id: u.id,
+        matricula: u.matricula,
+        nome: u.nome,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
+      }))
+    }
   }
 
   // DASHBOARDS
@@ -189,6 +218,11 @@ export class UsersService implements OnModuleInit {
         descricao: s.descricao,
         dataInicio: s.dataInicio,
         dataFinal: s.dataFinal,
+        nomeServico: s.nomeServico,
+        nomeSetor: s.nomeSetor,
+        setorId: s.setorId,
+        tipoId: s.tipoId,
+        status: s.status
       })),
       avaliacoes: avaliacoes.map((a) => {
       // busca os dados da turma no map usando o tipoId da pesquisa
@@ -200,10 +234,15 @@ export class UsersService implements OnModuleInit {
         descricao: a.descricao,
         dataInicio: a.dataInicio,
         dataFinal: a.dataFinal,
+        disciplinaId: dadosTurma?.disciplina?.id,
         disciplina: dadosTurma?.disciplina?.nome || 'Disciplina não encontrada',
+        docenteId: dadosTurma?.docente?.id,
         docente: dadosTurma?.docente?.nome || 'Docente não informado',
         turmaId: a.tipoId,
-        turno: dadosTurma?.turno
+        turno: dadosTurma?.turno,
+        periodo: dadosTurma?.periodo?.ano && dadosTurma?.periodo?.semestre ? `${dadosTurma.periodo.ano}.${dadosTurma.periodo.semestre}` : 'Período não informado',
+        periodoId: dadosTurma?.periodo?.id,
+        status: a.status
       };
     })
   }
@@ -273,7 +312,7 @@ export class UsersService implements OnModuleInit {
       // DASHBOARD GESTOR
   async getDashboardAdmin() {
     // info de institutional
-    const campus = await this.campusService.findAll();
+    const campus = await this.campusService.findAllWithDetails();
 
     const setores = await this.setorServico.findAll();
 
@@ -337,7 +376,9 @@ export class UsersService implements OnModuleInit {
         role: u.role,
         email: u.email,
         campusId: u.campus?.id,
-        campus: u.campus?.nome 
+        campus: u.campus?.nome,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
       }))
     };
   }
@@ -399,6 +440,16 @@ export class UsersService implements OnModuleInit {
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
+
+    if (dto.campusId) {
+      const campusExists = await this.campusService.findOne(dto.campusId);
+
+      if (!campusExists) {
+        throw new NotFoundException('Campus não encontrado!')
+      }
+    }
+
+    user.campus = {id: dto.campusId} as Campus;
 
     Object.assign(user, dto);
 

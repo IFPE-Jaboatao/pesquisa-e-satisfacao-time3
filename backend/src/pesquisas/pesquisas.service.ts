@@ -35,6 +35,7 @@ import { generateAnonymousHash } from 'src/common/utils/hash.util';
 import { RelatoriosService } from 'src/relatorios/relatorios.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PesquisaDeletedEvent } from 'src/shared/events/pesquisa-deleted.event';
+import { disconnect } from 'process';
 
 @Injectable()
 export class PesquisasService {
@@ -175,15 +176,18 @@ export class PesquisasService {
 
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
-    const objId = new ObjectId(id);
+
+    const stringId = id.toString();
+    const objId = ObjectId.isValid(id) ? new ObjectId(id) : null;
+
+    const queryFilter = objId 
+      ? { $in: [stringId, objId] }
+      : stringId;
 
     const filter = {
-      $or: [
-        { pesquisaId: id },
-        { pesquisaId: objId as any },
-        { pesquisaId: String(id) },
-      ],
+      pesquisaId: queryFilter
     };
+
     const questoes = await this.questaoRepo.find({ where: filter as any });
     const respostas = await this.respostaRepo.find({ where: filter as any });
 
@@ -211,12 +215,23 @@ export class PesquisasService {
 
       if (turma.campus.id !== user.campusId && user.role === Role.GESTOR) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não é gestor nesse campus!')
 
-      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas)
+      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas);
+
+      // pegar a quantidade máxima de respostas possível
+      const maximoRespostas = await this.getMaximoRespostas([resultado.pesquisa])
 
       return {
         id: resultado.pesquisa.id,
         titulo: resultado.pesquisa.titulo,
+        descricao: resultado.pesquisa.descricao,
+        maximoRespostas: maximoRespostas[resultado.pesquisa.tipoId] || 0,
+        respostasRecebidas: resultado.respostas.length,
+        turno: turma.turno,
+        turmaId: turma.id,
+        curso: turma.disciplina.curso.nome,
         status: resultado.pesquisa.status,
+        dataInicio: resultado.pesquisa.dataInicio,
+        dataFinal: resultado.pesquisa.dataFinal,
         docente: turma.docente.nome,
         ...relatorio
       }
@@ -538,6 +553,7 @@ export class PesquisasService {
         where: {
           tipoId: { $in: turmaIds },
           tipo: Tipo.AVALIACAO,
+          status: Status.ATIVA
         },
       });
     }
@@ -547,6 +563,7 @@ export class PesquisasService {
       where: {
         tipo: Tipo.SATISFACAO,
         publicada: true,
+        status: Status.ATIVA
         // aqui entrará a lógica de "não respondidas" futuramente
       },
     });
@@ -558,9 +575,21 @@ export class PesquisasService {
     // passo 2 - filtrar as pesquisas de satisfação para mostrar só as dos serviços daquele campus
     const servicoIds = servicosCampus.map((s) => s.id);
 
-    const filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
+    let filteredSatisfacao: any[] = pesquisasSatisfacao.filter((p) =>
       servicoIds.includes(p.tipoId),
     );
+
+    // trazendo mais detalhes para pesquisa no frontend
+      // adicionar o nome do serviço e do setor para cada pesquisa de satisfação
+    const servicosMap = new Map(servicosCampus.map(s => [s.id, s.nome]));
+    const setoresMap = new Map(servicosCampus.map(s => [s.id, s.setorNome]));
+    const setoresIds = new Map (servicosCampus.map(s => [s.id, s.setorId]));
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      nomeServico: servicosMap.get(p.tipoId) || 'Serviço Desconhecido',
+      nomeSetor: setoresMap.get(p.tipoId) || 'Setor Desconecido',
+      setorId: setoresIds.get(p.tipoId) || null
+    }));
 
     // filtrar as pesquisas para mostrar apenas as que o aluno não respondeu
 
@@ -606,12 +635,28 @@ export class PesquisasService {
       return { avaliacoes: [] };
     }
 
-    const pesquisas = await this.repo.find({
+    let pesquisas: any[] = await this.repo.find({
       where: {
         tipoId: { $in: turmaIds },
         tipo: Tipo.AVALIACAO,
       },
     });
+
+    // quantidade máxima de respostas por avaliação
+    const respostasMaximasAvaliacoes = await this.getMaximoRespostas(pesquisas);
+
+    // adicionar campos de período, disciplina e turno para cada pesquisa a partir da turma
+    pesquisas = pesquisas.map((p) => ({
+      ...p,
+      maximoRespostas: respostasMaximasAvaliacoes[p.tipoId] || 0,
+      turno: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.turno || 'Desconhecido',
+      disciplinaId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.disciplina.id || null,
+      disciplina: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.disciplina.nome || 'Desconhecida',
+      periodoId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.id || null,
+      periodo: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.ano + '.' + turmasDocente.turmas.find((t) => t.id === p.tipoId)?.periodo.semestre || 'Desconhecido',
+      cursoId: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.curso.id || null,
+      curso: turmasDocente.turmas.find((t) => t.id === p.tipoId)?.curso.nome || 'Desconhecido',
+    }));
 
     // processar relatório geral de todas as pesquisas
     const pesquisaIds = pesquisas.map(p => String(p.id));
@@ -619,6 +664,12 @@ export class PesquisasService {
     const todasAsRespostas = await this.respostaRepo.find({
       where: { pesquisaId: { $in: pesquisaIds } }
     });
+
+    // adicionar quantidade de respostas em cada pesquisa
+      pesquisas = pesquisas.map(p => ({
+        ...p,
+        respostasRecebidas: todasAsRespostas.filter(r => String(r.pesquisaId) === String(p.id)).length
+      }));
 
     const todasAsQuestoes = await this.questaoRepo.find({
       where: { pesquisaId: { $in: pesquisaIds } }
@@ -749,7 +800,16 @@ export class PesquisasService {
 
     avaliacoesDocente = avaliacoesDocente.map((a) => ({
       ...a,
-      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0
+      maximoRespostas: respostasMaximasAvaliacoes[a.tipoId] || 0,
+      turno: turmasCampus.find((t) => t.id === a.tipoId)?.turno || 'Desconhecido',
+      disciplinaId: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.id || null,
+      disciplina: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.nome || 'Desconhecida',
+      periodoId: turmasCampus.find((t) => t.id === a.tipoId)?.periodo.id || null,
+      periodo: turmasCampus.find((t) => t.id === a.tipoId)?.periodo.ano + '.' + turmasCampus.find((t) => t.id === a.tipoId)?.periodo.semestre || 'Desconhecido',
+      docenteId: turmasCampus.find((t) => t.id === a.tipoId)?.docente.id || null,
+      docente: turmasCampus.find((t) => t.id === a.tipoId)?.docente.nome || 'Desconhecido',
+      cursoId: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.curso.id || null,
+      curso: turmasCampus.find((t) => t.id === a.tipoId)?.disciplina.curso.nome || 'Desconhecido',
     }));
 
     // pesquisas de satisfação
@@ -771,6 +831,17 @@ export class PesquisasService {
     let filteredSatisfacao = pesquisasSatisfacao.filter((p) =>
       servicoIds.includes(p.tipoId),
     );
+
+    // adicionar o nome do serviço e do setor para cada pesquisa de satisfação
+    const servicosMap = new Map(servicosCampus.map(s => [s.id, s.nome]));
+    const setoresMap = new Map(servicosCampus.map(s => [s.id, s.setorNome]));
+    const setoresIds = new Map (servicosCampus.map(s => [s.id, s.setorId]));
+    filteredSatisfacao = filteredSatisfacao.map(p => ({
+      ...p,
+      nomeServico: servicosMap.get(p.tipoId) || 'Serviço Desconhecido',
+      nomeSetor: setoresMap.get(p.tipoId) || 'Setor Desconecido',
+      setorId: setoresIds.get(p.tipoId) || null
+    }));
 
     // juntar os IDs para retornar as respostas
     const todasPesquisas = [...avaliacoesDocente, ...filteredSatisfacao]
