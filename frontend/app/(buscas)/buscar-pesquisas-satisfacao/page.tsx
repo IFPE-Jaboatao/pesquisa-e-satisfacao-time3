@@ -1,4 +1,4 @@
-import { SatisfacaoRenderer } from "@/app/_components/buscas/SatisfacaoRenderer";
+import { SatisfacaoRenderer } from "@/app/_components/buscas/pesquisa-satisfacao/SatisfacaoRenderer";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDashboard } from "@/services/dashboard.service";

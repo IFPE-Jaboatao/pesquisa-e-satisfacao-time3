@@ -27,6 +27,7 @@ import { TurmaService } from 'src/academic/turma/turma.service';
 import { CursoService } from 'src/academic/curso/curso.service';
 import { DisciplinaService } from 'src/academic/disciplina/disciplina.service';
 import { Status } from 'src/pesquisas/pesquisa-status.enum';
+import { Campus } from 'src/institutional/campus/entities/campus.entity';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -62,7 +63,11 @@ export class UsersService implements OnModuleInit {
   // -------------------------------------------------------------------------
 
   async onModuleInit() {
-    await this.seedAdmin();
+    try {
+      await this.seedAdmin();
+    } catch (error) {
+      console.error('⚠️ Falha ao criar admin seed (aplicação continuará):', error);
+    }
   }
 
   private async seedAdmin() {
@@ -149,8 +154,36 @@ export class UsersService implements OnModuleInit {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      campus: user.campus?.nome ? user.campus?.nome : null
+      campusId: user.campus?.id,
+      campus: user.campus?.nome ? user.campus?.nome : null,
+      campusCidade: user.campus?.cidade ? user.campus?.cidade : null, 
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     };
+  }
+
+    async findDocentesByCampus(campusId: string | number) {
+    const id = Number(campusId);
+
+    const users = await this.repo.find({
+      where: { campus: { id: id }, role: Role.DOCENTE },
+      relations: { campus: true },
+      withDeleted: false
+    });
+
+    if (!users) throw new NotFoundException('Usuários não encontrados');
+
+    return {
+      users: users?.map((u) => ({
+        id: u.id,
+        matricula: u.matricula,
+        nome: u.nome,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
+      }))
+    }
   }
 
   // DASHBOARDS
@@ -279,7 +312,7 @@ export class UsersService implements OnModuleInit {
       // DASHBOARD GESTOR
   async getDashboardAdmin() {
     // info de institutional
-    const campus = await this.campusService.findAll();
+    const campus = await this.campusService.findAllWithDetails();
 
     const setores = await this.setorServico.findAll();
 
@@ -343,7 +376,9 @@ export class UsersService implements OnModuleInit {
         role: u.role,
         email: u.email,
         campusId: u.campus?.id,
-        campus: u.campus?.nome 
+        campus: u.campus?.nome,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt
       }))
     };
   }
@@ -405,6 +440,16 @@ export class UsersService implements OnModuleInit {
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
+
+    if (dto.campusId) {
+      const campusExists = await this.campusService.findOne(dto.campusId);
+
+      if (!campusExists) {
+        throw new NotFoundException('Campus não encontrado!')
+      }
+    }
+
+    user.campus = {id: dto.campusId} as Campus;
 
     Object.assign(user, dto);
 

@@ -176,15 +176,18 @@ export class PesquisasService {
 
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
-    const objId = new ObjectId(id);
+
+    const stringId = id.toString();
+    const objId = ObjectId.isValid(id) ? new ObjectId(id) : null;
+
+    const queryFilter = objId 
+      ? { $in: [stringId, objId] }
+      : stringId;
 
     const filter = {
-      $or: [
-        { pesquisaId: id },
-        { pesquisaId: objId as any },
-        { pesquisaId: String(id) },
-      ],
+      pesquisaId: queryFilter
     };
+
     const questoes = await this.questaoRepo.find({ where: filter as any });
     const respostas = await this.respostaRepo.find({ where: filter as any });
 
@@ -212,12 +215,23 @@ export class PesquisasService {
 
       if (turma.campus.id !== user.campusId && user.role === Role.GESTOR) throw new UnauthorizedException('Você não tem acesso a essa pesquisa porque não é gestor nesse campus!')
 
-      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas)
+      const relatorio = await this.prepararRelatorioDocente(resultado.pesquisa.questoes, resultado.respostas);
+
+      // pegar a quantidade máxima de respostas possível
+      const maximoRespostas = await this.getMaximoRespostas([resultado.pesquisa])
 
       return {
         id: resultado.pesquisa.id,
         titulo: resultado.pesquisa.titulo,
+        descricao: resultado.pesquisa.descricao,
+        maximoRespostas: maximoRespostas[resultado.pesquisa.tipoId] || 0,
+        respostasRecebidas: resultado.respostas.length,
+        turno: turma.turno,
+        turmaId: turma.id,
+        curso: turma.disciplina.curso.nome,
         status: resultado.pesquisa.status,
+        dataInicio: resultado.pesquisa.dataInicio,
+        dataFinal: resultado.pesquisa.dataFinal,
         docente: turma.docente.nome,
         ...relatorio
       }

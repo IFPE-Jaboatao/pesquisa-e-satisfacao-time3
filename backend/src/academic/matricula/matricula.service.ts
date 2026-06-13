@@ -45,7 +45,7 @@ export class MatriculaService {
     });
 
     if (exists) {
-      throw new ConflictException('Matr[icula já existe!');
+      throw new ConflictException('Matrícula já existe!');
     }
 
     // busca paralela
@@ -193,11 +193,13 @@ export class MatriculaService {
     // output geral de matriculas sem turma especificada
     return matriculas?.map((matricula) => ({
       id: matricula?.id,
-      aluno: { id: matricula?.aluno?.id, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email }, 
+      aluno: { id: matricula?.aluno?.id, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email, matricula: matricula?.aluno?.matricula }, 
       turma: {id: matricula?.turma?.id, disciplina: matricula?.turma?.disciplina?.nome, periodo: `${matricula?.turma?.periodo.ano}.${matricula?.turma?.periodo.semestre}`},
       campus: { id: matricula?.turma?.disciplina?.curso?.campus?.id,
         nome: matricula?.turma?.disciplina?.curso?.campus?.nome,
-      }
+      },
+      createdAt: matricula?.createdAt,
+      updatedAt: matricula?.updatedAt
     }));
   }
 
@@ -266,7 +268,7 @@ export class MatriculaService {
         turma: {
           docente: true,
           periodo: true,
-          disciplina: true,
+          disciplina: { curso: { campus: true }},
         },
       },
       withDeleted: false
@@ -288,6 +290,8 @@ export class MatriculaService {
         },
       },
       aluno: { id: matricula?.aluno?.id, matricula: matricula?.aluno?.matricula, nome: matricula?.aluno?.nome, email: matricula?.aluno?.email },
+      createdAt: matricula.createdAt,
+      updatedAt: matricula.updatedAt
     };
   }
 

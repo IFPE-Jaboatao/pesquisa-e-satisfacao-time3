@@ -44,6 +44,7 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
 // Controllers e Services Base
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { resolveMongoUrl } from './config/database-url.util';
 
 @Module({
   imports: [
@@ -64,8 +65,7 @@ import { AppService } from './app.service';
       name: 'mongo',
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const url = config.get<string>('MONGO_URL');
-        if (!url) throw new Error('MONGO_URL não definido no .env');
+        const url = resolveMongoUrl(config);
 
         return {
           type: 'mongodb',
