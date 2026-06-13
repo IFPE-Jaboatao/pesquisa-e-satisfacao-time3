@@ -5,7 +5,7 @@ type Criterio = {
     porcentagem: string
 }
 
-type CriterioItem = {
+export type CriterioItem = {
     criterio: string,
     totalVotos: number,
     mediaValor: string,

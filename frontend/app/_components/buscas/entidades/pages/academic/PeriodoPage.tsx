@@ -1,5 +1,5 @@
-import { Matricula, Periodo } from "../../interfaces"
-import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
+import { Periodo } from "../../interfaces"
+import { LabelValueItalic } from "../../InstitutionalCards"
 import BackButton from "../../BackButton"
 
 interface Props {

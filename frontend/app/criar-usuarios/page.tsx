@@ -81,12 +81,13 @@ export default function CriarUsuariosAdmin() {
       return;
     }
 
-    const payload: any = {
+    const payload = {
       matricula: formData.matricula,
       nome: formData.nome,
       email: formData.email,
       password: formData.password,
       role: formData.role,
+      campusId: Number(formData.campusId)
     };
 
     if (formData.role !== "ADMIN") {
@@ -128,10 +129,11 @@ export default function CriarUsuariosAdmin() {
         role: "ALUNO",
         campusId: campi.length > 0 ? String(campi[0].id) : "",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.log(error)
       setStatus({
         type: "error",
-        message: error.message || "Erro de conexão com o servidor.",
+        message: "Erro de conexão com o servidor.",
       });
     } finally {
       setLoading(false);

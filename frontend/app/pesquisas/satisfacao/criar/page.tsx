@@ -202,10 +202,11 @@ export default function CriarPesquisaSatisfacao() {
         servicoId: servicos.length > 0 ? String(servicos[0].id) : "",
       });
       setQuestoes([]);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.log(error)
       setStatus({
         type: "error",
-        message: error.message || "Erro de conexão com o servidor.",
+        message: "Erro de conexão com o servidor.",
       });
     } finally {
       setLoading(false);

@@ -87,8 +87,8 @@ export default function SetorRenderer({
                     <div className="mt-5 flex flex-col justify-center">
                         <CheckCircleIcon color='green' className="h-8 flex flex-col items-center" />
                         <p className="text-center">
-                            Setor <span className="font-semibold">"{setor.nome}"</span>
-                            do Campus <span className="font-semibold">"{setor.campusNome}"</span> deletado com sucesso!</p>
+                            Setor <span className="font-semibold">{setor.nome}</span>
+                            do Campus <span className="font-semibold">{setor.campusNome}</span> deletado com sucesso!</p>
 
                         <Button
                         className="max-w-max self-start mt-5 gap-2 cursor-pointer"

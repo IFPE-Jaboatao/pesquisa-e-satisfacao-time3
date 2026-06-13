@@ -2,7 +2,12 @@ import CardsDashboard from "./CardsDashboard";
 import TopTitleButtons from "./TopTitleButtons";
 
 interface Props {
-  data: any;
+  data?: DashboardAluno;
+}
+
+export interface DashboardAluno {
+  satisfacoesResponder: number,
+  avaliacoesResponder: number
 }
 
 export function AlunoDashboard({ data }: Props) {
@@ -18,7 +23,7 @@ export function AlunoDashboard({ data }: Props) {
         
               <div className="">
                 <CardsDashboard items={[
-                  {value: data.satisfacoesResponder, label: 'Responder'},
+                  {value: data?.satisfacoesResponder || 0, label: 'Responder'},
                 ]} />
         
                 </div>
@@ -32,7 +37,7 @@ export function AlunoDashboard({ data }: Props) {
         
               <div className="self-center flex-1">
                 <CardsDashboard items={[
-                  {value: data.avaliacoesResponder, label: 'Responder'},
+                  {value: data?.avaliacoesResponder || 0, label: 'Responder'},
                 ]} />
         
                 </div>

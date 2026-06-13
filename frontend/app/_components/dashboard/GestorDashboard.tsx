@@ -2,7 +2,22 @@ import CardsDashboard from "./CardsDashboard";
 import TopTitleButtons from "./TopTitleButtons";
 
 interface Props {
-  data: any;
+  data?: DashboardGestor;
+}
+
+export interface DashboardGestor {
+  resumo: {
+    satisfacoes: {
+      ativas: number,
+      inativas: number,
+      fechadas: number
+    },
+    avaliacoes: {
+      ativas: number,
+      inativas: number,
+      fechadas: number
+    }
+  }
 }
 
 export function GestorDashboard({ data }: Props) {
@@ -20,9 +35,9 @@ export function GestorDashboard({ data }: Props) {
     
           <div className="self-center flex-1">
             <CardsDashboard items={[
-              {value: data.resumo.satisfacoes.ativas, label: 'Abertas'},
-              {value: data.resumo.satisfacoes.fechadas, label: 'Finalizadas'},
-              {value: data.resumo.satisfacoes.inativas, label: 'À Começar'},
+              {value: data?.resumo.satisfacoes.ativas || 0, label: 'Abertas'},
+              {value: data?.resumo.satisfacoes.fechadas || 0, label: 'Finalizadas'},
+              {value: data?.resumo.satisfacoes.inativas || 0, label: 'À Começar'},
             ]} />
     
             </div>
@@ -38,9 +53,9 @@ export function GestorDashboard({ data }: Props) {
     
           <div className="self-center flex-1">
             <CardsDashboard items={[
-              {value: data.resumo.avaliacoes.ativas, label: 'Abertas'},
-              {value: data.resumo.avaliacoes.fechadas, label: 'Finalizadas'},
-              {value: data.resumo.avaliacoes.inativas, label: 'À Começar'},
+              {value: data?.resumo.avaliacoes.ativas || 0, label: 'Abertas'},
+              {value: data?.resumo.avaliacoes.fechadas || 0, label: 'Finalizadas'},
+              {value: data?.resumo.avaliacoes.inativas || 0, label: 'À Começar'},
             ]} />
     
             </div>

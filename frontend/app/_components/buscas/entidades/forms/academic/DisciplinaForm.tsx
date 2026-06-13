@@ -51,7 +51,7 @@ export default function DisciplinaForm({
 
             return () => clearTimeout(timer);
         }
-    }, [state])
+    }, [state, router, disciplina.id])
 
   return (
     <div className="rounded-sm flex flex-col bg-white flex-1">
