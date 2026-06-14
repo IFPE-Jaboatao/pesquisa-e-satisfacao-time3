@@ -44,6 +44,7 @@ services:
       DB_LOGGING: "true"
       JWT_SECRET: dev_secret_key_change_in_production
       JWT_EXPIRATION: "3600"
+      ANONYM_SALT: string_aleatoria
       FRONTEND_URL: http://localhost:5173
       CORS_ORIGIN: "http://localhost:5173"
     volumes:
