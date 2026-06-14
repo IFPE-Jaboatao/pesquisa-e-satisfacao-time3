@@ -117,6 +117,7 @@ services:
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
       API_BASE_URL: ${API_BASE_URL:-http://backend:3001}
+      JWT_SECRET: ${JWT_SECRET:-changeme}
     depends_on:
       backend:
         condition: service_healthy
