@@ -74,6 +74,7 @@ services:
       DB_NAME: ${MYSQL_DATABASE:-pesquisa_satisfacao}
       DB_LOGGING: ${DB_LOGGING:-false}
       JWT_SECRET: ${JWT_SECRET:-changeme}
+      ANONYM_SALT: ${ANONYM_SALT:-changemetoo}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
