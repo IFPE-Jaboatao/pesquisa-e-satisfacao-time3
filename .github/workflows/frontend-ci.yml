@@ -7,13 +7,12 @@ on:
       - '.github/workflows/**'
     branches: 
       - 'develop'
-      - 'chore/**'
 
   pull_request:
     branches: [ develop ]
 
 jobs:
-  e2e-suite:
+  frontend-lint:
     runs-on: ubuntu-latest
     defaults:
       run:
