@@ -23,7 +23,11 @@ export default async function BuscarAvaliacoesDocente() {
       <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 justify-center flex flex-col m-2'>
-        <AvaliacaoRenderer data={dashboardData} role={user.role}  />
+      {user.role == UserRole.DOCENTE ? <AvaliacaoRenderer role={user.role} avaliacoesDocente={dashboardData} />
+      : user.role == UserRole.GESTOR ? <AvaliacaoRenderer role={user.role} avaliacoesGestor={dashboardData} />
+      : user.role == UserRole.ALUNO ? <AvaliacaoRenderer role={user.role} avaliacoesAluno={dashboardData} />  
+      : 'Perfil desconhecido.'
+        }
       </div>
     </div>
   )

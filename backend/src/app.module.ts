@@ -57,7 +57,7 @@ import { resolveMongoUrl } from './config/database-url.util';
     // RECOMENDADO: Ordem da Main para proteger o banco de produção no CI
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['test/.env', '.env.test', '.env'], 
+      envFilePath: ['.env', 'test/.env', '.env.test'], // 👈 Altere para esta ordem
     }),
 
     // 3. CONEXÃO MONGODB

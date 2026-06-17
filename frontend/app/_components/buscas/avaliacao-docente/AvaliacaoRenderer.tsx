@@ -6,32 +6,38 @@ import { AvaliacaoDocenteAluno, AvaliacaoDocenteDocente, AvaliacaoDocenteGestor 
 
 interface Props {
   role: UserRole;
-  data: {
-    avaliacoesAluno?: AvaliacaoDocenteAluno[],
-    avaliacoesGestor?: {
+  avaliacoesAluno?: {
+    avaliacoes: AvaliacaoDocenteAluno[],
+  }
+  avaliacoesGestor?: {
+    avaliacoes: {
       ativas?: AvaliacaoDocenteGestor[],
-      inativas?: AvaliacaoDocenteGestor[],
-      fechadas?: AvaliacaoDocenteGestor[],
+    inativas?: AvaliacaoDocenteGestor[],
+    fechadas?: AvaliacaoDocenteGestor[],
     }
-    avaliacoesDocente?: {
-      ativas?: AvaliacaoDocenteDocente[],
-      inativas?: AvaliacaoDocenteDocente[],
-      fechadas?: AvaliacaoDocenteDocente[],
+    }
+  avaliacoesDocente?: {
+      avaliacoes: {
+        avaliacoes: {
+          ativas?: AvaliacaoDocenteDocente[],
+        inativas?: AvaliacaoDocenteDocente[],
+        fechadas?: AvaliacaoDocenteDocente[],
+        }
+      }
     }
   };
-}
 
-export function AvaliacaoRenderer({ role, data }: Props) {
+export function AvaliacaoRenderer({ role, avaliacoesAluno, avaliacoesGestor, avaliacoesDocente }: Props) {
 
   switch (role) {
     case UserRole.ALUNO:
-      return <AvaliacaoAluno avaliacoes={data.avaliacoesAluno} />;
+      return <AvaliacaoAluno avaliacoes={avaliacoesAluno} />;
 
     case UserRole.GESTOR:
-      return <AvaliacaoGestor avaliacoes={data.avaliacoesGestor} />;
+      return <AvaliacaoGestor avaliacoes={avaliacoesGestor} />;
 
     case UserRole.DOCENTE:
-      return <AvaliacaoDocente avaliacoes={data.avaliacoesDocente} />;
+      return <AvaliacaoDocente avaliacoes={avaliacoesDocente} />;
 
     default:
       return (

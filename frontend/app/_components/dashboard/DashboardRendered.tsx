@@ -6,29 +6,27 @@ import { DashboardGestor, GestorDashboard } from "./GestorDashboard";
 
 interface Props {
   role: UserRole;
-  data: {
-    dashAluno?: DashboardAluno,
-    dashGestor?: DashboardGestor,
-    dashDocente?: DashboardDocente,
-    dashAdmin?: DashboardAdmin,
-  };
+  dashAluno?: DashboardAluno,
+  dashGestor?: DashboardGestor,
+  dashDocente?: DashboardDocente,
+  dashAdmin?: DashboardAdmin,
 }
 
 
-export function DashboardRenderer({ role, data }: Props) {
+export function DashboardRenderer({ role, dashAluno, dashGestor, dashDocente, dashAdmin }: Props) {
 
   switch (role) {
     case UserRole.ADMIN:
-      return <AdminDashboard data={data.dashAdmin} />;
+      return <AdminDashboard data={dashAdmin} />;
 
     case UserRole.DOCENTE:
-      return <DocenteDashboard data={data.dashDocente} />;
+      return <DocenteDashboard data={dashDocente} />;
 
     case UserRole.ALUNO:
-      return <AlunoDashboard data={data.dashAluno} />;
+      return <AlunoDashboard data={dashAluno} />;
 
     case UserRole.GESTOR:
-      return <GestorDashboard data={data.dashGestor} />;
+      return <GestorDashboard data={dashGestor} />;
 
     default:
       return (

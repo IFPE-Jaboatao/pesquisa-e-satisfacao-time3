@@ -22,14 +22,14 @@ export class ServicoController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.GESTOR) // Permitir que gestores também possam listar os serviços
   findAll(@Query('setorId') setorId?: string) {
     return this.servicoService.findAll(setorId ? +setorId : undefined);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.GESTOR) // Permitir que gestores também possam visualizar detalhes de um serviço específico
   findOne(@Param('id', ParseIntPipe) id: string) {
     return this.servicoService.findOne(+id);
   }
