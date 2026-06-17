@@ -6,25 +6,23 @@ import { AvaliacaoDocenteAluno, AvaliacaoDocenteGestor } from "../interface";
 
 interface Props {
   role: UserRole;
-  data: {
-    avaliacaoAluno?: AvaliacaoDocenteAluno,
-    avaliacao?: AvaliacaoDocenteGestor
+  avaliacaoAluno?: AvaliacaoDocenteAluno,
+  avaliacao?: AvaliacaoDocenteGestor
   };
-}
 
-export async function AvaliacaoSingleRenderer({ role, data }: Props) {
+export async function AvaliacaoSingleRenderer({ role, avaliacaoAluno, avaliacao }: Props) {
     let relatorio;
 
   switch (role) {
     case UserRole.ALUNO:
-      return <AvaliacaoSingleAluno avaliacao={data.avaliacaoAluno} />;
+      return <AvaliacaoSingleAluno avaliacao={avaliacaoAluno} />;
 
     case UserRole.GESTOR:
-        relatorio = await getRelatorioAvaliacao({id: data.avaliacao?.id || '0'})
+        relatorio = await getRelatorioAvaliacao({id: avaliacao?.id || '0'})
       return <AvaliacaoSingleResultado avaliacao={relatorio} />;
 
     case UserRole.DOCENTE:
-        relatorio = await getRelatorioAvaliacao({id: data.avaliacao?.id || '0'})
+        relatorio = await getRelatorioAvaliacao({id: avaliacao?.id || '0'})
       return <AvaliacaoSingleResultado avaliacao={relatorio} />;
 
     default:

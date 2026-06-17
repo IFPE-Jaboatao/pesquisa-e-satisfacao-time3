@@ -37,8 +37,9 @@ export default async function Avaliacao({ params }: AvaliacaoDetalheProps) {
               <p className="font-semibold" style={{color: 'var(--grayish-color)'}}>A pesquisa não foi encontrada...</p>
               <FaceFrownIcon className="h-15" style={{color: 'var(--grayish-color)'}} />
             </div>
-
-            : <AvaliacaoSingleRenderer role={user.role} data={dadosDaPesquisa} />
+            
+            : user.role == UserRole.ALUNO ? <AvaliacaoSingleRenderer role={user.role} avaliacaoAluno={dadosDaPesquisa} />
+            : <AvaliacaoSingleRenderer role={user.role} avaliacao={dadosDaPesquisa} />
             }
 
           </div>

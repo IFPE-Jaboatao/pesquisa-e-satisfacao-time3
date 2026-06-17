@@ -6,24 +6,26 @@ import { PesquisaSatisfacaoAluno, PesquisaSatisfacaoGestor } from "./interface";
 
 interface Props {
   role: UserRole;
-  data: {
-    satisfacoesAluno?: PesquisaSatisfacaoAluno[],
-    satisfacoesGestor?: {
+  satisfacoesAluno?: {
+    satisfacoes: PesquisaSatisfacaoAluno[],
+  },
+  satisfacoesGestor?: {
+    satisfacoes: {
       ativas?: PesquisaSatisfacaoGestor[],
-      inativas?: PesquisaSatisfacaoGestor[],
-      fechadas?: PesquisaSatisfacaoGestor[]
+    inativas?: PesquisaSatisfacaoGestor[],
+    fechadas?: PesquisaSatisfacaoGestor[]
+    }
     }
   };
-}
 
-export function SatisfacaoRenderer({ role, data }: Props) {
+export function SatisfacaoRenderer({ role, satisfacoesAluno, satisfacoesGestor }: Props) {
 
   switch (role) {
     case UserRole.ALUNO:
-      return <SatisfacaoAluno satisfacoes={data.satisfacoesAluno || []} />;
+      return <SatisfacaoAluno satisfacoes={satisfacoesAluno} />;
 
     case UserRole.GESTOR:
-      return <SatisfacaoGestor satisfacoes={data.satisfacoesGestor} />;
+      return <SatisfacaoGestor satisfacoes={satisfacoesGestor} />;
 
     default:
       return (

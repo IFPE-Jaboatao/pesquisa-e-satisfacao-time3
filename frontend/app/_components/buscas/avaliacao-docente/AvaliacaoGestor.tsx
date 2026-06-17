@@ -7,9 +7,11 @@ import { AvaliacaoDocenteGestor } from "./interface";
 
 interface Props {
     avaliacoes?: {
-        ativas?: AvaliacaoDocenteGestor[],
+        avaliacoes: {
+            ativas?: AvaliacaoDocenteGestor[],
         inativas?: AvaliacaoDocenteGestor[],
         fechadas?: AvaliacaoDocenteGestor[]
+        }
     }
 }
 
@@ -29,7 +31,7 @@ export default function AvaliacaoGestor({ avaliacoes }: Props) {
     ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...avaliacoes?.ativas || [], ...avaliacoes?.inativas || [], ...avaliacoes?.fechadas || []];
+    const todasPesquisas = [...avaliacoes?.avaliacoes.ativas || [], ...avaliacoes?.avaliacoes.inativas || [], ...avaliacoes?.avaliacoes.fechadas || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
