@@ -3,13 +3,37 @@ name: CI Backend
 on:
   pull_request:
     branches: [ main, develop ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-ci.yml'
 
 jobs:
-  e2e-suite:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/backend-ci.yml'
+
+  e2e-suite:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: test_pass
+      DB_NAME: test_db
+      MONGO_URL: mongodb://localhost:27017/test_db
+      JWT_SECRET: my-secret
+  
+    runs-on: ubuntu-latest
+  
     defaults:
       run:
         working-directory: ./backend
@@ -46,34 +70,10 @@ jobs:
         run: npm run build
 
       - name: Run App Test
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_USER: root
-          DB_PASS: test_pass
-          DB_NAME: test_db
-          MONGO_URL: mongodb://localhost:27017/test_db
-          JWT_SECRET: my-secret
         run: npm run test:e2e
 
       - name: Run Auth tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_USER: root
-          DB_PASS: test_pass
-          DB_NAME: test_db
-          MONGO_URL: mongodb://localhost:27017/test_db
-          JWT_SECRET: my-secret
         run: npx jest auth.e2e.spec.ts  
 
       - name: Run Users tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_USER: root
-          DB_PASS: test_pass
-          DB_NAME: test_db
-          MONGO_URL: mongodb://localhost:27017/test_db
-          JWT_SECRET: my-secret
         run: npx jest users.e2e.spec.ts  

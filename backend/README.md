@@ -4,6 +4,7 @@
 
 API desenvolvida com NestJS para criação e gerenciamento de pesquisas. Gestores criam e publicam pesquisas, alunos respondem de forma anônima. O sistema aplica regras para evitar respostas duplicadas e manter a integridade dos dados.
 
+
 ---
 
 ## Arquitetura e Módulos do Sistema
