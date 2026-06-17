@@ -3,13 +3,28 @@ name: CI Frontend
 on:
   pull_request:
     branches: [ develop ]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-ci.yml'
 
 jobs:
-  frontend-lint:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/frontend-ci.yml'
+
+  frontend-lint:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+
+    runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ./frontend
