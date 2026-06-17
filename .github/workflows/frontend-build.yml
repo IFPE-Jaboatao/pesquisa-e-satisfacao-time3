@@ -3,6 +3,9 @@ name: Frontend Build
 on:
   pull_request:
     branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-build.yml'
 
 jobs:
   frontend-build:

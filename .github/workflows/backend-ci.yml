@@ -1,18 +1,11 @@
 name: CI Backend
 
 on:
-  push:
+  pull_request:
+    branches: [ main, develop ]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'
-    branches: 
-      - 'feature/**'
-      - 'fix/**'
-      - 'chore/**'
-      - 'main'
-      - 'test/**'
-  pull_request:
-    branches: [ main ]
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   e2e-suite:
