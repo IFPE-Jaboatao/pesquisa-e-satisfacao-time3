@@ -30,7 +30,7 @@ services:
       retries: 5
       start_period: 40s
     networks:
-      - dokploy-network
+      - pesquisa-satisfacao3-internal
 
   # ==================== MONGODB ====================
   mongo:
@@ -54,7 +54,7 @@ services:
       retries: 8
       start_period: 60s
     networks:
-      - dokploy-network
+      - pesquisa-satisfacao3-internal
 
   # ==================== BACKEND ====================
   backend:
@@ -86,13 +86,18 @@ services:
       MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-${MONGO_INITDB_ROOT_USERNAME:-root}}
       MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-${MONGO_INITDB_ROOT_PASSWORD:-secure_password}}
       MONGO_DATABASE: ${MONGO_DATABASE:-${MONGO_INITDB_DATABASE:-pesquisa_satisfacao}}
+      MONGO_HOST: mongo
+      MONGO_PORT: "27017"
     depends_on:
       mysql:
         condition: service_healthy
       mongo:
         condition: service_healthy
     networks:
-      - dokploy-network
+      pesquisa-satisfacao3-internal: {}
+      dokploy-network:
+        aliases:
+          - pesquisa-satisfacao3-backend
     expose:
       - "3001"
     healthcheck:
@@ -108,7 +113,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        API_BASE_URL: ${API_BASE_URL:-http://backend:3001}
+        API_BASE_URL: ${API_BASE_URL:-http://pesquisa-satisfacao3-backend:3001}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -116,7 +121,7 @@ services:
       NODE_ENV: production
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
-      API_BASE_URL: ${API_BASE_URL:-http://backend:3001}
+      API_BASE_URL: ${API_BASE_URL:-http://pesquisa-satisfacao3-backend:3001}
       JWT_SECRET: ${JWT_SECRET:-changeme}
     depends_on:
       backend:
@@ -130,7 +135,9 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - dokploy-network
+      dokploy-network:
+        aliases:
+          - pesquisa-satisfacao3-frontend
 
   # ==================== ADMIN WEB CLIENT (MySQL) ====================
   adminer:
@@ -141,7 +148,10 @@ services:
     depends_on:
       - mysql
     networks:
-      - dokploy-network
+      pesquisa-satisfacao3-internal: {}
+      dokploy-network:
+        aliases:
+          - pesquisa-satisfacao3-adminer
     expose:
       - "8080"
 
@@ -151,15 +161,22 @@ services:
     restart: unless-stopped
     environment:
       ME_CONFIG_MONGODB_ADMIN: "true"
-      # allow explicit MONGO_URI or fallback to constructed URI using Dokploy vars
-      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL:-${MONGO_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}:${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}@mongo:27017/${MONGO_INITDB_DATABASE:-${MONGO_DATABASE:-pesquisa_satisfacao}}?authSource=admin}}
+      # Use credenciais separadas (evita que @ na senha quebre a URI)
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: "27017"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME:-${MONGO_ROOT_USERNAME:-root}}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-${MONGO_ROOT_PASSWORD:-secure_password}}
       ME_CONFIG_BASICAUTH: "true"
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
     depends_on:
       - mongo
     networks:
-      - dokploy-network
+      pesquisa-satisfacao3-internal: {}
+      dokploy-network:
+        aliases:
+          - pesquisa-satisfacao3-mongo-express
     expose:
       - "8081"
 
@@ -172,5 +189,9 @@ volumes:
     driver: local
 
 networks:
+  # Rede privada deste stack — mysql/mongo ficam isolados de outros projetos
+  pesquisa-satisfacao3-internal:
+    driver: bridge
+  # Rede compartilhada do Dokploy — só serviços expostos ao proxy
   dokploy-network:
     external: true
