@@ -7,9 +7,11 @@ import { PesquisaSatisfacaoGestor } from "./interface";
 
 interface Props {
     satisfacoes?: {
-        ativas?: PesquisaSatisfacaoGestor[],
+        satisfacoes: {
+            ativas?: PesquisaSatisfacaoGestor[],
         inativas?: PesquisaSatisfacaoGestor[],
         fechadas?: PesquisaSatisfacaoGestor[]
+        }
   };
 }
 
@@ -26,7 +28,7 @@ export function SatisfacaoGestor({ satisfacoes }: Props) {
     ]
 
     // junta todas as pesquisas
-    const todasPesquisas = [...satisfacoes?.ativas || [], ...satisfacoes?.inativas || [], ...satisfacoes?.fechadas || []];
+    const todasPesquisas = [...satisfacoes?.satisfacoes.ativas || [], ...satisfacoes?.satisfacoes.inativas || [], ...satisfacoes?.satisfacoes.fechadas || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)

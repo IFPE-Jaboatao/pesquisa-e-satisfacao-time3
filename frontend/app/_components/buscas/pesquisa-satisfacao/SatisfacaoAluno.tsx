@@ -7,7 +7,9 @@ import { PesquisaSatisfacaoAluno } from "./interface";
 
 
 interface Props {
-    satisfacoes?: PesquisaSatisfacaoAluno[]
+    satisfacoes?: {
+        satisfacoes: PesquisaSatisfacaoAluno[]
+    }
 }
 
 export function SatisfacaoAluno({ satisfacoes }: Props) {
@@ -16,7 +18,7 @@ export function SatisfacaoAluno({ satisfacoes }: Props) {
     const [servicoSearch, setServicoSearch] = useState('');
 
     // junta todas as pesquisas
-    const todasPesquisas = [...satisfacoes || []];
+    const todasPesquisas = [...satisfacoes?.satisfacoes || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)

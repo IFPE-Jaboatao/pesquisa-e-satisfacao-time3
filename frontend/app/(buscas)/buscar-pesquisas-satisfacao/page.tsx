@@ -23,7 +23,14 @@ export default async function BuscarPesquisasSatisfacao() {
       <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 justify-center flex flex-col m-2'>
-        <SatisfacaoRenderer data={dashboardData} role={user.role}  />
+        {
+          user.role == UserRole.GESTOR ?
+            <SatisfacaoRenderer satisfacoesGestor={dashboardData} role={user.role}  />
+          : user.role == UserRole.ALUNO ?
+          <SatisfacaoRenderer satisfacoesAluno={dashboardData} role={user.role}  />
+          : 'Perfil desconhecido.'
+        }
+        
       </div>
     </div>
   )

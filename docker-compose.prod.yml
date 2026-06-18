@@ -74,6 +74,7 @@ services:
       DB_NAME: ${MYSQL_DATABASE:-pesquisa_satisfacao}
       DB_LOGGING: ${DB_LOGGING:-false}
       JWT_SECRET: ${JWT_SECRET:-changeme}
+      ANONYM_SALT: ${ANONYM_SALT:-changemetoo}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
@@ -121,6 +122,7 @@ services:
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
       API_BASE_URL: ${API_BASE_URL:-http://pesquisa-satisfacao3-backend:3001}
+      JWT_SECRET: ${JWT_SECRET:-changeme}
     depends_on:
       backend:
         condition: service_healthy
