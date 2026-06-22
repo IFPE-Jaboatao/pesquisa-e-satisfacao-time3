@@ -31,8 +31,9 @@ export class CreateUserDto {
     example: 1, 
     description: 'ID do Campus vinculado. Obrigatório se não for ADMIN.' 
   })
-  @ValidateIf(o => o.tipo !== Role.ADMIN)
+  @ValidateIf(o => o.role !== Role.ADMIN)
   @IsNotEmpty({ message: 'O campusId é obrigatório para usuários que não são administradores.' })
   @IsNumber({}, { message: 'O campusId deve ser um número.' })
+  @IsOptional()
   campusId?: number;
 }
