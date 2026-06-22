@@ -6,7 +6,9 @@ import { MagnifyingGlassCircleIcon } from "@heroicons/react/16/solid";
 import { AvaliacaoDocenteAluno } from "./interface";
 
 interface Props {
-    avaliacoes?: AvaliacaoDocenteAluno[]
+    avaliacoes?: {
+        avaliacoes: AvaliacaoDocenteAluno[]
+    }
 }
 
 export default function AvaliacaoAluno({ avaliacoes }: Props) {
@@ -17,7 +19,7 @@ export default function AvaliacaoAluno({ avaliacoes }: Props) {
     const [turnoSearch, setTurnoSearch] = useState('');
 
     // junta todas as pesquisas
-    const todasPesquisas = [...avaliacoes || []];
+    const todasPesquisas = [...avaliacoes?.avaliacoes || []];
 
     const pesquisasFiltradas = todasPesquisas.filter((p) => {
         // 1. filtro por titulo da pesquisa (input de texto)
