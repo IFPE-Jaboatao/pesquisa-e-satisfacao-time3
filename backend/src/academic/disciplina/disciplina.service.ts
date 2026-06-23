@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Curso } from '../curso/entities/curso.entity';
 import { DisciplinaDeletedEvent } from 'src/shared/events/disciplina-deleted.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Turma } from '../turma/entities/turma.entity';
 
 @Injectable()
 export class DisciplinaService {
@@ -16,6 +17,9 @@ export class DisciplinaService {
 
     @InjectRepository(Curso, 'mysql')
     private cursoRepo: Repository<Curso>,
+
+    @InjectRepository(Turma, 'mysql')
+    private turmaRepo: Repository<Turma>,
 
     private readonly eventEmitter: EventEmitter2
   ) {}
@@ -53,7 +57,7 @@ export class DisciplinaService {
   async findAll(cursoId?: number) {
     const disciplinas = await this.disciplinaRepo.find({
       where: cursoId ? { curso: { id: cursoId } } : {},
-      relations: { curso: true },
+      relations: { curso: { campus: true } },
       withDeleted: false
     });
 
@@ -62,6 +66,9 @@ export class DisciplinaService {
       nome: disciplina.nome,
       codigo: disciplina.codigo,
       cursoId: disciplina.curso?.id,
+      curso: disciplina.curso?.nome,
+      campusId: disciplina.curso?.campus?.id,
+      campus: disciplina.curso?.campus?.nome,
       createdAt: disciplina.createdAt,
       updatedAt: disciplina.updatedAt
     }));
@@ -77,17 +84,32 @@ export class DisciplinaService {
   }
 
   async findOne(id: number) {
-   const disciplina = await this.disciplinaRepo.findOne({where: {id}, relations: {curso: true}});
+   const disciplina = await this.disciplinaRepo.findOne({where: {id}, relations: {curso: { campus: true }}});
 
-    if (!disciplina) throw new NotFoundException("Disciplina não encontrada!")
+    if (!disciplina) throw new NotFoundException("Disciplina não encontrada!");
+
+    // trazer as turmas dessa disciplina
+    const turmas = await this.turmaRepo.find({
+      where: {
+        disciplina: {
+          id: disciplina.id
+        }},
+      relations: {
+        matriculas: true
+      }
+      })
 
     return {
       id: disciplina.id,
       nome: disciplina.nome,
       codigo: disciplina.codigo,
       cursoId: disciplina.curso?.id,
+      cursoNome: disciplina.curso?.nome,
+      campusId: disciplina.curso?.campus?.id,
+      campusNome: disciplina.curso?.campus?.nome,
       createdAt: disciplina.createdAt,
-      updatedAt: disciplina.updatedAt
+      updatedAt: disciplina.updatedAt,
+      turmas: turmas
     };
   }
 

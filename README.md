@@ -1,6 +1,10 @@
 # pesquisa-e-satisfacao
 
-[![CI Backend](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/ci.yml/badge.svg)](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/ci.yml)
+[![Frontend Build](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/frontend-build.yml/badge.svg)](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/frontend-build.yml)
+
+[![CI Backend](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/backend-ci.yml)
+
+[![CI Frontend](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/IFPE-Jaboatao/pesquisa-e-satisfacao-time3/actions/workflows/frontend-ci.yml)
 
 Projeto full-stack com backend em Nest.js e frontend em Flowbite React Next.js (em desenvolvimento).
 

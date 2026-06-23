@@ -1,0 +1,79 @@
+name: CI Backend
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/backend-ci.yml'
+
+  e2e-suite:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: test_pass
+      DB_NAME: test_db
+      MONGO_URL: mongodb://localhost:27017/test_db
+      JWT_SECRET: my-secret
+  
+    runs-on: ubuntu-latest
+  
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_pass
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Check Compilation
+        run: npm run build
+
+      - name: Run App Test
+        run: npm run test:e2e
+
+      - name: Run Auth tests
+        run: npx jest auth.e2e.spec.ts  
+
+      - name: Run Users tests
+        run: npx jest users.e2e.spec.ts  

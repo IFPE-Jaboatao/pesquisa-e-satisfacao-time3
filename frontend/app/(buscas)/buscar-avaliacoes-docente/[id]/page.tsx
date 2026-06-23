@@ -1,4 +1,10 @@
+import { AvaliacaoSingleRenderer } from "@/app/_components/buscas/avaliacao-docente/single/AvaliacaoSingleRenderer";
+import Header from "@/app/_components/Header";
+import { UserRole } from "@/app/types/UserRole.enum";
 import { getPesquisaCompleta } from "@/services/pesquisas.service";
+import { getMe } from "@/services/user.service";
+import { FaceFrownIcon } from "@heroicons/react/16/solid";
+import { redirect } from "next/navigation";
 
 interface AvaliacaoDetalheProps {
   params: Promise<{ id: string }>;
@@ -8,22 +14,37 @@ export default async function Avaliacao({ params }: AvaliacaoDetalheProps) {
 // espera pegar o id no parâmetro da URL
   const { id } = await params;
 
-  // busca os dados da pesquisa específica usando o ID
-  const dadosDaPesquisa = await getPesquisaCompleta({id});
+  const user = await getMe();
 
-  // é bom incluir uma lógica de AvaliacaoRender
-  // pra conseguir redirecionar o gestor para a tela da pesquisa do jeito correto (com headers e tal)
-  // e colocar o aluno pra tela da pesquisa com as perguntas editaveis pra ele responder e tal
+  if (!user) {
+      redirect('/login')
+  }
+
+  if (user.role === UserRole.ADMIN) {
+      redirect('/unauthorized')
+  }
+
+  const dadosDaPesquisa = await getPesquisaCompleta({id});
 
     return (
         <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
-            <p>Dados retornados em dadosDaPesquisa</p>
-            {// pode apagar isso aqui embaixo
-            // é só pra mostrar os valores de dadosDaPesquisa  
+          <Header index={0} nome={user.nome} role={user.role} />
+
+          <div className="flex justify-center flex-row flex-1">
+
+          {!dadosDaPesquisa 
+            ? <div className="rounded p-2 mt-5 self-start flex flex-col items-center h-30 justify-center" style={{backgroundColor: 'var(--white)'}}>
+              <p className="font-semibold" style={{color: 'var(--grayish-color)'}}>A pesquisa não foi encontrada...</p>
+              <FaceFrownIcon className="h-15" style={{color: 'var(--grayish-color)'}} />
+            </div>
+            
+            : user.role == UserRole.ALUNO ? <AvaliacaoSingleRenderer role={user.role} avaliacaoAluno={dadosDaPesquisa} />
+            : <AvaliacaoSingleRenderer role={user.role} avaliacao={dadosDaPesquisa} />
             }
-            <pre className="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-xs overflow-auto max-h-100">
-            {JSON.stringify(dadosDaPesquisa, null, 2)}
-            </pre>
+
+          </div>
+
+
         </div>
     )
 } 

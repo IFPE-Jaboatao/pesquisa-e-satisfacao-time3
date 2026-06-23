@@ -1,9 +1,6 @@
 // src/app/profile/page.js
 import { redirect } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
-import { logoutAction } from '@/actions/auth';
 import Header from '@/app/_components/Header';
-import { Button, Label } from 'flowbite-react';
 import InputLabel from '@/app/_components/InputLabel';
 import LogoutButton from '@/app/_components/LogoutButton';
 import BasicButton from '@/app/_components/BasicButton';
@@ -36,6 +33,8 @@ export default async function Profile() {
                 <InputLabel value={user.email} disabled={true} label='Email' />
 
                 <InputLabel value={user.role.slice(0, 1).toUpperCase() + user.role.slice(1)} disabled={true} label='Perfil' />
+
+                <InputLabel value={user.campus || 'Nenhum'} disabled={true} label='Campus' />
             </div>
 
             <BasicButton title='Alterar Senha' route='/home/profile/alterar-senha' />

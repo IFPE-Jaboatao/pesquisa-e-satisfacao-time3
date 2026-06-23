@@ -44,6 +44,7 @@ import { Auditoria } from './auditoria/entities/auditoria.entity';
 // Controllers e Services Base
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { resolveMongoUrl } from './config/database-url.util';
 
 @Module({
   imports: [
@@ -56,7 +57,7 @@ import { AppService } from './app.service';
     // RECOMENDADO: Ordem da Main para proteger o banco de produção no CI
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['test/.env', '.env.test', '.env'], 
+      envFilePath: ['.env', 'test/.env', '.env.test'], // 👈 Altere para esta ordem
     }),
 
     // 3. CONEXÃO MONGODB
@@ -64,8 +65,7 @@ import { AppService } from './app.service';
       name: 'mongo',
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const url = config.get<string>('MONGO_URL');
-        if (!url) throw new Error('MONGO_URL não definido no .env');
+        const url = resolveMongoUrl(config);
 
         return {
           type: 'mongodb',

@@ -24,7 +24,7 @@ interface Props {
 }
 
 /**
- * Busca o relatório e a estrutura da pesquisa completa utilizando o client do time
+ * Busca a estrutura da pesquisa completa utilizando o client do time
  */
 export async function getPesquisaCompleta({ id }: Props): Promise<RelatorioAvaliacao | null | false> {
   try {
@@ -36,7 +36,8 @@ export async function getPesquisaCompleta({ id }: Props): Promise<RelatorioAvali
     }
 
     if (!res.ok) {
-      console.error(`Falha ao carregar pesquisa: ${res.status}`);
+      const text = await res.json();
+      console.error(`Falha ao carregar pesquisa: ${res.status}, ${text.message}`);
       return null;
     }
 
@@ -46,4 +47,60 @@ export async function getPesquisaCompleta({ id }: Props): Promise<RelatorioAvali
     console.error("Erro de conexão na camada de serviço:", error);
     return null;
   }
+}
+
+/**
+ * Busca o relatório de avaliação do docente
+ */
+export async function getRelatorioAvaliacao({ id }: Props) {
+  const res = await apiFetch(`/surveys/pesquisas/${id}/relatorio/docente`);
+  console.log(`/surveys/pesquisas/${id}/relatorio/docente`);
+  
+  if (res.status === 401) {
+    return false;
+  }
+
+  if (!res.ok) {
+    const text = await res.json();
+    throw new Error(`Falha ao carregar pesquisa: ${res.status}, ${text.message}`);
+  }
+
+  const pesquisa = await res.json();
+  return pesquisa;
+}
+
+/**
+ * Busca serviços cadastrados por campus
+ */
+export async function getServicosPorCampus(): Promise<any[]> {
+  const res = await apiFetch("/institutional/servicos");
+
+  if (res.status === 401) {
+    return []; // Retornar um array vazio evita que o .map() quebre na tela se falhar
+  }
+
+  if (!res.ok) {
+    throw new Error(`Falha ao carregar serviços: ${res.status}`);
+  }
+
+  const servicos = await res.json();
+  return servicos || [];
+}
+
+/**
+ * Busca setores com serviços baseados no ID do campus
+ */
+export async function getSetoresComServicosPorCampus(campusId: number): Promise<any[]> {
+  const res = await apiFetch(`/institutional/setores?campusId=${campusId}`);
+
+  if (res.status === 401) {
+    return [];
+  }
+
+  if (!res.ok) {
+    throw new Error(`Falha ao carregar setores do campus: ${res.status}`);
+  }
+
+  const setores = await res.json();
+  return setores || [];
 }

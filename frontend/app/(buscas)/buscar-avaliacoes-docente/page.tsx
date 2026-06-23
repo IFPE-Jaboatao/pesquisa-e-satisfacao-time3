@@ -1,4 +1,4 @@
-import { AvaliacaoRenderer } from "@/app/_components/buscas/AvaliacaoRenderer";
+import { AvaliacaoRenderer } from "@/app/_components/buscas/avaliacao-docente/AvaliacaoRenderer";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDashboard } from "@/services/dashboard.service";
@@ -23,7 +23,11 @@ export default async function BuscarAvaliacoesDocente() {
       <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 justify-center flex flex-col m-2'>
-        <AvaliacaoRenderer data={dashboardData} role={user.role}  />
+      {user.role == UserRole.DOCENTE ? <AvaliacaoRenderer role={user.role} avaliacoesDocente={dashboardData} />
+      : user.role == UserRole.GESTOR ? <AvaliacaoRenderer role={user.role} avaliacoesGestor={dashboardData} />
+      : user.role == UserRole.ALUNO ? <AvaliacaoRenderer role={user.role} avaliacoesAluno={dashboardData} />  
+      : 'Perfil desconhecido.'
+        }
       </div>
     </div>
   )

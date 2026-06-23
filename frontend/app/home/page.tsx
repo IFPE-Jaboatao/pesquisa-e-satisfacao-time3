@@ -1,11 +1,9 @@
-// src/app/profile/page.js
 import { redirect } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
 import Header from '../_components/Header';
-import LogoutButton from '../_components/LogoutButton';
 import { getMe } from '@/services/user.service';
 import { getDashboard } from '@/services/dashboard.service';
 import { DashboardRenderer } from '../_components/dashboard/DashboardRendered';
+import { UserRole } from '../types/UserRole.enum';
 
 export default async function HomePage() {
   const user = await getMe();    
@@ -21,7 +19,12 @@ export default async function HomePage() {
       <Header nome={user.nome} role={user.role} index={1} />
 
       <div className='flex-1 justify-center flex flex-col'>
-        <DashboardRenderer role={user.role} data={dashboardData} />
+        {user.role == UserRole.ADMIN ? <DashboardRenderer role={user.role} dashAdmin={dashboardData} />
+        : user.role == UserRole.GESTOR ? <DashboardRenderer role={user.role} dashGestor={dashboardData} />
+        : user.role == UserRole.ALUNO ? <DashboardRenderer role={user.role} dashAluno={dashboardData} />
+        : user.role == UserRole.DOCENTE ? <DashboardRenderer role={user.role} dashDocente={dashboardData} />   
+        : 'Perfil não conhecido.'
+      }
 
       </div>
     </div>

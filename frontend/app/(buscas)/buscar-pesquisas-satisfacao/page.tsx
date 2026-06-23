@@ -1,9 +1,8 @@
-import { SatisfacaoRenderer } from "@/app/_components/buscas/SatisfacaoRenderer";
+import { SatisfacaoRenderer } from "@/app/_components/buscas/pesquisa-satisfacao/SatisfacaoRenderer";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getDashboard } from "@/services/dashboard.service";
 import { getMe } from "@/services/user.service";
-import { Roboto_Flex } from "next/font/google";
 import { redirect } from "next/navigation";
 
 export default async function BuscarPesquisasSatisfacao() {
@@ -24,7 +23,14 @@ export default async function BuscarPesquisasSatisfacao() {
       <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 justify-center flex flex-col m-2'>
-        <SatisfacaoRenderer data={dashboardData} role={user.role}  />
+        {
+          user.role == UserRole.GESTOR ?
+            <SatisfacaoRenderer satisfacoesGestor={dashboardData} role={user.role}  />
+          : user.role == UserRole.ALUNO ?
+          <SatisfacaoRenderer satisfacoesAluno={dashboardData} role={user.role}  />
+          : 'Perfil desconhecido.'
+        }
+        
       </div>
     </div>
   )

@@ -22,7 +22,7 @@ export class SetorController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN,Role.GESTOR, Role.DOCENTE) // Permite que gestores e docentes listem setores, mas não acessem detalhes específicos
   findAll(@Query('campusId') campusId?: string) {
     return this.setorService.findAll(campusId ? +campusId : undefined);
   }
@@ -32,6 +32,13 @@ export class SetorController {
   @Roles(Role.ADMIN)
   findOne(@Param('id', ParseIntPipe) id: string) {
     return this.setorService.findOne(+id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get(':id/full')
+  @Roles(Role.ADMIN)
+  findOneFull(@Param('id', ParseIntPipe) id: string) {
+    return this.setorService.findOneFull(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
