@@ -25,7 +25,6 @@ export default async function HomePage() {
         : user.role == UserRole.DOCENTE ? <DashboardRenderer role={user.role} dashDocente={dashboardData} />   
         : 'Perfil não conhecido.'
       }
-
       </div>
     </div>
   );
