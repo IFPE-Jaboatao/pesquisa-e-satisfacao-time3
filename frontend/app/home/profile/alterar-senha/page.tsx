@@ -11,7 +11,7 @@ export default async function AlterarSenha() {
     }
 
     return (
-    <div>
+    <div style={{backgroundImage: "url('/accounts-profile-mobile.png')", backgroundRepeat: 'no-repeat', backgroundSize: 400}}>
         <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 flex-col items-center flex'>

@@ -14,7 +14,7 @@ export default async function Profile() {
     }
 
   return (
-    <div>
+    <div style={{backgroundImage: "url('/accounts-profile-mobile.png')", backgroundRepeat: 'no-repeat', backgroundSize: 500}}>
         <Header nome={user.nome} role={user.role} index={0} />
 
       <div className='flex-1 flex-col items-center flex'>
@@ -44,7 +44,6 @@ export default async function Profile() {
             <LogoutButton />
 
           </div>
-      
       </div>
     </div>
   );
