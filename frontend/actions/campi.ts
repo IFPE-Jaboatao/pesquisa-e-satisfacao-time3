@@ -1,6 +1,6 @@
 'use server';
 
-import { apiDelete, apiPatch, apiFetch } from '@/lib/api';
+import { apiDelete, apiPatch, apiFetch, apiPost } from '@/lib/api';
 
 interface ActionState {
     error: string,
@@ -9,6 +9,21 @@ interface ActionState {
 }
 
 // --- Funções existentes ---
+
+export async function createCampusAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const nome = formData.get('nome')?.toString();
+    const cidade = formData.get('cidade')?.toString();
+
+    const res = await apiPost(`/institutional/campi/`, { nome, cidade })
+
+    if (!res.ok) {
+        const text = await res.json();
+        
+        return { error: text.message, success: false, message: ''};
+    }
+
+    return { message: res.statusText, error: '', success: true}
+}
 
 export async function updateCampusAction(campusId: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
     const nome = formData.get('nome')?.toString();

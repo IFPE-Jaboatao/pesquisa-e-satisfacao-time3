@@ -1,12 +1,14 @@
 interface Props {
-    title: string
+    title: string,
+    color?: string,
+    bolder?: boolean
 }
 
-export default function BuscaTitulo({title}: Props) {
+export default function BuscaTitulo({title, color, bolder}: Props) {
     return (
         <p
-        className="font-semibold text-2xl text-center"
-        style={{ color: 'var(--dark-color)'}}
+        className={`font-${bolder ? 'bold' : 'semibold'} text-2xl text-center`}
+        style={{ color: `var(${color ? color : '--dark-color'})`}}
         >{title}</p>
     )
 }

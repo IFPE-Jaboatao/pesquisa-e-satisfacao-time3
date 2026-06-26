@@ -1,5 +1,5 @@
-import Link from "next/link"
 import BasicButton from "../../BasicButton"
+import { useRouter } from "next/navigation"
 
 export interface Campus {
     id: number,
@@ -160,11 +160,12 @@ export function LabelValueItalic({label, value}: {label: string, value?:string})
 }
 
 export function LabelValueItalicLink({label, value, href}: {label: string, value:string, href: string}) {
+    const router = useRouter();
     return (
-        <Link href={href} className="flex flex-row gap-2 hover:text-cyan-600 rounded max-w-max">
+        <div onClick={() => router.push(href)} className="flex flex-row gap-2 hover:text-cyan-600 cursor-pointer rounded max-w-max">
             <p className="italic">{label}:</p>
             <p>{value}</p>
-        </Link>
+        </div>
     )
 }
 
