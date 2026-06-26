@@ -29,7 +29,7 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
     } else if (formData.campusId === "" && campiIniciais.length > 0) {
       setFormData((prev) => ({ ...prev, campusId: String(campiIniciais[0].id) }));
     }
-  }, [formData.role, campiIniciais]);
+  }, [formData.role, formData.campusId, campiIniciais]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
