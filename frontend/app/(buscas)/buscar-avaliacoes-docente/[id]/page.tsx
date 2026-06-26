@@ -11,7 +11,7 @@ interface AvaliacaoDetalheProps {
 }
 
 export default async function Avaliacao({ params }: AvaliacaoDetalheProps) {
-// espera pegar o id no parâmetro da URL
+  // espera pegar o id no parâmetro da URL
   const { id } = await params;
 
   const user = await getMe();
@@ -47,4 +47,4 @@ export default async function Avaliacao({ params }: AvaliacaoDetalheProps) {
 
         </div>
     )
-} 
+}
