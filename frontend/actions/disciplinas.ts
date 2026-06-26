@@ -1,11 +1,28 @@
 'use server';
 
-import { apiDelete, apiPatch } from '@/lib/api';
+import { apiDelete, apiPatch, apiPost } from '@/lib/api';
 
 interface ActionState {
     error: string,
     message: string,
     success: boolean
+}
+
+export async function createDisciplinaAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const nome = formData.get('nome')?.toString();
+    const codigo = formData.get('codigo')?.toString();
+    const cursoId = Number(formData.get('cursoId'));
+
+    const res = await apiPost(`/academic/disciplinas`, { nome, codigo, cursoId })
+
+    if (!res.ok) {
+        const text = await res.json();
+        
+        return { error: text.message, success: false, message: ''};
+    }
+
+    return { message: res.statusText, error: '', success: true}
+
 }
 
 export async function updateDisciplinaAction(disciplinaId: number,prevState: ActionState, formData: FormData): Promise<ActionState> {

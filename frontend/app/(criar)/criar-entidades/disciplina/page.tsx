@@ -3,10 +3,13 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import CreateCampusForm from "@/app/_components/criar/entidades/CreateCampusForm";
+import CreateSetorForm from "@/app/_components/criar/entidades/CreateSetorForm";
+import { getCampi } from "@/services/campus.service";
+import CreateDisciplinaForm from "@/app/_components/criar/entidades/CreateDisciplinaForm";
+import { getCursos } from "@/services/curso.service";
 
 
-export default async function Campus() {
+export default async function Disciplina() {
     const user = await getMe();
 
     if (!user) {
@@ -17,11 +20,13 @@ export default async function Campus() {
         redirect('/unauthorized')
     }
 
+    const cursos = await getCursos();
+
     return (
         <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
             <Header index={0} nome={user.nome} role={user.role} />
             <div className="m-5 flex justify-center flex-row flex-1">
-                <CreateCampusForm />
+                <CreateDisciplinaForm cursos={cursos} />
             </div>
         </div>
     )
