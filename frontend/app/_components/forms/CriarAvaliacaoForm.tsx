@@ -31,6 +31,13 @@ export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos }: CriarA
     });
   };
 
+  const handleCancelar = () => {
+    setCursoId('');
+    setPeriodoId('');
+    setDataInicio('');
+    setDataTermino('');
+  };
+
   const inputStyle = "border rounded p-2 text-sm w-full outline-none focus:ring-1 transition-all border-(--grayish-color) focus:border-[#2E7D32]";
   const labelStyle = "block text-sm font-medium mb-1";
 
@@ -43,7 +50,6 @@ export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos }: CriarA
           <label className={labelStyle}>Curso</label>
           <select value={cursoId} onChange={(e) => setCursoId(e.target.value)} className={inputStyle} required>
             <option value="">Selecione o curso</option>
-            {/* Blindagem adicionada para evitar TypeError caso cursos seja undefined/null */}
             {Array.isArray(cursos) && cursos.map((c) => (
               <option key={c.id} value={c.id}>{c.nome}</option>
             ))}
@@ -67,7 +73,7 @@ export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos }: CriarA
       </div>
       
       <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
-        <button type="button" className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
+        <button type="button" onClick={handleCancelar} className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
         <button 
           type="submit" 
           disabled={isLoading}

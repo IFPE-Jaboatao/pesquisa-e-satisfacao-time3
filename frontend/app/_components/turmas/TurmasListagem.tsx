@@ -14,9 +14,20 @@ interface Turma {
   turno: string;
 }
 
+interface Criterio {
+  pergunta?: string;
+  descricao?: string;
+  tipo: 'ABERTA' | 'ESCALA';
+}
+
+interface Curso {
+  id: number;
+  nome: string;
+}
+
 interface TurmasListagemProps {
-  initialCriterios: any[];
-  initialCursos: any[];
+  initialCriterios: Criterio[];
+  initialCursos: Curso[];
 }
 
 export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListagemProps) {
@@ -25,8 +36,8 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
   const [error, setError] = useState<string | null>(null);
   const [formParams, setFormParams] = useState<BuscaParams | null>(null);
   
-  const [criterios] = useState<any[]>(initialCriterios);
-  const [cursos] = useState<any[]>(initialCursos);
+  const [criterios] = useState<Criterio[]>(initialCriterios);
+  const [cursos] = useState<Curso[]>(initialCursos);
   const [showPreview, setShowPreview] = useState(false);
 
   const handleBuscarTurmas = async (params: BuscaParams) => {
@@ -36,8 +47,8 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
       setFormParams(params);
       const data = await buscarTurmasAction(params);
       setTurmas(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar turmas.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar turmas.');
     } finally {
       setIsLoading(false);
     }
@@ -51,15 +62,15 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
     setIsLoading(true);
     try {
       const payload = {
-        ...formParams,
+        ...formParams!,
         turmasIds: turmas.map(t => t.id)
       };
       await criarAvaliacaoAction(payload);
       alert("Avaliação criada com sucesso!");
       setShowPreview(false);
       setTurmas([]);
-    } catch (err: any) {
-      setError(err.message || "Erro ao salvar avaliação.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar avaliação.");
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +124,7 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
         <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg">
           <h2 className="text-xl font-bold mb-4 text-gray-800">Visualização da Avaliação Final</h2>
           <div className="space-y-6 mb-6">
-            {criterios.map((c: any, index: number) => (
+            {criterios.map((c, index) => (
               <div key={index} className="p-4 bg-white rounded shadow-sm border border-gray-100">
                 <p className="font-medium text-gray-800 mb-3">{c.pergunta || c.descricao}</p>
                 
