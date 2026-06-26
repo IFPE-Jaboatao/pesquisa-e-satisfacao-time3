@@ -27,7 +27,7 @@ export default function CreateDisciplinaForm({ cursos }: Props) {
                 {
                     id: p.campusId,
                     nome: typeof p.campus === "object"
-                        ? p.campus.nome || ""
+                        ? p.campus || ""
                         : String(p.campus ?? "")
                 }
             ])
