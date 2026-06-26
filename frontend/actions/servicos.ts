@@ -1,6 +1,6 @@
 'use server';
 
-import { apiDelete, apiPatch } from '@/lib/api';
+import { apiDelete, apiPatch, apiPost } from '@/lib/api';
 
 interface ActionState {
     error: string,

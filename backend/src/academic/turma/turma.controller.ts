@@ -23,7 +23,7 @@ export class TurmaController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.GESTOR) // acesso permitido para ADMIN e GESTOR
   findAll(@Query('disciplinaId') disciplinaId?: string) {
     return this.turmaService.findAll(disciplinaId ? +disciplinaId : undefined);
   }

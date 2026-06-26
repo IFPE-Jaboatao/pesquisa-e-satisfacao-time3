@@ -11,6 +11,8 @@ interface HeaderProps {
 }
 
 export default function Header({ role, nome, index }: HeaderProps) {
+    const roleLower = role.toLowerCase();
+
     return (
         <Navbar style={{ backgroundColor: 'var(--color-primary)' }}>
             <div className="flex flex-row flex-5 items-center">
@@ -33,7 +35,7 @@ export default function Header({ role, nome, index }: HeaderProps) {
                         >
                             Home
                         </Link>
-                        {role === 'admin' ? (
+                        {(roleLower === 'admin' || roleLower === 'gestor') ? (
                             <Link 
                                 href='/auditoria' 
                                 className="mr-5 font-semibold mt-1 p-0.5 pl-2 pr-2 self-baseline rounded" 
@@ -41,7 +43,7 @@ export default function Header({ role, nome, index }: HeaderProps) {
                             >
                                 Auditoria
                             </Link>
-                        ) : ''}
+                        ) : null}
                     </div>
                 </div>
             </div>

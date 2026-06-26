@@ -79,7 +79,7 @@ export function CursoCard({ curso }: CursoObj) {
 
             <div className="flex flex-col justify-between">
                 <div className="flex flex-col">
-                    <LabelValueItalic label="Campus" value={curso?.campus?.nome} />
+                    <LabelValueItalic label="Campus" value={curso?.campus} />
                 </div>
 
                 <div className="flex flex-row max-lg:flex-col max-sm:flex-row justify-between mt-1">
@@ -101,6 +101,7 @@ export function CursoCard({ curso }: CursoObj) {
 }
 
 export function DisciplinaCard({ disciplina }: DisciplinaObj) {
+    console.log(disciplina)
     return (
         <div
         className="p-3 flex-col flex gap-2"
@@ -110,7 +111,7 @@ export function DisciplinaCard({ disciplina }: DisciplinaObj) {
             <div className="flex flex-col justify-between">
                 <div className="flex flex-col">
                     
-                    <LabelValueItalic label="Curso" value={disciplina.curso?.nome} />
+                    <LabelValueItalic label="Curso" value={disciplina.curso} />
 
                     <LabelValueItalic label="Campus" value={disciplina.campus} />
 
