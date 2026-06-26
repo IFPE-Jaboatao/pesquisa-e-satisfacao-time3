@@ -6,11 +6,17 @@ import { useRouter } from "next/navigation";
 import { Setor, Campus } from "../interfaces"; 
 import Header from "@/app/_components/Header"; 
 
+interface ActionState {
+  error: string;
+  success: boolean;
+  message: string;
+}
+
 interface Props {
   campi: Campus[];
   setores: Setor[];
-  // Tipagem definida para a action do Next.js
-  action: (prevState: any, formData: FormData) => Promise<any>;
+  // Tipagem corrigida para evitar uso de 'any'
+  action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
   userRole: string;
   userName: string;
   userId: string | number;

@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation"; // Importação necessária
 import { Campus } from "../../interfaces"; 
 import Header from "../../../../Header"; 
 
+interface ActionState {
+  error: string;
+  success: boolean;
+  message: string;
+}
+
 interface Props {
   campi: Campus[];
-  action: (prevState: any, formData: FormData) => Promise<any>;
+  action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
   userRole: string;
   userName: string;
   userId: string | number;
