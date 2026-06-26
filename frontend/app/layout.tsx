@@ -38,6 +38,7 @@ export default function RootLayout({
         <ThemeModeScript />
       </head>
       <body
+        style={{backgroundColor: 'var(--light-color)'}}
         className={`antialiased`}
       >
         <div className="flex min-h-screen flex-col">
