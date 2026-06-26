@@ -2,7 +2,7 @@
 
 import { Button, Label } from "flowbite-react";
 import { redirect } from "next/navigation";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { createPeriodoAction } from "@/actions/periodos";
 
 export default function CreatePeriodoForm() {
