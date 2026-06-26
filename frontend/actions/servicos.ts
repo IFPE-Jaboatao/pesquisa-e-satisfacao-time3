@@ -8,22 +8,6 @@ interface ActionState {
     success: boolean
 }
 
-export async function createServicoAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
-    const nome = formData.get('nome')?.toString();
-    const setorId = Number(formData.get('setorId'));
-
-    const res = await apiPost(`/institutional/servicos`, { nome, setorId })
-
-    if (!res.ok) {
-        const text = await res.json();
-        
-        return { error: text.message, success: false, message: ''};
-    }
-
-    return { message: res.statusText, error: '', success: true}
-
-}
-
 export async function updateServicoAction(servicoId: number,prevState: ActionState, formData: FormData): Promise<ActionState> {
     const nome = formData.get('nome')?.toString();
     const setorId = Number(formData.get('setorId'));

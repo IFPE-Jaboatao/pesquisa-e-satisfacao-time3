@@ -3,8 +3,7 @@
 import { Button, Label } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { useActionState, useState } from "react";
-import { Campus, Curso } from "../../buscas/entidades/interfaces";
-import { createSetorAction } from "@/actions/setores";
+import { Curso } from "../../buscas/entidades/interfaces";
 import { createDisciplinaAction } from "@/actions/disciplinas";
 
 interface Props {

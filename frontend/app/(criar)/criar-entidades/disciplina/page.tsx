@@ -3,8 +3,6 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import CreateSetorForm from "@/app/_components/criar/entidades/CreateSetorForm";
-import { getCampi } from "@/services/campus.service";
 import CreateDisciplinaForm from "@/app/_components/criar/entidades/CreateDisciplinaForm";
 import { getCursos } from "@/services/curso.service";
 

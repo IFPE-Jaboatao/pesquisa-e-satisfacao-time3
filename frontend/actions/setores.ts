@@ -8,22 +8,6 @@ interface ActionState {
     success: boolean
 }
 
-export async function createSetorAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
-    const nome = formData.get('nome')?.toString();
-    const campusId = Number(formData.get('campusId'));
-
-    const res = await apiPost(`/institutional/setores/`, { nome, campusId })
-
-    if (!res.ok) {
-        const text = await res.json();
-        
-        return { error: text.message, success: false, message: ''};
-    }
-
-    return { message: res.statusText, error: '', success: true}
-
-}
-
 export async function updateSetorAction(setorId: number,prevState: ActionState, formData: FormData): Promise<ActionState> {
     const nome = formData.get('nome')?.toString();
     const campusId = Number(formData.get('campusId'));
