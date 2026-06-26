@@ -1,16 +1,48 @@
-import { Matricula, Turma } from "../../interfaces"
+import { Matricula } from "../../interfaces"
 import { LabelValueItalic, LabelValueItalicLink } from "../../InstitutionalCards"
 import BackButton from "../../BackButton"
 import { backgroundContainerCard, Card } from "../institutional/CampusPage"
 
+export interface TurmaNative {
+        campus: {
+            id: number,
+            nome: string,
+            cidade: string
+        },
+        id: number,
+        turno: string,
+        disciplina: {
+            id: number,
+            nome: string,
+            codigo: string,
+            curso: {
+                id: number,
+                nome: string,
+            }
+        },
+        docente: {
+            id: number,
+            nome: string,
+            matricula: string,
+            email: string
+        },
+        periodo: {
+            id: number,
+            ano: number,
+            semestre: number,
+        },
+        createdAt: string,
+        updatedAt: string,
+        matriculas: Matricula[]
+    }
+
 interface Props {
-    turma: Turma
+    turma: TurmaNative
 }
 
 export default function TurmaPage({
     turma
     }: Props) {
-
         return(
             <div className="pb-10 flex-1 flex flex-col">
                 <p className="text-sm font-bold">[Turma]</p>
@@ -28,8 +60,8 @@ export default function TurmaPage({
                     <LabelValueItalicLink href={`/buscar-entidades/periodos/${turma.periodo?.id}`} label="Período" value={`${turma.periodo?.ano}.${turma.periodo?.semestre} `} />
                     
                     <hr className="mt-2 mb-2"></hr>
-                    <LabelValueItalicLink href={`/buscar-entidades/cursos/${turma.disciplina?.curso?.nome}`} label="Curso" value={turma.disciplina?.curso?.nome || ''} />
-                    <LabelValueItalicLink href={`/buscar-entidades/campi/${turma.campus?.nome}`} label="Campus" value={turma.campus?.nome || ''} />
+                    <LabelValueItalicLink href={`/buscar-entidades/cursos/${turma.disciplina.curso.id}`} label="Curso" value={turma.disciplina.curso.nome || ''} />
+                    <LabelValueItalicLink href={`/buscar-entidades/campi/${turma.campus?.id}`} label="Campus" value={turma.campus?.nome || ''} />
                     <LabelValueItalic label="Criada em" value={turma.createdAt ? new Date(turma.createdAt).toLocaleString('pt-br') : ''} />
                     <LabelValueItalic label="Atualizada em" value={turma.updatedAt ? new Date(turma.updatedAt).toLocaleString('pt-br') : ''} />
                 </div>

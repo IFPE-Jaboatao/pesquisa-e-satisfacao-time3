@@ -102,7 +102,7 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
             type="button" 
             color="gray" 
             className="w-40" 
-            onClick={() => router.back()}
+            onClick={() => router.push('/home')}
           >
             Cancelar
           </Button>

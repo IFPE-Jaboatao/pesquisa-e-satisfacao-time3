@@ -1,14 +1,13 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Matricula } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
 import { deleteMatriculaAction } from "@/actions/matriculas";
-import MatriculaPage from "../pages/academic/MatriculaPage";
+import MatriculaPage, { MatriculaNative } from "../pages/academic/MatriculaPage";
 
 interface Props {
-    matricula: Matricula
+    matricula: MatriculaNative
 }
 
 export default function MatriculaRenderer({
