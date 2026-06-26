@@ -1,7 +1,6 @@
 import { apiFetch } from "@/lib/api";
 
 export async function getCursoFull({id}: {id: number}) {
-  
   const response = await apiFetch(`/academic/cursos/${id}`);
 
   if (!response.ok) {
@@ -17,7 +16,6 @@ export async function getCursoFull({id}: {id: number}) {
 }
 
 export async function getCursosByCampus({campusId}: {campusId: number}) {
-  
   const response = await apiFetch(`/academic/cursos?campusId=${campusId}`);
 
   if (!response.ok) {
@@ -30,4 +28,28 @@ export async function getCursosByCampus({campusId}: {campusId: number}) {
   }
 
   return response.json();
+}
+
+
+export async function getCursos() {
+  const response = await apiFetch(`/academic/cursos`);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+        return {error: 'Erro ao procurar cursos.'}
+    }
+    const text = await response.json();
+
+    return {error: `Erro ${response.status}: ${text.message}`}
+  }
+
+  return response.json();
+}
+
+/**
+ * Função para buscar cursos do campus.
+ * Adaptada para usar a rota existente com campusId.
+ */
+export async function getCursosPorCampusService(campusId: number) {
+  return getCursosByCampus({ campusId });
 }

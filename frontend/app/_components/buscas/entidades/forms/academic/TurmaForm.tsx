@@ -4,11 +4,12 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Disciplina, Periodo, Turma, User } from "../../interfaces";
+import { Disciplina, Periodo, User } from "../../interfaces";
 import { updateTurmaAction } from "@/actions/turmas";
+import { TurmaNative } from "../../pages/academic/TurmaPage";
 
 interface Props {
-    turma: Turma,
+    turma: TurmaNative,
     disciplinas: Disciplina[],
     periodos: Periodo[],
     docentes: User[]

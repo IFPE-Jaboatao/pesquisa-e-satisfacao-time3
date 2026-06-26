@@ -22,7 +22,7 @@ export class CampusController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.GESTOR) // Permite que gestores também acessem a lista de campi
   findAll() {
     return this.campusService.findAll();
   }

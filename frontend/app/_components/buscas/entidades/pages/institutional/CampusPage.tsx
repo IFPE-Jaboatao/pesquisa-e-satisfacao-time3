@@ -1,7 +1,7 @@
 import { Campus } from "../../interfaces"
 import { LabelValueItalic } from "../../InstitutionalCards"
-import Link from "next/link"
 import BackButton from "../../BackButton"
+import { useRouter } from "next/navigation"
 
 interface Props {
     campus: Campus
@@ -85,13 +85,14 @@ export default function CampusPage({
 export const backgroundContainerCard = 'm-1 grid grid-cols-4 gap-1 border p-1 max-sm:grid-cols-2';
 
 export function Card({title, label, value, string, italic, href}: {title:string, label:string, value?:number, string?: string, italic?: boolean, href: string}) {
+    const router = useRouter();
     return (
-        <Link
-        href={href}
+        <div
+        onClick={() => router.push(href)}
         style={{backgroundColor: 'var(--white)'}}
-        className={`p-1`}>
+        className={`p-1 cursor-pointer`}>
             <p className="font-semibold">{title}</p>
             <p className={`${italic ? 'italic' : ''}`}>{label}: {value || string || '0'}</p>
-        </Link>
+        </div>
     )
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Header from "@/app/_components/Header";
-import CriarPesquisa from "@/app/_components/forms/CriarPesquisa";
+import CriarPesquisa from "@/app/_components/forms/CriarPesquisaForm";
 import { getMe } from "@/lib/session";
 // ADAPTAÇÃO: Importada a função 'getServicosPorCampus' para buscar os serviços órfãos
 import { getSetoresComServicosPorCampus, getServicosPorCampus } from "@/services/pesquisas.service";

@@ -1,15 +1,15 @@
 "use client";
 import { Button } from "flowbite-react"
-import { Disciplina, Periodo, Turma, User } from "../interfaces";
+import { Disciplina, Periodo, User } from "../interfaces";
 import { useEffect, useState } from "react";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
 import { deleteTurmaAction } from "@/actions/turmas";
-import TurmaPage from "../pages/academic/TurmaPage";
+import TurmaPage, { TurmaNative } from "../pages/academic/TurmaPage";
 import TurmaForm from "../forms/academic/TurmaForm";
 
 interface Props {
-    turma: Turma,
+    turma: TurmaNative,
     disciplinas: Disciplina[],
     periodos: Periodo[],
     docentes: User[]
