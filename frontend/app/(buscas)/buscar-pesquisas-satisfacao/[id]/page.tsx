@@ -61,6 +61,7 @@ export default async function Pesquisa({ params }: PesquisaDetalheProps) {
     });
   });
 
+  // CORREÇÃO: Ajustado de 'regulars' para 'regulares' para bater com a variável declarada acima
   const totalVotos = excelentes + regulares + ruins || 1;
   
   // Cria variáveis locais compatíveis com a sua estrutura atual
@@ -70,9 +71,8 @@ export default async function Pesquisa({ params }: PesquisaDetalheProps) {
   const mediaAprovacao = Math.round(((excelentes + regulares) / totalVotos) * 100);
   // =========================================================================
 
-  // LÓGICA DE RENDEREZAR: Aqui definimos se exibe a visão do Gestor ou do Aluno
-  // Para testar a visão do aluno, você pode mudar para true temporariamente
-  const ehVisaoAluno = false; 
+  // CORREÇÃO: Modificado temporariamente para true para permitir a visualização do formulário do Aluno
+  const ehVisaoAluno = true; 
 
   if (ehVisaoAluno) {
     // =========================================================================
