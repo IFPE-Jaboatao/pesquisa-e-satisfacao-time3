@@ -8,7 +8,7 @@ interface ActionState {
     success: boolean
 }
 
-// --- Funções existentes da sua equipe ---
+// --- Funções existentes ---
 
 export async function updateCampusAction(campusId: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
     const nome = formData.get('nome')?.toString();
@@ -22,22 +22,20 @@ export async function updateCampusAction(campusId: number, prevState: ActionStat
         return { error: text.message, success: false, message: ''};
     }
 
-    return { message: res.statusText, error: '', success: true}
+    return { message: res.statusText || "Atualizado com sucesso", error: '', success: true}
 }
 
-export async function deleteCampusAction({id}: {id: number}) {
+export async function deleteCampusAction({id}: {id: number}): Promise<ActionState> {
     const res = await apiDelete(`/institutional/campi/${id}`)
 
     if (!res.ok) {
-        // Corrigido: estrutura completa de ActionState
         return { error: `Erro: ${res.statusText}`, success: false, message: '' };
     }
     
-    // Corrigido: estrutura completa de ActionState
-    return { message: res.statusText, error: '', success: true };
+    return { message: res.statusText || "Deletado com sucesso", error: '', success: true };
 }
 
-// --- Nova função adicionada para o formulário de criação ---
+// --- Nova função de listagem otimizada ---
 
 /**
  * Busca a lista de todos os campi para popular o select dinâmico
@@ -47,12 +45,13 @@ export async function getCampiAction() {
         const res = await apiFetch(`/institutional/campi`);
         
         if (!res.ok) {
-            throw new Error("Erro ao buscar a lista de campi.");
+            console.error("Erro ao buscar a lista de campi:", res.statusText);
+            return []; // Retorna array vazio para não quebrar o .map() no form
         }
 
         return await res.json();
     } catch (error) {
-        console.error("Erro na getCampiAction:", error);
-        throw error;
+        console.error("Erro na conexão com getCampiAction:", error);
+        return []; // Retorna array vazio em caso de erro de rede
     }
 }
