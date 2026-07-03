@@ -1,20 +1,24 @@
 import Link from 'next/link';
 import { 
-  BuildingLibraryIcon, 
   AcademicCapIcon, 
   UserGroupIcon, 
   BookOpenIcon,
+  Squares2X2Icon,
+  WrenchScrewdriverIcon,
+  CalendarDaysIcon,
+  IdentificationIcon,
+  BuildingOffice2Icon
 } from '@heroicons/react/24/outline';
 
 const entidades = [
-  { name: 'Campus', href: '/criar-entidades/campus', icon: BuildingLibraryIcon },
-  { name: 'Setor', href: '/criar-entidades/setor', icon: BuildingLibraryIcon },
-  { name: 'Serviço', href: '/criar-entidades/servico', icon: BuildingLibraryIcon },
-  { name: 'Período', href: '/criar-entidades/periodo', icon: BookOpenIcon },
+  { name: 'Campus', href: '/criar-entidades/campus', icon: BuildingOffice2Icon },
+  { name: 'Setor', href: '/criar-entidades/setor', icon: Squares2X2Icon },
+  { name: 'Serviço', href: '/criar-entidades/servico', icon: WrenchScrewdriverIcon },
+  { name: 'Período', href: '/criar-entidades/periodo', icon: CalendarDaysIcon },
   { name: 'Curso', href: '/criar-entidades/curso', icon: AcademicCapIcon },
   { name: 'Disciplina', href: '/criar-entidades/disciplina', icon: BookOpenIcon },
   { name: 'Turma', href: '/criar-entidades/turma', icon: UserGroupIcon },
-  { name: 'Matrícula', href: '/criar-entidades/matricula', icon: UserGroupIcon },
+  { name: 'Matrícula', href: '/criar-entidades/matricula', icon: IdentificationIcon },
 ];
 
 export default function EntidadesMenu() {

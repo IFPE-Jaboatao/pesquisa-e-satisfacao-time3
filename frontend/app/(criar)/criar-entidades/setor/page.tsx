@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/session';
 import { getCampiAction } from '@/actions/campi';
 import { createSetorAction } from '@/actions/setores';
-import CreateSetorForm from "../../../_components/buscas/entidades/forms/institutional/CreateSetorForm";
+import CreateSetorForm from "../../../_components/criar/entidades/CreateSetorForm";
+import Header from '@/app/_components/Header';
 
 export default async function Page() {
   // 1. Guardião: Autenticação e RBAC
@@ -19,12 +20,16 @@ export default async function Page() {
   // 3. Injeção de Dependências: Passamos os dados do user e a action
   // Agora passamos as props exigidas pelo novo CreateSetorForm para o Header interno
   return (
-    <CreateSetorForm 
-      campi={campi} 
-      action={createSetorAction}
-      userRole={user.role}
-      userName={user.nome}
-      userId={user.campusId}
-    />
+    <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
+      <Header role={user.role} nome={user.nome} index={0} />
+
+      <div className="m-5 flex justify-center flex-row flex-1">
+        <CreateSetorForm 
+          campi={campi} 
+          action={createSetorAction}
+        />
+      </div>
+
+    </div>
   );
 }

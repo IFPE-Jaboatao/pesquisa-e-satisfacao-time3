@@ -3,18 +3,15 @@
 import { Button, Label } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
-import { Campus } from "../../interfaces";
+import { Campus } from "../../buscas/entidades/interfaces";
 import { createCursoAction } from "@/actions/cursos";
-import Header from "@/app/_components/Header";
 
 interface Props {
   campi: Campus[];
-  userRole: string;
-  userName: string;
-  userId: string | number;
+
 }
 
-export default function CreateCursoForm({ campi, userRole, userName, userId }: Props) {
+export default function CreateCursoForm({ campi }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(createCursoAction, { 
       error: '', 
@@ -22,45 +19,41 @@ export default function CreateCursoForm({ campi, userRole, userName, userId }: P
       message: '' 
   });
 
-  return (
-    <>
-      {/* Header integrado para manter consistência visual */}
-      <Header role={userRole} nome={userName} index={Number(userId)} />
+  const basicInput = "border rounded-sm p-0.5 pl-1 text-sm";
 
-      <div className="rounded-sm flex flex-col bg-white flex-1 max-w-xl mx-auto mt-10 p-5 shadow-sm border border-gray-200">
-        <h2 style={{ color: 'var(--color-primary)' }} className='font-bold text-2xl mb-4'>Criar Curso</h2>
-        <hr className="mb-6" />
+  return (
+      <div className="flex flex-col max-sm:flex-col self-start rounded gap-2 p-2 pl-4 pb-4 shadow-xl" style={{backgroundColor: 'var(--white)'}}>
+        <h2 style={{ color: 'var(--color-primary)'}} className='font-bold text-2xl p-1'>Criar Curso</h2>
+        <hr></hr>
         
-        <form action={formAction} className="flex flex-col gap-4">
+        <form action={formAction} className="p-5 flex flex-col gap-1">
           {/* Campo Nome */}
-          <div className="flex flex-row gap-2 items-center">
-            <Label style={{ color: 'var(--dark-color)' }} className="w-20">Nome:</Label>
+            <Label style={{ color: 'var(--dark-color)' }} className="w-full">Nome</Label>
             <input 
               type="text" 
               name="nome" 
               required 
-              className="border border-gray-300 rounded-sm p-1 text-sm flex-1" 
+              style={{borderColor: 'var(--grayish-color)'}}
+              className={basicInput}
             />
-          </div>
 
           {/* Campo Campus */}
-          <div className="flex flex-row gap-2 items-center">
-            <Label style={{ color: 'var(--dark-color)' }} className="w-20">Campus:</Label>
+            <Label style={{ color: 'var(--dark-color)' }} className="w-full">Campus</Label>
             <select 
               name="campusId" 
               required 
-              className="border border-gray-300 rounded-sm p-1 text-sm flex-1"
+              style={{borderColor: 'var(--grayish-color)'}}
+              className={basicInput}
             >
               <option value="">Selecione um campus</option>
               {campi.map((c) => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
             </select>
-          </div>
 
           {/* Botões de Ação */}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button color="gray" onClick={() => router.back()}>Cancelar</Button>
+          <div className="flex-1 gap-10 flex mt-5 justify-around">
+            <Button style={{ backgroundColor: 'var(--grayish-color)' }} onClick={() => router.back()}>Cancelar</Button>
             <Button 
               style={{ backgroundColor: 'var(--color-tertiary)' }} 
               type="submit" 
@@ -75,6 +68,5 @@ export default function CreateCursoForm({ campi, userRole, userName, userId }: P
           {state?.success && <p className="text-green-600 text-center text-sm mt-2 font-semibold">{state.message}</p>}
         </form>
       </div>
-    </>
   );
 }
