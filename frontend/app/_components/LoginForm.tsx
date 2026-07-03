@@ -2,15 +2,23 @@
 
 import { loginAction } from "@/actions/auth";
 import { Button, Label } from "flowbite-react";
-import { redirect } from "next/navigation";
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+
+import { useActionState, useEffect } from "react";
 
 export default function LoginForm() {
-    const [state, formAction, pending] = useActionState(loginAction, { error: "" });
+    const [state, formAction, pending] = useActionState(loginAction, { error: "", success: false });
+    const router = useRouter();
 
     const goBack = () => {
-        redirect('/')
+        router.back()
     }
+
+    useEffect(() => {
+        if (state.success) {
+            router.push('home')
+        }
+    }, [state.success, router])
 
   return (
     <div className="p-2 m-10 max-h-max max-w-max rounded-sm flex flex-col bg-white">
@@ -60,6 +68,8 @@ export default function LoginForm() {
         </div>
 
         {state?.error && <p className="text-red-600 text-center mt-5 font-semibold">{state.error}</p>}
+
+        {state?.success && <p className="text-green-600 text-center mt-5 font-semibold">Login realizado!</p>}
 
         </form>
     </div>
