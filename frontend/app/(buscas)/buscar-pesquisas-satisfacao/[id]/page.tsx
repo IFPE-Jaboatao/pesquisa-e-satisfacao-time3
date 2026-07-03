@@ -35,37 +35,37 @@ export default async function Pesquisa({ params, searchParams }: PesquisaDetalhe
   const respostasBrutas = dadosDaPesquisa.respostas || [];
   const totalRespostas = dadosDaPesquisa.estatisticas?.totalParticipantes || respostasBrutas.length;
 
-  let excelentes = 0;
-  let regulares = 0;
-  let ruins = 0;
-  const comentariosTexto: string[] = [];
+  // let excelentes = 0;
+  // let regulares = 0;
+  // let ruins = 0;
+  // const comentariosTexto: string[] = [];
 
-  respostasBrutas.forEach((r: any) => {
-    const itens = r.respostas || [];
-    itens.forEach((item: any) => {
-      const questaoOrigem = questoes.find((q: any) => String(q._id || q.id) === String(item.questaoId));
+  // respostasBrutas.forEach((r: any) => {
+  //   const itens = r.respostas || [];
+  //   itens.forEach((item: any) => {
+  //     const questaoOrigem = questoes.find((q: any) => String(q._id || q.id) === String(item.questaoId));
       
-      if (questaoOrigem?.tipo === "ABERTA") {
-        if (item.valor && item.valor.trim() !== "") {
-          comentariosTexto.push(item.valor);
-        }
-      } else {
-        // CORREÇÃO CIRÚRGICA: Lê o valor como texto direto enviado pelo formulário do aluno
-        const valorTexto = String(item.valor).trim();
+  //     if (questaoOrigem?.tipo === "ABERTA") {
+  //       if (item.valor && item.valor.trim() !== "") {
+  //         comentariosTexto.push(item.valor);
+  //       }
+  //     } else {
+  //       // CORREÇÃO CIRÚRGICA: Lê o valor como texto direto enviado pelo formulário do aluno
+  //       const valorTexto = String(item.valor).trim();
         
-        if (valorTexto === "Excelente") excelentes++;      
-        else if (valorTexto === "Regular") regulares++;   
-        else if (valorTexto === "Ruim") ruins++;       
-      }
-    }); 
-  }); 
+  //       if (valorTexto === "Excelente") excelentes++;      
+  //       else if (valorTexto === "Regular") regulares++;   
+  //       else if (valorTexto === "Ruim") ruins++;       
+  //     }
+  //   }); 
+  // }); 
 
-  const totalVotos = excelentes + regulares + ruins || 1;
+  // const totalVotos = excelentes + regulares + ruins || 1;
   
-  const percentualExcelente = Math.round((excelentes / totalVotos) * 100);
-  const percentualRegular = Math.round((regulares / totalVotos) * 100);
-  const percentualRuim = Math.round((ruins / totalVotos) * 100);
-  const mediaAprovacao = Math.round(((excelentes + regulares) / totalVotos) * 100);
+  // const percentualExcelente = Math.round((excelentes / totalVotos) * 100);
+  // const percentualRegular = Math.round((regulares / totalVotos) * 100);
+  // const percentualRuim = Math.round((ruins / totalVotos) * 100);
+  // const mediaAprovacao = Math.round(((excelentes + regulares) / totalVotos) * 100);
 
   // SERVER ACTION: Integração com o endpoint de POST usando a rota base REST do back-end
   async function lidarComEnvio(formData: FormData) {

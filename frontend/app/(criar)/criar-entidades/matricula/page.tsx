@@ -7,9 +7,9 @@ import { getDashboard } from "@/services/dashboard.service";
 import { XCircleIcon } from "@heroicons/react/16/solid";
 import { Button } from "flowbite-react";
 import Link from "next/link";
-import CreateTurmaForm from "@/app/_components/criar/academic/CreateTurmaForm";
+import CreateMatriculaForm from "@/app/_components/criar/academic/CreateMatriculaForm";
 
-export default async function Turma() {
+export default async function Matricula() {
     const user = await getMe();
 
     if (!user) {
@@ -29,7 +29,7 @@ export default async function Turma() {
                 {
                     dashboardData.error && dashboardData.error !== '' ?
                         <div className="flex flex-col bg-white self-start p-5 rounded shadow-xs">
-                            <h2 style={{ color: 'var(--color-primary)'}} className='self-start font-bold text-2xl p-1'>Criar Turma</h2>
+                            <h2 style={{ color: 'var(--color-primary)'}} className='self-start font-bold text-2xl p-1'>Criar Matrícula</h2>
                             <hr></hr>
 
                             <div className="flex flex-col gap-3 items-center mt-5">
@@ -43,10 +43,10 @@ export default async function Turma() {
                         </div>
                     :
                     <div>
-                        <CreateTurmaForm
+                        <CreateMatriculaForm
                             academic={dashboardData.academic}
                             institutional={dashboardData.institutional}
-                            users={dashboardData.users}
+                            users={dashboardData.users} 
                         />
                     </div>
                 }

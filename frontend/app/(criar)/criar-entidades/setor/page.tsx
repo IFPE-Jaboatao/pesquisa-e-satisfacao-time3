@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/session';
 import { getCampiAction } from '@/actions/campi';
 import { createSetorAction } from '@/actions/setores';
-import CreateSetorForm from "../../../_components/criar/entidades/CreateSetorForm";
 import Header from '@/app/_components/Header';
+import CreateSetorForm from '@/app/_components/criar/institutional/CreateSetorForm';
 
 export default async function Page() {
   // 1. Guardião: Autenticação e RBAC

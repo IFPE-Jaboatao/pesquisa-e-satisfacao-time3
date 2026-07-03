@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import { useRouter } from "next/navigation"; // Importação necessária
 import { Campus } from "../../buscas/entidades/interfaces"; 
-import Header from "../../Header"; 
 import { Button, Label } from "flowbite-react";
 
 interface ActionState {

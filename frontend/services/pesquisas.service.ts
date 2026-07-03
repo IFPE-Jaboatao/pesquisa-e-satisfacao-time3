@@ -26,7 +26,7 @@ interface Props {
 /**
  * Busca a estrutura da pesquisa completa utilizando o client do time
  */
-export async function getPesquisaCompleta({ id }: Props): Promise<RelatorioAvaliacao | null | false> {
+export async function getPesquisaCompleta({ id }: Props) {
   try {
     const res = await apiFetch(`/surveys/pesquisas/${id}/complete`);
 
@@ -42,7 +42,7 @@ export async function getPesquisaCompleta({ id }: Props): Promise<RelatorioAvali
     }
 
     const pesquisa = await res.json();
-    return pesquisa as RelatorioAvaliacao;
+    return pesquisa;
   } catch (error) {
     console.error("Erro de conexão na camada de serviço:", error);
     return null;
@@ -72,7 +72,7 @@ export async function getRelatorioAvaliacao({ id }: Props) {
 /**
  * Busca serviços cadastrados por campus
  */
-export async function getServicosPorCampus(): Promise<any[]> {
+export async function getServicosPorCampus() {
   const res = await apiFetch("/institutional/servicos");
 
   if (res.status === 401) {
@@ -90,7 +90,7 @@ export async function getServicosPorCampus(): Promise<any[]> {
 /**
  * Busca setores com serviços baseados no ID do campus
  */
-export async function getSetoresComServicosPorCampus(campusId: number): Promise<any[]> {
+export async function getSetoresComServicosPorCampus(campusId: number) {
   const res = await apiFetch(`/institutional/setores?campusId=${campusId}`);
 
   if (res.status === 401) {

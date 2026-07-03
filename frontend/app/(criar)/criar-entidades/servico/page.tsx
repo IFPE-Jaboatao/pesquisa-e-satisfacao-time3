@@ -3,7 +3,7 @@ import { getMe } from '@/lib/session';
 import { getSetoresAction } from '@/actions/setores';
 import { getCampiAction } from '@/actions/campi';
 import { createServicoAction } from '@/actions/servicos';
-import CreateServicoForm from "@/app/_components/criar/entidades/CreateServicoForm";
+import CreateServicoForm from "@/app/_components/criar/institutional/CreateServicoForm";
 import Header from '@/app/_components/Header';
 
 export default async function Page() {

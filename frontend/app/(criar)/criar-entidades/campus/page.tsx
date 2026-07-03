@@ -3,7 +3,7 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import CreateCampusForm from "@/app/_components/criar/entidades/CreateCampusForm";
+import CreateCampusForm from "@/app/_components/criar/institutional/CreateCampusForm";
 
 
 export default async function Campus() {
