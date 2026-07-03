@@ -17,7 +17,7 @@ export default async function CriarEntidadesPage() {
       <Header 
         role={user.role} 
         nome={user.nome} 
-        index={user.campusId} 
+        index={0} 
       />
       <EntidadesMenu />
     </>

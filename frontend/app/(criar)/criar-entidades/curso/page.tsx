@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/session';
 import { getCampiAction } from '@/actions/campi';
-import CreateCursoForm from "@/app/_components/criar/entidades/CreateCursoForm";
+import CreateCursoForm from "@/app/_components/criar/academic/CreateCursoForm";
 import Header from '@/app/_components/Header';
 
 export default async function Page() {

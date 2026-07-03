@@ -34,7 +34,7 @@ export default function CreateDisciplinaForm({ cursos }: Props) {
         ).values()
         );
 
-    const cursosFiltrados = cursos.filter((s) => s.campusId === Number(campusId) || '')
+    const cursosFiltrados = cursos.filter((s) => s.campusId === Number(campusId) || '');
 
   return (
     <div className="flex flex-col max-sm:flex-col self-start rounded gap-2 p-2 pl-4 pb-4 shadow-xl" style={{backgroundColor: 'var(--white)'}}>
