@@ -147,7 +147,7 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
   const listaSetoresValida = Array.isArray(setores) ? setores : [];
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 my-6" style={{ backgroundColor: "var(--light-color)" }}>
+    <div className="flex min-h-screen items-center justify-center p-4 my-6">
       <Card className="w-full max-w-xl shadow-lg border-0" style={{ backgroundColor: "var(--white)" }}>
         <h1 className="text-2xl font-bold tracking-tight text-center" style={{ color: "var(--color-primary)" }}>
           Nova Pesquisa de Satisfação
@@ -161,29 +161,30 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
 
         <form action={clientAction} className="flex flex-col gap-4 mt-2">
           <div>
-            <Label htmlFor="titulo">Título da Pesquisa</Label>
-            <TextInput id="titulo" name="titulo" type="text" required />
+            <Label style={{color: 'var(--dark-color)'}} htmlFor="titulo">Título da Pesquisa</Label>
+            <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite o título" id="titulo" name="titulo" type="text" required />
           </div>
 
           <div>
-            <Label htmlFor="descricao">Descrição ou Orientações</Label>
-            <Textarea id="descricao" name="descricao" required rows={3} />
+            <Label style={{color: 'var(--dark-color)'}} htmlFor="descricao">Descrição ou Orientações</Label>
+            <Textarea style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite a descrição" id="descricao" name="descricao" required rows={3} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="dataInicio">Data de Início</Label>
-              <TextInput id="dataInicio" name="dataInicio" type="date" required />
+              <Label style={{color: 'var(--dark-color)'}} htmlFor="dataInicio">Data de Início</Label>
+              <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} id="dataInicio" name="dataInicio" type="date" required />
             </div>
             <div>
-              <Label htmlFor="dataFinal">Data de Término</Label>
-              <TextInput id="dataFinal" name="dataFinal" type="date" required />
+              <Label style={{color: 'var(--dark-color)'}} htmlFor="dataFinal">Data de Término</Label>
+              <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} id="dataFinal" name="dataFinal" type="date" required />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="setorId">Setor Responsável</Label>
+            <Label style={{color: 'var(--dark-color)'}} htmlFor="setorId">Setor Responsável</Label>
             <Select 
+              style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}}
               id="setorId" 
               required 
               value={setorSelecionadoId || ""} 
@@ -207,8 +208,8 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
           </div>
 
           <div>
-            <Label htmlFor="servicoId">Serviço Avaliado</Label>
-            <Select id="servicoId" name="servicoId" required defaultValue="" disabled={!setorSelecionadoId}>
+            <Label style={{color: 'var(--dark-color)'}} htmlFor="servicoId">Serviço Avaliado</Label>
+            <Select style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} id="servicoId" name="servicoId" required defaultValue="" disabled={!setorSelecionadoId}>
               {!setorSelecionadoId ? (
                 <option value="" disabled>Selecione um setor primeiro...</option>
               ) : servicosDisponiveis.length === 0 ? (
@@ -228,8 +229,8 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
 
           <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-3">
             <h3 className="text-sm font-bold" style={{ color: "var(--color-primary)" }}>Montar Questão</h3>
-            <TextInput type="text" placeholder="Enunciado da pergunta" value={novaPergunta} onChange={(e) => setNovaPergunta(e.target.value)} />
-            <Select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value as TipoQuestao)}>
+            <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} type="text" placeholder="Enunciado da pergunta" value={novaPergunta} onChange={(e) => setNovaPergunta(e.target.value)} />
+            <Select style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} value={novoTipo} onChange={(e) => setNovoTipo(e.target.value as TipoQuestao)}>
               <option value={TipoQuestao.ABERTA}>Aberta (Texto Livre)</option>
               <option value={TipoQuestao.MULTIPLA}>Múltipla Escolha</option>
               <option value={TipoQuestao.ESCALA}>Escala Numérica</option>
@@ -237,9 +238,9 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
 
             {novoTipo === TipoQuestao.MULTIPLA && (
               <div className="p-3 bg-white rounded border flex flex-col gap-2">
-                <Label className="text-xs font-bold">Cadastrar Opções</Label>
+                <Label style={{ color: 'var(--dark-color)'}} className="text-xs font-bold">Cadastrar Opções</Label>
                 <div className="flex gap-2">
-                  <TextInput type="text" className="flex-1" value={novaOpcao} onChange={(e) => setNovaOpcao(e.target.value)} />
+                  <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} type="text" className="flex-1" value={novaOpcao} onChange={(e) => setNovaOpcao(e.target.value)} />
                   <Button type="button" onClick={handleAdicionarOpcaoLista}>+</Button>
                 </div>
                 <ul className="list-disc pl-5 text-xs text-gray-600">
@@ -250,8 +251,8 @@ export default function CriarPesquisa({ setores = [] }: CriarPesquisaProps) {
 
             {novoTipo === TipoQuestao.ESCALA && (
               <div className="p-3 bg-white rounded border flex flex-col gap-2">
-                <Label className="text-xs font-bold">Limite Superior (Mínimo 3)</Label>
-                <TextInput type="number" min={3} value={escalaMax} onChange={(e) => setEscalaMax(Number(e.target.value))} />
+                <Label style={{ color: 'var(--dark-color)'}} className="text-xs font-bold">Limite Superior (Mínimo 3)</Label>
+                <TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} type="number" min={3} value={escalaMax} onChange={(e) => setEscalaMax(Number(e.target.value))} />
               </div>
             )}
 

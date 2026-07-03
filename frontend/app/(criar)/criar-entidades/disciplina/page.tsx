@@ -3,7 +3,7 @@ import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"
 import { redirect } from "next/navigation";
-import CreateDisciplinaForm from "@/app/_components/criar/entidades/CreateDisciplinaForm";
+import CreateDisciplinaForm from "@/app/_components/criar/academic/CreateDisciplinaForm";
 import { getCursos } from "@/services/curso.service";
 
 

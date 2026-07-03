@@ -34,9 +34,9 @@ export function DocenteDashboard({ data }: Props) {
       
             <div className="self-center flex-1">
               <CardsDashboard items={[
-                {value: data?.avaliacoes.avaliacoes.ativas.length || 0, label: 'Abertas'},
-                {value: data?.avaliacoes.avaliacoes.fechadas.length || 0, label: 'Finalizadas'},
-                {value: data?.avaliacoes.avaliacoes.inativas.length || 0, label: 'À Começar'},
+                {value: data?.avaliacoes.avaliacoes.ativas?.length || 0, label: 'Abertas'},
+                {value: data?.avaliacoes.avaliacoes.fechadas?.length || 0, label: 'Finalizadas'},
+                {value: data?.avaliacoes.avaliacoes.inativas?.length || 0, label: 'À Começar'},
               ]} />
       
               </div>
@@ -57,7 +57,7 @@ export function DocenteDashboard({ data }: Props) {
                 </div>
 
               <div className="flex-1">
-                <KpiDocente value={data?.avaliacoes.mediaGeralHistorica === 'NaN%' ? 0 : Number(data?.avaliacoes.mediaGeralHistorica.replace('%', ''))} />
+                <KpiDocente value={data?.avaliacoes?.mediaGeralHistorica ? (data?.avaliacoes?.mediaGeralHistorica === 'NaN%' ? 0 : Number(data?.avaliacoes.mediaGeralHistorica.replace('%', ''))) : 0} />
               </div>
 
               </div>

@@ -1,0 +1,211 @@
+Listagem de caminhos de pasta para o volume OS
+O número de série do volume é 00000207 D029:F9BB
+C:\USERS\MATHE\ONEDRIVE\DOCUMENTOS\PROJETO FRONT-END\PESQUISA-E-SATISFACAO-TIME3\FRONTEND\APP
+¦   favicon.ico
+¦   favicon.svg
+¦   globals.css
+¦   layout.tsx
+¦   page.tsx
+¦   
++---(buscas)
+¦   +---buscar-avaliacoes-docente
+¦   ¦   ¦   page.tsx
+¦   ¦   ¦   
+¦   ¦   +---[id]
+¦   ¦           page.tsx
+¦   ¦           
+¦   +---buscar-entidades
+¦   ¦   ¦   page.tsx
+¦   ¦   ¦   
+¦   ¦   +---campi
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---cursos
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---disciplinas
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---matriculas
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---periodos
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---servicos
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---setores
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           page.tsx
+¦   ¦   ¦           
+¦   ¦   +---turmas
+¦   ¦       +---[id]
+¦   ¦               page.tsx
+¦   ¦               
+¦   +---buscar-pesquisas-satisfacao
+¦   ¦   ¦   page.tsx
+¦   ¦   ¦   
+¦   ¦   +---[id]
+¦   ¦           page.tsx
+¦   ¦           
+¦   +---buscar-usuarios
+¦       ¦   page.tsx
+¦       ¦   
+¦       +---[id]
+¦               page.tsx
+¦               
++---(criar)
+¦   +---criar-avaliacao
+¦   ¦       page.tsx
+¦   ¦       
+¦   +---criar-entidades
+¦   ¦   ¦   page.tsx
+¦   ¦   ¦   
+¦   ¦   +---servico
+¦   ¦   ¦       page.tsx
+¦   ¦   ¦       
+¦   ¦   +---setor
+¦   ¦           page.tsx
+¦   ¦           
+¦   +---criar-pesquisa
+¦   ¦       page.tsx
+¦   ¦       
+¦   +---criar-usuarios
+¦           page.tsx
+¦           
++---home
+¦   ¦   page.tsx
+¦   ¦   
+¦   +---profile
+¦       ¦   page.tsx
+¦       ¦   
+¦       +---alterar-senha
+¦               page.tsx
+¦               
++---login
+¦       page.tsx
+¦       
++---pesquisas
+¦   +---satisfacao
+¦       +---criar
+¦               page.tsx
+¦               
++---styles
+¦       theme.css
+¦       
++---types
+¦       UserRole.enum.ts
+¦       
++---unauthorized
+¦       page.tsx
+¦       
++---_components
+    ¦   AlterarSenhaForm.tsx
+    ¦   BasicButton.tsx
+    ¦   Header.tsx
+    ¦   HeaderLandingPage.tsx
+    ¦   InputLabel.tsx
+    ¦   LoginForm.tsx
+    ¦   LogoutButton.tsx
+    ¦   
+    +---buscas
+    ¦   ¦   BuscaTitulo.tsx
+    ¦   ¦   
+    ¦   +---avaliacao-docente
+    ¦   ¦   ¦   AvaliacaoAluno.tsx
+    ¦   ¦   ¦   AvaliacaoDocente.tsx
+    ¦   ¦   ¦   AvaliacaoGestor.tsx
+    ¦   ¦   ¦   AvaliacaoRenderer.tsx
+    ¦   ¦   ¦   interface.tsx
+    ¦   ¦   ¦   
+    ¦   ¦   +---single
+    ¦   ¦           AvaliacaoSingleAluno.tsx
+    ¦   ¦           AvaliacaoSingleRenderer.tsx
+    ¦   ¦           AvaliacaoSingleResultado.tsx
+    ¦   ¦           HeaderResultado.tsx
+    ¦   ¦           
+    ¦   +---entidades
+    ¦   ¦   ¦   AcademicCards.tsx
+    ¦   ¦   ¦   BackButton.tsx
+    ¦   ¦   ¦   EntidadesAdmin.tsx
+    ¦   ¦   ¦   EntidadesMenuContent.tsx
+    ¦   ¦   ¦   InstitutionalCards.tsx
+    ¦   ¦   ¦   interfaces.tsx
+    ¦   ¦   ¦   
+    ¦   ¦   +---forms
+    ¦   ¦   ¦   ¦   CreateServicoForm.tsx
+    ¦   ¦   ¦   ¦   
+    ¦   ¦   ¦   +---academic
+    ¦   ¦   ¦   ¦       CursoForm.tsx
+    ¦   ¦   ¦   ¦       DisciplinaForm.tsx
+    ¦   ¦   ¦   ¦       PeriodoForm.tsx
+    ¦   ¦   ¦   ¦       TurmaForm.tsx
+    ¦   ¦   ¦   ¦       
+    ¦   ¦   ¦   +---institutional
+    ¦   ¦   ¦           CampusForm.tsx
+    ¦   ¦   ¦           CreateSetorForm.tsx
+    ¦   ¦   ¦           ServicoForm.tsx
+    ¦   ¦   ¦           SetorForm.tsx
+    ¦   ¦   ¦           
+    ¦   ¦   +---pages
+    ¦   ¦   ¦   +---academic
+    ¦   ¦   ¦   ¦       CursoPage.tsx
+    ¦   ¦   ¦   ¦       DisciplinaPage.tsx
+    ¦   ¦   ¦   ¦       MatriculaPage.tsx
+    ¦   ¦   ¦   ¦       PeriodoPage.tsx
+    ¦   ¦   ¦   ¦       TurmaPage.tsx
+    ¦   ¦   ¦   ¦       
+    ¦   ¦   ¦   +---institutional
+    ¦   ¦   ¦           CampusPage.tsx
+    ¦   ¦   ¦           ServicoPage.tsx
+    ¦   ¦   ¦           SetorPage.tsx
+    ¦   ¦   ¦           
+    ¦   ¦   +---renderers
+    ¦   ¦           CampusRenderer.tsx
+    ¦   ¦           CursoRenderer.tsx
+    ¦   ¦           DisciplinaRenderer.tsx
+    ¦   ¦           MatriculaRenderer.tsx
+    ¦   ¦           PeriodoRenderer.tsx
+    ¦   ¦           ServicoRenderer.tsx
+    ¦   ¦           SetorRenderer.tsx
+    ¦   ¦           TurmaRenderer.tsx
+    ¦   ¦           
+    ¦   +---pesquisa-satisfacao
+    ¦   ¦       interface.tsx
+    ¦   ¦       SatisfacaoAluno.tsx
+    ¦   ¦       SatisfacaoCard.tsx
+    ¦   ¦       SatisfacaoGestor.tsx
+    ¦   ¦       SatisfacaoRenderer.tsx
+    ¦   ¦       
+    ¦   +---usuarios
+    ¦           UsuarioCard.tsx
+    ¦           UsuarioForm.tsx
+    ¦           UsuariosAdmin.tsx
+    ¦           
+    +---dashboard
+    ¦       AdminDashboard.tsx
+    ¦       AlunoDashboard.tsx
+    ¦       CardsDashboard.tsx
+    ¦       CriteriosDocente.tsx
+    ¦       DashboardRendered.tsx
+    ¦       DocenteDashboard.tsx
+    ¦       GestorDashboard.tsx
+    ¦       KpiDocente.tsx
+    ¦       ProgressBar.tsx
+    ¦       TopTitleButtons.tsx
+    ¦       
+    +---forms
+    ¦       CreateUserForm.tsx
+    ¦       CriarAvaliacaoForm.tsx
+    ¦       CriarPesquisaForm.tsx
+    ¦       
+    +---turmas
+            TurmasListagem.tsx
+            
