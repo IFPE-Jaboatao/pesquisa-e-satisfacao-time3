@@ -124,8 +124,16 @@ export class TurmaService {
   async findAll(disciplinaId?: number) {
     const turmas = await this.turmaRepo.find({
       where: disciplinaId ? { disciplina: { id: disciplinaId } } : {},
-      relations: { disciplina: { curso: { campus: true}}, periodo: true, docente: true },
-      withDeleted: false
+      relations: {
+        disciplina: {
+          curso: {
+            campus: true,
+          },
+        },
+        periodo: true,
+        docente: true,
+      },
+      withDeleted: false,
     });
 
     return turmas.map((turma) => ({
@@ -134,15 +142,24 @@ export class TurmaService {
       disciplina: turma?.disciplina,
       campusId: turma?.disciplina?.curso?.campus?.id,
       periodo: turma?.periodo,
-      docente: { id: turma.docente?.id, matricula: turma.docente?.matricula, nome: turma.docente?.nome, email: turma.docente?.email },
+      docente: {
+        id: turma.docente?.id,
+        matricula: turma.docente?.matricula,
+        nome: turma.docente?.nome,
+        email: turma.docente?.email,
+      },
     }));
   }
 
   // função auxiliar para dashboard do admin
   async findAllResumo() {
     const turmas = await this.turmaRepo.find({
-      relations: { disciplina: { curso: true}, periodo: true, docente: true, matriculas: true },
-      withDeleted: false
+      relations: { 
+        disciplina: { curso: true},
+        periodo: true,
+        docente: true,
+        matriculas: true, },
+      withDeleted: false,
     });
 
     return turmas.map((turma) => ({
@@ -150,13 +167,14 @@ export class TurmaService {
       turno: turma?.turno,
       disciplina: {
         id: turma?.disciplina?.id,
-        nome: turma?.disciplina?.nome 
+        nome: turma?.disciplina?.nome ,
       },
       periodo: `${turma?.periodo.ano}.${turma?.periodo.semestre}`,
+      periodoId: turma?.periodo?.id,
       docente: { id: turma.docente?.id, nome: turma.docente?.nome },
       matriculas: turma?.matriculas?.length,
       createdAt: turma.createdAt,
-      updatedAt: turma.updatedAt
+      updatedAt: turma.updatedAt,
     }));
   }
 

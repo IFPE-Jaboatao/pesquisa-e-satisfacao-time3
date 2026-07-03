@@ -1,5 +1,5 @@
 
-import CreatePeriodoForm from "@/app/_components/criar/entidades/CreatePeriodoForm";
+import CreatePeriodoForm from "@/app/_components/criar/academic/CreatePeriodoForm";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";
 import { getMe } from "@/services/user.service"

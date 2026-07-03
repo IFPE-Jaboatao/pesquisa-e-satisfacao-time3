@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/session';
 import { getCampiAction } from '@/actions/campi';
-import CreateCursoForm from "@/app/_components/buscas/entidades/forms/academic/CreateCursoForm";
+import CreateCursoForm from "@/app/_components/criar/academic/CreateCursoForm";
+import Header from '@/app/_components/Header';
 
 export default async function Page() {
   const user = await getMe();
@@ -15,11 +16,16 @@ export default async function Page() {
 
   // Passa os dados do usuário para o formulário (requisito do Header)
   return (
-    <CreateCursoForm 
-      campi={campi}
-      userRole={user.role}
-      userName={user.nome}
-      userId={user.campusId} 
-    />
+    <div className='flex flex-1 flex-col' style={{backgroundColor: 'var(--light-color)'}}>
+
+      <Header index={0} nome={user.nome} role={user.role} />
+
+      <div className="m-5 flex justify-center flex-row flex-1">
+        <CreateCursoForm 
+          campi={campi}
+        />
+      </div>
+      
+    </div>
   );
 }

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { Setor, Campus } from "../interfaces"; 
-import Header from "@/app/_components/Header"; 
+import { Setor, Campus } from "../../buscas/entidades/interfaces"; 
+import { Button, Label } from "flowbite-react";
 
 interface ActionState {
   error: string;
@@ -17,12 +17,9 @@ interface Props {
   setores: Setor[];
   // Tipagem corrigida para evitar uso de 'any'
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
-  userRole: string;
-  userName: string;
-  userId: string | number;
 }
 
-export default function CreateServicoForm({ campi, setores, action, userRole, userName, userId }: Props) {
+export default function CreateServicoForm({ campi, setores, action }: Props) {
   const router = useRouter();
   const [selectedCampusId, setSelectedCampusId] = useState<string>("");
   const [state, formAction, pending] = useActionState(action, { 
@@ -34,32 +31,28 @@ export default function CreateServicoForm({ campi, setores, action, userRole, us
   // Filtra setores para exibir apenas os do campus selecionado
   const filteredSetores = setores.filter((s) => s.campusId === Number(selectedCampusId));
 
-  return (
-    <>
-      <Header role={userRole} nome={userName} index={Number(userId)} />
-      
-      <div className="max-w-xl mx-auto p-6 bg-white border border-gray-200 rounded-sm shadow-sm mt-10">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Criar Serviço</h2>
-        <div className="w-full h-px bg-gray-300 mb-6"></div>
+  const basicInput = "border rounded-sm p-0.5 pl-1 text-sm";
 
-        <form action={formAction} className="flex flex-col gap-6">
+  return (
+      <div className="flex flex-col max-sm:flex-col self-start rounded gap-2 p-2 pl-4 pb-4 shadow-xl" style={{backgroundColor: 'var(--white)'}}>
+        <h2 style={{ color: 'var(--color-primary)'}} className='font-bold text-2xl p-1'>Criar Serviço</h2>
+        <hr></hr>
+
+        <form action={formAction} className="p-5 flex flex-col gap-1">
           {/* Campo Nome */}
-          <div className="flex flex-row items-center gap-4">
-            <label className="w-24 font-medium text-gray-700">Nome:</label>
+            <Label style={{ color: 'var(--dark-color)'}}>Nome</Label>
             <input 
               type="text" 
               name="nome" 
               required 
-              className="flex-1 border border-gray-300 rounded-sm p-2 focus:ring-1 focus:ring-green-700 outline-none" 
+              className={basicInput}
             />
-          </div>
 
           {/* Campo Campus */}
-          <div className="flex flex-row items-center gap-4">
-            <label className="w-24 font-medium text-gray-700">Campus:</label>
+            <Label style={{ color: 'var(--dark-color)'}}>Campus</Label>
             <select 
               required 
-              className="flex-1 border border-gray-300 rounded-sm p-2 focus:ring-1 focus:ring-green-700 outline-none"
+              className={basicInput}
               onChange={(e) => {
                   setSelectedCampusId(e.target.value);
               }}
@@ -69,46 +62,42 @@ export default function CreateServicoForm({ campi, setores, action, userRole, us
                 <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
             </select>
-          </div>
 
           {/* Campo Setor (Dependente do Campus) */}
-          <div className="flex flex-row items-center gap-4">
-            <label className="w-24 font-medium text-gray-700">Setor:</label>
+            <Label style={{ color: 'var(--dark-color)'}}>Setor</Label>
             <select 
               name="setorId" 
               required 
               disabled={!selectedCampusId}
-              className="flex-1 border border-gray-300 rounded-sm p-2 focus:ring-1 focus:ring-green-700 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className={`${basicInput} focus:ring-1 focus:ring-green-700 disabled:bg-gray-100 disabled:cursor-not-allowed`}
             >
               <option value="">{selectedCampusId ? "Selecione um setor" : "Escolha um campus primeiro"}</option>
               {filteredSetores.map((s) => (
                 <option key={s.id} value={s.id}>{s.nome}</option>
               ))}
             </select>
-          </div>
 
           {/* Botões */}
-          <div className="flex justify-end gap-3 mt-4">
-            <button 
+          <div className="flex-1 gap-10 flex mt-5 justify-around">
+            <Button 
               type="button" 
               onClick={() => router.back()} 
-              className="px-6 py-2 bg-gray-500 text-white rounded-sm hover:bg-gray-600 transition text-sm font-semibold"
+              style={{ backgroundColor: 'var(--grayish-color)'}}
             >
               Cancelar
-            </button>
-            <button 
+            </Button>
+            <Button 
               type="submit" 
               disabled={pending}
-              className="px-6 py-2 bg-green-700 text-white rounded-sm hover:bg-green-800 transition text-sm font-semibold"
+              style={{ backgroundColor: 'var(--color-tertiary)'}}
             >
-              {pending ? 'Salvando...' : 'Criar'}
-            </button>
+              {pending ? 'Criando...' : 'Criar'}
+            </Button>
           </div>
 
           {state?.error && <p className="text-red-600 text-sm text-center font-medium">{state.error}</p>}
           {state?.success && <p className="text-green-600 text-sm text-center font-medium">{state.message}</p>}
         </form>
       </div>
-    </>
   );
 }

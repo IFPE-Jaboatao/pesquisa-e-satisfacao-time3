@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Label, TextInput, Select, Card, Alert } from "flowbite-react";
+import { Button, Label, TextInput, Select, Alert } from "flowbite-react";
 import { createUserAction, Campus } from "@/actions/user-actions";
 
 interface CreateUserFormProps {
@@ -19,7 +19,7 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
     nome: "",
     email: "",
     password: "",
-    role: "ALUNO",
+    role: "",
     campusId: campiIniciais.length > 0 ? String(campiIniciais[0].id) : "",
   });
 
@@ -37,9 +37,9 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-xl shadow-md border-0 p-6">
+    <div className="w-full max-w-xl shadow-md border-0 p-6">
       <div className="text-left mb-6 border-b pb-2">
-        <h2 className="text-xl font-bold" style={{ color: "var(--dark-color)" }}>
+        <h2 className="text-2xl font-bold" style={{ color: "var(--color-primary)" }}>
           Criar Usuário
         </h2>
       </div>
@@ -49,24 +49,25 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
 
       <form action={formAction} className="flex flex-col gap-4">
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="matricula" className="col-span-1 text-right">Matrícula:</Label>
-          <div className="col-span-3"><TextInput id="matricula" name="matricula" value={formData.matricula} onChange={handleChange} required /></div>
+          <Label style={{ color: 'var(--dark-color)'}} htmlFor="matricula" className="col-span-1 text-right">Matrícula:</Label>
+          <div className="col-span-3"><TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite a matrícula" id="matricula" name="matricula" value={formData.matricula} onChange={handleChange} required /></div>
         </div>
 
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="nome" className="col-span-1 text-right">Nome:</Label>
-          <div className="col-span-3"><TextInput id="nome" name="nome" value={formData.nome} onChange={handleChange} required /></div>
+          <Label style={{ color: 'var(--dark-color)'}} htmlFor="nome" className="col-span-1 text-right">Nome:</Label>
+          <div className="col-span-3"><TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite o nome" id="nome" name="nome" value={formData.nome} onChange={handleChange} required /></div>
         </div>
 
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="email" className="col-span-1 text-right">Email:</Label>
-          <div className="col-span-3"><TextInput id="email" name="email" type="email" value={formData.email} onChange={handleChange} required /></div>
+          <Label style={{ color: 'var(--dark-color)'}} htmlFor="email" className="col-span-1 text-right">Email:</Label>
+          <div className="col-span-3"><TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite o email" id="email" name="email" type="email" value={formData.email} onChange={handleChange} required /></div>
         </div>
 
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="role" className="col-span-1 text-right">Perfil:</Label>
+          <Label style={{ color: 'var(--dark-color)'}} htmlFor="role" className="col-span-1 text-right">Perfil:</Label>
           <div className="col-span-3">
-            <Select id="role" name="role" value={formData.role} onChange={handleChange} required>
+            <Select style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} id="role" name="role" value={formData.role} onChange={handleChange} required>
+              <option value="">Escolha um tipo de perfil</option>
               <option value="ALUNO">Aluno</option>
               <option value="DOCENTE">Professor</option>
               <option value="GESTOR">Gestor</option>
@@ -77,9 +78,9 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
 
         {formData.role !== "ADMIN" && (
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="campusId" className="col-span-1 text-right">Campus:</Label>
+            <Label style={{ color: 'var(--dark-color)'}} htmlFor="campusId" className="col-span-1 text-right">Campus:</Label>
             <div className="col-span-3">
-              <Select id="campusId" name="campusId" value={formData.campusId} onChange={handleChange} required>
+              <Select style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} id="campusId" name="campusId" value={formData.campusId} onChange={handleChange} required>
                 {campiIniciais.length === 0 ? (
                   <option value="">Nenhum campus disponível...</option>
                 ) : (
@@ -93,28 +94,29 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
         )}
 
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="password" className="col-span-1 text-right">Senha:</Label>
-          <div className="col-span-3"><TextInput id="password" name="password" type="password" value={formData.password} onChange={handleChange} required /></div>
+          <Label style={{ color: 'var(--dark-color)'}} htmlFor="password" className="col-span-1 text-right">Senha:</Label>
+          <div className="col-span-3"><TextInput style={{ backgroundColor: 'var(--white)', color: 'var(--dark-color)'}} placeholder="Digite a senha" id="password" name="password" type="password" value={formData.password} onChange={handleChange} required /></div>
         </div>
 
-        <div className="flex gap-4 mt-6 justify-center">
+        <div className="flex flex-row items-stretch mt-6 justify-around">
           <Button 
+            style={{ backgroundColor: 'var(--grayish-color)'}}
             type="button" 
-            color="gray" 
-            className="w-40" 
+            className="cursor-pointer"
             onClick={() => router.push('/home')}
           >
             Cancelar
           </Button>
           <Button 
+            style={{backgroundColor: 'var(--color-secondary)'}}
             type="submit" 
             disabled={pending} 
-            className="w-40 bg-(--color-primary) hover:bg-(--color-primary)/90 border-0"
+            className="cursor-pointer"
           >
             {pending ? "Criando..." : "Criar"}
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }
