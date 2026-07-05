@@ -13,7 +13,8 @@ export interface AvaliacaoDocenteAluno {
     docenteId: number,
     docente: string,
     turno: string,
-    turmaId: number
+    turmaId: number,
+    curso: string
 }
 
 export interface AvaliacaoDocenteGestor {
@@ -107,4 +108,6 @@ export interface PesquisaAluno {
         escalaMax?: number,
         opcoes?: string[]
     }[],
+    nomeServico: string,
+    nomeSetor: string
 }

@@ -37,7 +37,7 @@ export default function CreateUserForm({ campiIniciais }: CreateUserFormProps) {
   };
 
   return (
-    <div className="w-full max-w-xl shadow-md border-0 p-6">
+    <div style={{backgroundColor: 'var(--white)'}} className="w-full max-w-xl shadow-md border-0 p-6">
       <div className="text-left mb-6 border-b pb-2">
         <h2 className="text-2xl font-bold" style={{ color: "var(--color-primary)" }}>
           Criar Usuário
