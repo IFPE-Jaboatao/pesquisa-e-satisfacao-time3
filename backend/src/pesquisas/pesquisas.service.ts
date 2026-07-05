@@ -127,6 +127,8 @@ export class PesquisasService {
     // achar pesquisa
     const pesquisa = await this.findOne(id);
 
+    let pesquisaCompleta = pesquisa as any;
+
     // verificações de acesso do usuário à pesquisa antes de seguir para o retorno completo
 
     // no caso de aluno, procurar pela matricula
@@ -139,6 +141,8 @@ export class PesquisasService {
 
       // se aluno não tiver matricula na turma, ele nao pode acessar a pesquisa
       if (matriculasFiltradas?.length === 0) throw new UnauthorizedException('Aluno não está matriculado nessa turma e não tem acesso a essa pesquisa.')
+      
+      pesquisaCompleta = {...pesquisaCompleta, curso: matriculasFiltradas[0].turma.disciplina.curso.nome, turno: matriculasFiltradas[0].turma.turno}
     }
 
     // no caso de gestor, verificar se a turma está no campus dele
@@ -156,6 +160,8 @@ export class PesquisasService {
 
       // se usuário não estiver no mesmo campus do serviço, ele nao pode acessar a pesquisa
       if (servico.campus.id !== user.campusId) throw new UnauthorizedException(`${capitalizeFirstLetter(user.role)} não é desse campus e não tem acesso a essa pesquisa.`)
+
+      pesquisaCompleta = {...pesquisaCompleta, nomeServico: servico.nome, nomeSetor: servico.setor?.nome || 'Setor Desconhecido'}
     }
 
     // ultima verificação
@@ -168,7 +174,7 @@ export class PesquisasService {
     const questoes = await this.questoesService.findByPesquisa(pesquisa.id.toString())
 
     return {
-      ...pesquisa,
+      ...pesquisaCompleta,
       questoes: questoes
     }
   }

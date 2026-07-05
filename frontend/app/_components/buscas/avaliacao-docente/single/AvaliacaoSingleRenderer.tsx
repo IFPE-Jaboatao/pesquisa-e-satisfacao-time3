@@ -15,7 +15,9 @@ export async function AvaliacaoSingleRenderer({ role, avaliacaoAluno, avaliacao 
 
   switch (role) {
     case UserRole.ALUNO:
-      return <AvaliacaoSingleAluno avaliacao={avaliacaoAluno} />;
+      console.log(avaliacaoAluno)
+      if (avaliacaoAluno) return <AvaliacaoSingleAluno avaliacao={avaliacaoAluno} />
+      return <p>Erro ao montar formulário para resposta do aluno</p>
 
     case UserRole.GESTOR:
         relatorio = await getRelatorioAvaliacao({id: avaliacao?.id || '0'})

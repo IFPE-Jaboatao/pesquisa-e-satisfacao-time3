@@ -21,15 +21,7 @@ interface Questao {
     opcoes?: string[]
 }
 
-export default function PesquisaSingleAluno({ pesquisa }: Props) {
-
-    const router = useRouter();
-
-    const submitResponseWithId = submitResponse.bind(null, pesquisa.id);
-
-    const [state, formAction, pending] = useActionState(submitResponseWithId, { error: '', success: false, message: ''});
-
-    function QuestaoAberta({id, pergunta}: Questao) {
+export function QuestaoAberta({id, pergunta}: Questao) {
         return (
             <div className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
@@ -44,7 +36,7 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
         )
     }
 
-    function QuestaoEscala({id, pergunta, escalaMax}: Questao) {
+export function QuestaoEscala({id, pergunta, escalaMax}: Questao) {
         return (
             <div className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
@@ -68,7 +60,7 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
         )
     }
 
-    function QuestaoMultipla({id, pergunta, opcoes}: Questao) {
+export function QuestaoMultipla({id, pergunta, opcoes}: Questao) {
         return (
             <fieldset className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
@@ -82,6 +74,14 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
             </fieldset>
         )
     }
+
+export default function PesquisaSingleAluno({ pesquisa }: Props) {
+
+    const router = useRouter();
+
+    const submitResponseWithId = submitResponse.bind(null, pesquisa.id);
+
+    const [state, formAction, pending] = useActionState(submitResponseWithId, { error: '', success: false, message: ''});
 
     useEffect(() => {
         if (state.success) {
@@ -103,8 +103,8 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
                     
                     <div className="flex flex-row justify-between w-max gap-20 pt-5 pb-10">
                         <div>
-                            <p><span className="italic">Setor:</span> falta adicionar no back</p>
-                            <p><span className="italic">Serviço:</span> falta adicionar no back</p>
+                            <p><span className="italic">Setor:</span> {pesquisa.nomeSetor}</p>
+                            <p><span className="italic">Serviço:</span> {pesquisa.nomeServico}</p>
                         </div>
                         <div>
                             <p><span className="">Início:</span> {pesquisa?.dataInicio ? new Date(pesquisa?.dataInicio).toLocaleDateString('pt-br') : ''}</p>

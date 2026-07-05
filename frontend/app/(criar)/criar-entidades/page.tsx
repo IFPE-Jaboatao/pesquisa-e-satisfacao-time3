@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
-import { getMe } from '@/lib/session';
 import Header from "../../_components/Header";
 import EntidadesMenu from "../../_components/buscas/entidades/EntidadesMenuContent";
+import { getMe } from '@/services/user.service';
 
 export default async function CriarEntidadesPage() {
   // 1. Guardião: Autenticação e RBAC
