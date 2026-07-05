@@ -60,3 +60,51 @@ export interface AvaliacaoDocenteDocente {
     maximoRespostas: number,
     respostasRecebidas: number
 }
+
+export interface RelatorioPesquisaGestor {
+    pesquisa: {
+        id: string,
+        titulo: string,
+        descricao: string,
+        dataInicio: string,
+        dataFinal: string,
+        tipo: string,
+        status: string,
+        questoes: {
+            id: string,
+            pergunta: string,
+            tipo: string,
+            escalaMax?: number,
+            opcoes?: string[]
+        }[],
+    },
+    respostas: {
+        id: string,
+        pesquisaId: string,
+        respostas: {
+            questaoId: string,
+            valor: string
+        }[]
+    }[],
+    estatisticas: {
+        totalQuestoes: number,
+        totalParticipantes: number
+    }
+}
+
+export interface PesquisaAluno {
+    id: string,
+    titulo: string,
+    descricao: string,
+    dataInicio: string,
+    dataFinal: string,
+    tipo: string,
+    status: string,
+    questoes: {
+        id: string,
+        pergunta: string,
+        tipo: string,
+        escalaMax?: number,
+        opcoes?: string[]
+    }[],
+}
