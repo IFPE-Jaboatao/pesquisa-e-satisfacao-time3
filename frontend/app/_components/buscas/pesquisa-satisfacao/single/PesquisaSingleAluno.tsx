@@ -10,7 +10,7 @@ import { CheckCircleIcon } from "@heroicons/react/16/solid";
 import { FaceFrownIcon } from "@heroicons/react/24/outline";
 
 interface Props {
-    pesquisa?: PesquisaAluno
+    pesquisa: PesquisaAluno
 }
 
 interface Questao {
@@ -25,9 +25,7 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
 
     const router = useRouter();
 
-    if (!pesquisa) return <p>Erro ao montar formulário de resposta para aluno.</p>
-
-    const submitResponseWithId = submitResponse.bind(null, pesquisa?.id)
+    const submitResponseWithId = submitResponse.bind(null, pesquisa.id);
 
     const [state, formAction, pending] = useActionState(submitResponseWithId, { error: '', success: false, message: ''});
 
@@ -127,6 +125,7 @@ export default function PesquisaSingleAluno({ pesquisa }: Props) {
                     )}
 
                     <Button
+                    disabled={pending}
                     className="self-end"
                         type='submit'
                     >

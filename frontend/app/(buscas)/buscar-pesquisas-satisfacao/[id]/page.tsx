@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PesquisaSingleRenderer } from "@/app/_components/buscas/pesquisa-satisfacao/single/PesquisaSingleRenderer";
 import Header from "@/app/_components/Header";
 import { UserRole } from "@/app/types/UserRole.enum";

@@ -15,7 +15,8 @@ export async function PesquisaSingleRenderer({ role, pesquisaAluno, pesquisaGest
 
   switch (role) {
     case UserRole.ALUNO:
-      return <PesquisaSingleAluno pesquisa={pesquisaAluno} />;
+      if (pesquisaAluno) return <PesquisaSingleAluno pesquisa={pesquisaAluno} />;
+      else return <p>Erro ao montar formulário de resposta para aluno.</p>
 
     case UserRole.GESTOR:
         relatorio = await getRelatorioPesquisa({id: pesquisaGestor?.id || '0'});
