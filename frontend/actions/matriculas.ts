@@ -22,10 +22,7 @@ export async function createMatriculaAction(prevState: ActionState, formData: Fo
     const alunoId = Number(formData.get('alunoId'));
     const turmaId = Number(formData.get('turmaId'));
 
-    console.log(alunoId, turmaId)
     const res = await apiPost(`/academic/matriculas`, { turmaId, alunoId });
-
-
 
     if (!res.ok) {
         const text = await res.json();

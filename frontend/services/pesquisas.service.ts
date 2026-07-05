@@ -42,6 +42,7 @@ export async function getPesquisaCompleta({ id }: Props) {
     }
 
     const pesquisa = await res.json();
+
     return pesquisa;
   } catch (error) {
     console.error("Erro de conexão na camada de serviço:", error);
@@ -54,7 +55,6 @@ export async function getPesquisaCompleta({ id }: Props) {
  */
 export async function getRelatorioAvaliacao({ id }: Props) {
   const res = await apiFetch(`/surveys/pesquisas/${id}/relatorio/docente`);
-  console.log(`/surveys/pesquisas/${id}/relatorio/docente`);
   
   if (res.status === 401) {
     return false;
@@ -66,6 +66,23 @@ export async function getRelatorioAvaliacao({ id }: Props) {
   }
 
   const pesquisa = await res.json();
+  return pesquisa;
+}
+
+export async function getRelatorioPesquisa({ id }: Props) {
+  const res = await apiFetch(`/surveys/pesquisas/${id}/relatorio`);
+  
+  if (res.status === 401) {
+    return false;
+  }
+
+  if (!res.ok) {
+    const text = await res.json();
+    throw new Error(`Falha ao carregar pesquisa: ${res.status}, ${text.message}`);
+  }
+
+  const pesquisa = await res.json();
+
   return pesquisa;
 }
 

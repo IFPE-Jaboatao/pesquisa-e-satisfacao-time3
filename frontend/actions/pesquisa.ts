@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiPost } from "@/lib/api";
 
 // Interface para garantir a tipagem correta dos dados enviados pelo formulário
 interface CriarPesquisaInput {
@@ -58,4 +58,43 @@ export async function criarPesquisaSatisfacaoAction(data: CriarPesquisaInput) {
 
   // Mantém o seu redirecionamento pós-sucesso exatamente para a mesma rota anterior
   redirect("/buscar-pesquisas-satisfacao");
+}
+
+interface ActionState {
+    error: string,
+    message: string,
+    success: boolean
+}
+
+export async function submitResponse(pesquisaId: string, prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const agrupadas = new Map<string, string[]>();
+
+  // serve para agrupar respostas que tenham o mesmo nome, como as de multipla escolha
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith("$ACTION_")) continue;
+
+    if (!agrupadas.has(key)) {
+      agrupadas.set(key, []);
+    }
+
+    agrupadas.get(key)!.push(String(value));
+  }
+
+  const respostas = Array.from(agrupadas.entries()).map(
+    ([questaoId, valores]) => ({
+      questaoId,
+      valor: valores.join(', '), //
+    })
+  );
+
+  const res = await apiPost(`/surveys/respostas/enviar`, { pesquisaId, respostas });
+
+  if (!res.ok) {
+      const text = await res.json();
+      
+      return { error: text.message, success: false, message: ''};
+  }
+
+  return { message: res.statusText, error: '', success: true}
+
 }
