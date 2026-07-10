@@ -79,7 +79,7 @@ export function TurmasListagem({ initialCriterios, initialCursos, initialPeriodo
   };
 
   return (
-    <>
+    <div className="p-8 bg-white border border-(--grayish-color) rounded-lg shadow-sm w-full max-w-4xl">
       <CriarAvaliacaoForm 
         onBuscarTurmas={handleBuscarTurmas} 
         isLoading={isLoading} 
@@ -94,8 +94,9 @@ export function TurmasListagem({ initialCriterios, initialCursos, initialPeriodo
       )}
 
       {turmas.length > 0 && !showPreview && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">Avaliações Disponíveis</h2>
+        <div className="pt-8">
+        <hr className='text-(--grayish-color)'></hr>
+          <h2 className="text-lg font-semibold text-gray-800 pt-4 pb-2">Avaliações Disponíveis</h2>
           <p className="mb-6 text-gray-600">Há <strong>{turmas.length}</strong> turma{turmas.length > 1 ? 's' : ''} sem avaliação nesse período.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -111,7 +112,7 @@ export function TurmasListagem({ initialCriterios, initialCursos, initialPeriodo
             ))}
           </div>
 
-          <div className="mt-10 flex justify-between items-center border-t pt-6">
+          <div className="mt-10 flex justify-between items-center border-t border-(--light-color) pt-6">
             <button onClick={() => setTurmas([])} className="text-gray-500 hover:text-gray-700 font-medium">Cancelar</button>
             <button 
               onClick={handleAbrirPreview}
@@ -152,17 +153,17 @@ export function TurmasListagem({ initialCriterios, initialCursos, initialPeriodo
           </div>
           
           <div className="flex gap-4">
-            <button onClick={() => setShowPreview(false)} className="px-6 py-2 text-gray-600 border rounded">Voltar</button>
+            <button onClick={() => setShowPreview(false)} className="cursor-pointer px-6 py-2 text-(--grayish-color) hover:text-(--white) border rounded transition duration-300 hover:bg-(--grayish-color)">Voltar</button>
             <button 
               onClick={handleFinalizarCriacao} 
               disabled={isLoading}
-              className="bg-[#2E7D32] text-white px-6 py-2 rounded shadow hover:bg-green-700 transition"
+              className="bg-(--color-secondary) text-white px-6 py-2 rounded shadow hover:bg-(--color-tertiary) transition cursor-pointer"
             >
               {isLoading ? "Salvando..." : "Criar Avaliação Definitiva"}
             </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -42,10 +42,6 @@ export default async function CriarAvaliacoesPage() {
       />
       
       <main className="max-w-6xl mx-auto p-8">
-        <h1 className="text-2xl font-bold mb-6 text-[#2D3748]">
-          Criar Avaliações de Docentes
-        </h1>
-        
         <TurmasListagem 
             initialCriterios={criterios} 
             initialCursos={cursos} 

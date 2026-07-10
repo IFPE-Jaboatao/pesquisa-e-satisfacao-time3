@@ -25,7 +25,7 @@ export function QuestaoAberta({id, pergunta}: Questao) {
         return (
             <div className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
-                <Label className="pb-2">{pergunta}</Label>
+                <Label className="pb-2" style={{color: 'var(--dark-color)'}}>{pergunta}</Label>
                 <input
                 className="border pt-0.5 pb-0.5 pl-2 pr-1 wrap-break-word rounded"
                 placeholder='Digite aqui...'
@@ -40,9 +40,10 @@ export function QuestaoEscala({id, pergunta, escalaMax}: Questao) {
         return (
             <div className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
-                <Label className="pb-2">{pergunta}</Label>
+                <Label className="pb-2" style={{color: 'var(--dark-color)'}}>{pergunta}</Label>
                 <div className="flex flex-1 flex-col">
                 <input
+                    style={{accentColor: 'var(--color-primary)'}}
                     name={id}
                     type='range'
                     min={1}
@@ -64,7 +65,7 @@ export function QuestaoMultipla({id, pergunta, opcoes}: Questao) {
         return (
             <fieldset className="flex flex-col">
                 <p style={{color: 'var(--grayish-color)'}} className="text-sm italic font-semibold">Questão</p>
-                <Label className="pb-2">{pergunta}</Label>
+                <Label className="pb-2" style={{color: 'var(--dark-color)'}}>{pergunta}</Label>
                 {opcoes?.map((o) => 
                 <label className="flex flex-row gap-2" key={o}>
                     <input className="cursor-pointer checked:cursor-default" type="checkbox" name={`${id}`} value={o} />
