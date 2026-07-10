@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user-role.enum';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiBearerAuth('access-token')
 @Controller('academic/periodos')
@@ -22,7 +22,7 @@ export class PeriodoController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.GESTOR)
   findAll() {
     return this.periodoService.findAll();
   }

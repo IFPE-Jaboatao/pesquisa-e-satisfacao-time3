@@ -35,9 +35,10 @@ export async function buscarTurmasAction(params: BuscaParams) {
  * Persiste a criação final da avaliação no sistema (POST).
  * Usada no cliente para concluir o fluxo.
  */
-export async function criarAvaliacaoAction(dados: any) {
+export async function criarAvaliacaoAction({periodoId, cursoId}: {periodoId: number, cursoId: number}) {
+  console.log(periodoId, cursoId)
   try {
-    const res = await apiPost(`/surveys/pesquisas/avaliacao/periodo`, dados);
+    const res = await apiPost(`/surveys/pesquisas/avaliacao/periodo`, { periodoId, cursoId });
     
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));

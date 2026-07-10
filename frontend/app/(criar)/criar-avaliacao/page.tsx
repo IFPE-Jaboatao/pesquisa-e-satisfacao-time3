@@ -5,6 +5,7 @@ import { getCriteriosAvaliacaoDocenteService } from "@/services/avaliacao-docent
 import { buscarCursosPorCampusAction } from "@/actions/buscarCursosPorCampus";
 import Header from "../../_components/Header";
 import { TurmasListagem } from "../../_components/turmas/TurmasListagem";
+import { getPeriodos } from "@/services/periodo.service";
 
 const ROLES = {
   ADMIN: 'admin',
@@ -26,18 +27,17 @@ export default async function CriarAvaliacoesPage() {
   }
 
   // 2. Busca dados complementares em paralelo (com tratamento de erro individual)
-  const [criterios, cursos] = await Promise.all([
+  const [criterios, cursos, periodos] = await Promise.all([
     getCriteriosAvaliacaoDocenteService().catch(() => []),
     buscarCursosPorCampusAction(user.campusId).catch(() => []),
+    getPeriodos().catch(() => []),
   ]);
-
-  const userRoleDisplay = user.role ? String(user.role).trim().toUpperCase() : "";
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
         nome={user.nome || "Usuário"} 
-        role={userRoleDisplay} 
+        role={user.role} 
         index={0} 
       />
       
@@ -49,6 +49,7 @@ export default async function CriarAvaliacoesPage() {
         <TurmasListagem 
             initialCriterios={criterios} 
             initialCursos={cursos} 
+            initialPeriodos={periodos}
         />
       </main>
     </div>

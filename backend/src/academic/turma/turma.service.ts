@@ -311,7 +311,7 @@ export class TurmaService {
 
       const pesquisa: Object = {
         titulo: turma.disciplina.nome,
-        turmaId: turma.id,
+        id: turma.id,
         docente: turma.docente.nome,
         turno: turma.turno
       };

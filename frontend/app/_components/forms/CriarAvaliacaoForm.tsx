@@ -1,41 +1,35 @@
 'use client';
 
 import { useState } from 'react';
+import { Periodo } from '../buscas/entidades/interfaces';
 
 export interface BuscaParams {
   cursoId: number;
   periodoId: number;
-  dataInicio: string;
-  dataTermino: string;
 }
 
 interface CriarAvaliacaoFormProps {
   onBuscarTurmas: (params: BuscaParams) => void;
   isLoading: boolean;
   cursos: { id: number; nome: string }[];
+  periodos: Periodo[]
 }
 
-export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos }: CriarAvaliacaoFormProps) => {
+export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos, periodos }: CriarAvaliacaoFormProps) => {
   const [cursoId, setCursoId] = useState<string>('');
   const [periodoId, setPeriodoId] = useState<string>('');
-  const [dataInicio, setDataInicio] = useState<string>('');
-  const [dataTermino, setDataTermino] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onBuscarTurmas({
       cursoId: Number(cursoId),
       periodoId: Number(periodoId),
-      dataInicio,
-      dataTermino
     });
   };
 
   const handleCancelar = () => {
     setCursoId('');
     setPeriodoId('');
-    setDataInicio('');
-    setDataTermino('');
   };
 
   const inputStyle = "border rounded p-2 text-sm w-full outline-none focus:ring-1 transition-all border-(--grayish-color) focus:border-[#2E7D32]";
@@ -58,18 +52,14 @@ export const CriarAvaliacaoForm = ({ onBuscarTurmas, isLoading, cursos }: CriarA
 
         <div>
           <label className={labelStyle}>Período</label>
-          <input type="number" value={periodoId} onChange={(e) => setPeriodoId(e.target.value)} className={inputStyle} required placeholder="Ex: 20261" />
+          <select value={periodoId} onChange={(e) => setPeriodoId(e.target.value)} className={inputStyle} required>
+            <option value="">Selecione o período</option>
+            {Array.isArray(periodos) && periodos.map((p) => (
+              <option key={p.id} value={p.id}>{p.ano}.{p.semestre}</option>
+            ))}
+          </select>
         </div>
 
-        <div>
-          <label className={labelStyle}>Data de Início</label>
-          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className={inputStyle} required />
-        </div>
-
-        <div>
-          <label className={labelStyle}>Data de Término</label>
-          <input type="date" value={dataTermino} onChange={(e) => setDataTermino(e.target.value)} className={inputStyle} required />
-        </div>
       </div>
       
       <div className="flex justify-end gap-4 mt-8 pt-6 border-t">

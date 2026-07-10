@@ -6,6 +6,7 @@ import {
   buscarTurmasAction, 
   criarAvaliacaoAction 
 } from '../../../actions/criar-avaliacoes';
+import { Periodo } from '../buscas/entidades/interfaces';
 
 interface Turma {
   id: number;
@@ -28,9 +29,10 @@ interface Curso {
 interface TurmasListagemProps {
   initialCriterios: Criterio[];
   initialCursos: Curso[];
+  initialPeriodos: Periodo[]
 }
 
-export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListagemProps) {
+export function TurmasListagem({ initialCriterios, initialCursos, initialPeriodos }: TurmasListagemProps) {
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,7 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
       setFormParams(params);
       const data = await buscarTurmasAction(params);
       setTurmas(data);
+      console.log(data)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao buscar turmas.');
     } finally {
@@ -62,8 +65,7 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
     setIsLoading(true);
     try {
       const payload = {
-        ...formParams!,
-        turmasIds: turmas.map(t => t.id)
+        ...formParams!
       };
       await criarAvaliacaoAction(payload);
       alert("Avaliação criada com sucesso!");
@@ -82,6 +84,7 @@ export function TurmasListagem({ initialCriterios, initialCursos }: TurmasListag
         onBuscarTurmas={handleBuscarTurmas} 
         isLoading={isLoading} 
         cursos={cursos} 
+        periodos={initialPeriodos}
       />
 
       {error && (
