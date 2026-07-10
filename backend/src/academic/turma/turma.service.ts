@@ -17,11 +17,10 @@ import { User } from 'src/users/user.entity';
 import { Role } from 'src/users/user-role.enum';
 import { Matricula } from '../matricula/entities/matricula.entity';
 import { isNumber } from 'class-validator';
-import e from 'express';
 import { TurmaDeletedEvent } from 'src/shared/events/turma-deleted.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateAvaliacaoPeriodoDto } from 'src/pesquisas/dto/create-avaliacao-periodo.dto';
-import { PesquisasService } from 'src/pesquisas/pesquisas.service';
+import { Tipo } from 'src/pesquisas/pesquisa-tipo.enum';
 
 @Injectable()
 export class TurmaService {
@@ -41,7 +40,7 @@ export class TurmaService {
     @InjectRepository(Matricula, 'mysql')
     private matriculaRepo: Repository<Matricula>,
 
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(createTurmaDto: CreateTurmaDto) {
@@ -302,23 +301,29 @@ export class TurmaService {
     if (turmasFiltered.length === 0) throw new NotFoundException("Não há turmas nesse curso e/ou período!");
 
     // evita que o usuário requerente visualize turmas de outro campus
-    if (turmasFiltered[0]?.disciplina?.curso?.campus?.id !== campusId) throw new UnauthorizedException('Esse curso não pertence ao seu campus!')
+    if (turmasFiltered[0]?.disciplina?.curso?.campus?.id !== campusId) throw new UnauthorizedException('Esse curso não pertence ao seu campus!');
+
+    type pesquisaDraft = {
+      id: number;
+      titulo: string;
+      docente: string;
+      turno: string;
+    };
 
     // coletar as avaliações
-    const avaliacoes: Array<Object> = []
+    const avaliacoes: Array<pesquisaDraft> = [];
 
     for (const turma of turmasFiltered) {
-
-      const pesquisa: Object = {
+      const pesquisa: pesquisaDraft = {
         titulo: turma.disciplina.nome,
-        turmaId: turma.id,
+        id: turma.id,
         docente: turma.docente.nome,
-        turno: turma.turno
+        turno: turma.turno,
       };
-        avaliacoes.push(pesquisa)
+
+      avaliacoes.push(pesquisa);
     }
-    
-    return avaliacoes
+    return avaliacoes;
   }
 
   async update(id: number, updateTurmaDto: UpdateTurmaDto) {

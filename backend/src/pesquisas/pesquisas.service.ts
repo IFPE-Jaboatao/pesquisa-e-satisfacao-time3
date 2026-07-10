@@ -179,6 +179,44 @@ export class PesquisasService {
     }
   }
 
+  // trazer apenas as avaliações disponíveis por curso e período e que ainda não tenham sido criadas
+  async getAvaliacoesDisponíveis(
+    cursoId: number,
+    periodoId: number,
+    campusId: number,
+  ) {
+    type pesquisaDraft = {
+      id: number;
+      turno: string;
+      docente: string;
+      titulo: string;
+    };
+
+    const pesquisasTodas: pesquisaDraft[] =
+      await this.turmaService.findAvaliacoesDisponiveis(
+        { cursoId, periodoId },
+        campusId,
+      );
+
+    const pesquisasFiltradas: pesquisaDraft[] = [];
+
+    if (pesquisasTodas) {
+      for (const p of pesquisasTodas) {
+        const exists = await this.repo.findOne({
+          where: {
+            tipoId: p.id,
+            tipo: Tipo.AVALIACAO,
+          },
+        });
+
+        if (!exists) {
+          pesquisasFiltradas.push(p);
+        }
+      }
+    }
+
+    return pesquisasFiltradas;
+  }
 
   async getRelatorio(id: string) {
     const pesquisa = await this.findOne(id);
