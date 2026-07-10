@@ -16,7 +16,7 @@ export async function buscarTurmasAction(params: BuscaParams) {
 
   try {
     const res = await apiPost(
-      `/academic/turmas/avaliacoes-disponiveis`, { cursoId, periodoId }
+      `/surveys/pesquisas/avaliacao/disponiveis`, { cursoId, periodoId }
     );
 
     if (!res.ok) {
@@ -36,7 +36,7 @@ export async function buscarTurmasAction(params: BuscaParams) {
  * Usada no cliente para concluir o fluxo.
  */
 export async function criarAvaliacaoAction({periodoId, cursoId}: {periodoId: number, cursoId: number}) {
-  console.log(periodoId, cursoId)
+
   try {
     const res = await apiPost(`/surveys/pesquisas/avaliacao/periodo`, { periodoId, cursoId });
     

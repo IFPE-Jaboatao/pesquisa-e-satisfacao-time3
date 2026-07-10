@@ -56,6 +56,29 @@ export class PesquisasController {
     return this.service.getPreviewAvaliacaoDocente();
   }
 
+  @Post('avaliacao/disponiveis')
+  @Roles(Role.GESTOR)
+  @ApiOperation({
+    summary:
+      'Obtém um preview das avaliações docentes disponíveis para serem criadas',
+  })
+  async getAvaliacoesDisponíveis(
+    @Body() dto: CreateAvaliacaoPeriodoDto,
+    @Req()
+    req: {
+      user: {
+        id: number;
+        campusId: number;
+      };
+    },
+  ) {
+    return this.service.getAvaliacoesDisponíveis(
+      dto.cursoId,
+      dto.periodoId,
+      req.user.campusId,
+    );
+  }
+
   @Get(':id')
   @Roles(Role.ALUNO, Role.GESTOR)
   @ApiOperation({ summary: 'Busca os detalhes de uma pesquisa por ID do MongoDB' })

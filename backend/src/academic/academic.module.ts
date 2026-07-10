@@ -1,5 +1,5 @@
-import { Injectable, Module } from '@nestjs/common';
-import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CursoController } from './curso/curso.controller';
 import { DisciplinaController } from './disciplina/disciplina.controller';
@@ -30,36 +30,38 @@ import { AlunoDeletedHandler } from './handlers/aluno-deleted.handler';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Curso, Disciplina, Turma, Periodo, Matricula, Campus, User], 'mysql')
-],
-    controllers: [
-        CursoController,
-        DisciplinaController,
-        TurmaController,
-        PeriodoController,
-        MatriculaController
-    ],
-    providers: [
-        CursoService,
-        DisciplinaService,
-        TurmaService,
-        PeriodoService,
-        MatriculaService,
-        CampusDeletedHandler,
-        CursoDeletedHandler,
-        DisciplinaDeletedHandler,
-        TurmaDeletedHandler,
-        PeriodoDeletedHandler,
-        DocenteDeletedHandler,
-        AlunoDeletedHandler
-    ],
-    exports: [
-        CursoService,
-        DisciplinaService,
-        TurmaService,
-        PeriodoService,
-        MatriculaService,
-    ],
+    TypeOrmModule.forFeature(
+      [Curso, Disciplina, Turma, Periodo, Matricula, Campus, User],
+      'mysql',
+    ),
+  ],
+  controllers: [
+    CursoController,
+    DisciplinaController,
+    TurmaController,
+    PeriodoController,
+    MatriculaController,
+  ],
+  providers: [
+    CursoService,
+    DisciplinaService,
+    TurmaService,
+    PeriodoService,
+    MatriculaService,
+    CampusDeletedHandler,
+    CursoDeletedHandler,
+    DisciplinaDeletedHandler,
+    TurmaDeletedHandler,
+    PeriodoDeletedHandler,
+    DocenteDeletedHandler,
+    AlunoDeletedHandler,
+  ],
+  exports: [
+    CursoService,
+    DisciplinaService,
+    TurmaService,
+    PeriodoService,
+    MatriculaService,
+  ],
 })
-
 export class AcademicModule {}
