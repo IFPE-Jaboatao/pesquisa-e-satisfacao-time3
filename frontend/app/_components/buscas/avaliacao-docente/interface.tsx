@@ -70,6 +70,7 @@ export interface RelatorioPesquisaGestor {
         dataInicio: string,
         dataFinal: string,
         tipo: string,
+        campusId: number,
         status: string,
         questoes: {
             id: string,

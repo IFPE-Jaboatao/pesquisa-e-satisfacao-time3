@@ -186,6 +186,17 @@ export class UsersService implements OnModuleInit {
     }
   }
 
+  async findAlunosByCampus(campusId: number) {
+    const alunos = await this.repo.find({
+      where: { campus: { id: campusId }, role: Role.ALUNO },
+      relations: { campus: true },
+    });
+
+    return {
+      quantidade: alunos.length,
+    };
+  }
+
   // DASHBOARDS
 
   async getDashboardAluno(userId: number, campusId: number) {
