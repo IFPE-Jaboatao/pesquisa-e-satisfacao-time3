@@ -51,7 +51,6 @@ export class UsersController {
     return this.service.findOne(req.user.id);
   }
 
-  // Ver as próprias informações
   @UseGuards(JwtAuthGuard)
   @Get('/docentes/:campusId')
   findDocentesByCampus(@Param('campusId', ParseIntPipe) campusId: string) {
@@ -64,6 +63,17 @@ export class UsersController {
   @Get('deleted')
   findDeleted() {
     return this.service.findDeleted();
+  }
+
+  // Buscar alunos de um campus
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.GESTOR)
+  @Get('/alunos/:campusId')
+  findAlunosByCampus(@Param('campusId', ParseIntPipe) campusId: number, @Req() req) {
+    if (req.user.campusId !== campusId) {
+      throw new ForbiddenException("Você não tem permissão para ver a quantidade de alunos de outro campus!");
+    }
+    return this.service.findAlunosByCampus(campusId);
   }
 
   // Buscar usuário por ID

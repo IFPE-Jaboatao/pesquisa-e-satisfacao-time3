@@ -53,3 +53,22 @@ export async function getDocentesByCampus({id}: {id: number}) {
 
     return users.users;
 }
+
+export async function findUsersByCampus(campusId: number) {
+    const res = await apiFetch(`/users/alunos/${campusId}`);
+
+    if (res.status === 401) {
+        return false
+    }
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            return null; // Retorna null se os alunos não foram encontrados
+        }
+        throw new Error(`Falha ao carregar alunos: ${res.status}`);
+    }
+
+    const resposta = await res.json();
+
+    return resposta.quantidade;
+}

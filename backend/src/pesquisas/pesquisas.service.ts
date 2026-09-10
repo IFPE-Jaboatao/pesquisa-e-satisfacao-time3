@@ -70,16 +70,16 @@ export class PesquisasService {
     // procurar todos os serviços do campos
     const servicos = await this.servicoService.servicosByCampus(campusId);
 
-    const servicosIds = servicos.map((s) => s.id)
+    const servicosIds = servicos.map((s) => s.id);
 
     // procurar pesquisas de satisfação com esses serviços
     const pesquisasSatisfacao = await this.repo.find({
       where: {
         tipo: Tipo.SATISFACAO,
-        tipoId: {$in: servicosIds}
+        tipoId: { $in: servicosIds },
       },
-      withDeleted: false
-    })
+      withDeleted: false,
+    });
 
     // procurar todas as turmas
     const turmas = await this.turmaService.findByCampus(campusId);
@@ -89,16 +89,15 @@ export class PesquisasService {
     const avaliacoesDocente = await this.repo.find({
       where: {
         tipo: Tipo.AVALIACAO,
-        tipoId: {$in: turmasIds}
+        tipoId: { $in: turmasIds },
       },
-      withDeleted: false
-    })
+      withDeleted: false,
+    });
 
     return {
       pesquisasSatisfacao,
-      avaliacoesDocente
-    }
-
+      avaliacoesDocente,
+    };
   }
 
   async findAllByTurma(turmaId: number) {
@@ -235,8 +234,20 @@ export class PesquisasService {
     const questoes = await this.questaoRepo.find({ where: filter as any });
     const respostas = await this.respostaRepo.find({ where: filter as any });
 
+    let servico;
+    // procurar campusId caso seja pesquisa de satisfação para mostrar a quantidade de alunos do campus
+    if (pesquisa.tipo == Tipo.SATISFACAO) {
+      servico = await this.servicoService.findOne(pesquisa.tipoId);
+    }
+
     return {
-      pesquisa: { ...pesquisa, questoes },
+      pesquisa: {
+        ...pesquisa,
+        campusId: servico?.campus?.id || null,
+        servicoNome: servico?.nome || null ,
+        setorNome: servico?.setor?.nome || null,
+        questoes,
+      },
       respostas,
       titulo: pesquisa.titulo,
       estatisticas: {
