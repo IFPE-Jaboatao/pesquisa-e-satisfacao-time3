@@ -20,14 +20,29 @@ ChartJS.register(
   Legend
 );
 
-export default function BarChart() {
-    // função inicial de BarChart pra ser adaptada pra pegar os dados de perguntas de escala
+export default function BarChart({dados, escalaMax}: {dados: string[], escalaMax: number}) {
+
+    const labels = [];
+    for (let i = 1; i <= escalaMax; i++) {
+        labels.push(i);
+    } 
+
+  const contagemRespostas = dados.reduce<Record<number, number>>((acc, valorStr) => {
+    const num = Number(valorStr);
+    if (!isNaN(num) && num >= 1 && num <= escalaMax) {
+      acc[num] = (acc[num] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  const dadosContados = labels.map((nota) => contagemRespostas[nota] || 0);
+    
   const data = {
-    labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio'],
+    labels: labels,
     datasets: [
       {
-        label: 'Vendas (R$)',
-        data: [1200, 1900, 3000, 5000, 2400],
+        label: 'Quantidade',
+        data: dadosContados,
         backgroundColor: 'rgba(54, 162, 235, 0.6)',
         borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1,
@@ -37,13 +52,17 @@ export default function BarChart() {
 
   const options = {
     responsive: true,
+    scales: {
+        y: {
+            beginAtZero: true,
+            ticks: {
+                stepSize: 1
+            }
+        }
+    },
     plugins: {
       legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Desempenho de Vendas',
+        position: 'bottom',
       },
     },
   };

@@ -16,14 +16,21 @@ ChartJS.register(
   Title
 );
 
-export default function PieChart() {
-    // função inicial de PieChart pra ser adaptada pra pegar os dados de perguntas de multipla escolha
+export default function PieChart({dados, opcoes}: {dados: string[], opcoes: string[]}) {
+
+  const contagemRespostas = dados.reduce<Record<string, number>>((acc, resposta) => {
+    acc[resposta] = (acc[resposta] || 0) + 1;
+    return acc;
+  }, {});
+
+  const dadosContados = opcoes.map((opcao) => contagemRespostas[opcao] || 0);
+
   const data = {
-    labels: ['Alimentação', 'Transporte', 'Lazer', 'Fixas'],
+    labels: opcoes,
     datasets: [
       {
         label: 'Gastos',
-        data: [1200, 450, 300, 2100],
+        data: dadosContados,
         backgroundColor: [
           'rgba(255, 99, 132, 0.7)',
           'rgba(54, 162, 235, 0.7)',
@@ -45,11 +52,7 @@ export default function PieChart() {
     responsive: true,
     plugins: {
       legend: {
-        position: 'right', // Posição das legendas
-      },
-      title: {
-        display: true,
-        text: 'Distribuição de Gastos Mensais',
+        position: 'right'
       },
     },
   };
