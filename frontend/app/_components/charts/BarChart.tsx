@@ -43,8 +43,8 @@ export default function BarChart({dados, escalaMax}: {dados: string[], escalaMax
       {
         label: 'Quantidade',
         data: dadosContados,
-        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(0, 250, 0, 0.6)',
+        borderColor: 'rgba(0, 0, 0, 0.5)',
         borderWidth: 1,
       },
     ],
@@ -62,7 +62,7 @@ export default function BarChart({dados, escalaMax}: {dados: string[], escalaMax
     },
     plugins: {
       legend: {
-        position: 'bottom',
+        position: 'bottom' as const,
       },
     },
   };

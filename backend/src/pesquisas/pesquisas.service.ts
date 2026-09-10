@@ -241,7 +241,13 @@ export class PesquisasService {
     }
 
     return {
-      pesquisa: { ...pesquisa, campusId: servico?.campus?.id || null, questoes },
+      pesquisa: {
+        ...pesquisa,
+        campusId: servico?.campus?.id || null,
+        servicoNome: servico?.nome || null ,
+        setorNome: servico?.setor?.nome || null,
+        questoes,
+      },
       respostas,
       titulo: pesquisa.titulo,
       estatisticas: {

@@ -71,6 +71,8 @@ export interface RelatorioPesquisaGestor {
         dataFinal: string,
         tipo: string,
         campusId: number,
+        setorNome: string,
+        servicoNome: string,
         status: string,
         questoes: {
             id: string,

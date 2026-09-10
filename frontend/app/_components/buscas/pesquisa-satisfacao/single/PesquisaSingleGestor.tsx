@@ -11,6 +11,9 @@ interface Props {
 }
 
 export default async function PesquisaSingleGestor({ relatorio }: Props) {
+    const dataInicioFormatada = new Date(relatorio.pesquisa.dataInicio); 
+    const dataFinalFormatada = new Date(relatorio.pesquisa.dataFinal); 
+
     const quantidadeRespondentes = await findUsersByCampus(relatorio.pesquisa.campusId);
 
     const todasRespostas = relatorio.respostas.flatMap((r) => r.respostas);
@@ -19,9 +22,11 @@ export default async function PesquisaSingleGestor({ relatorio }: Props) {
         const respostas = todasRespostas.filter((r) => r.questaoId == pergunta.id);
 
         return (
-            <div className="flex flex-1 flex-col max-h-50">
-                <p className="italic" style={{ color: 'var(--grayish-color)'}}>Questão</p>
-                <p>{pergunta.pergunta}</p>
+            <div className="flex flex-1 flex-col gap-4 max-h-50">
+                <div className="border-b" style={{ borderColor: 'var(--grayish-color)' }}>
+                    <p className="italic" style={{ color: 'var(--grayish-color)'}}>Questão</p>
+                    <p>{pergunta.pergunta}</p>
+                </div>
                 <SimpleTable data={respostas.map((r) => r.valor)} />
             </div>
         )
@@ -31,8 +36,8 @@ export default async function PesquisaSingleGestor({ relatorio }: Props) {
         const respostas = todasRespostas.filter((r) => r.questaoId == pergunta.id);
 
         return (
-            <div className="flex flex-1 flex-col gap-2 max-h-60">
-                <div>
+            <div className="flex flex-1 flex-col gap-4 max-md:max-h-40 max-h-70">
+                <div className="border-b" style={{ borderColor: 'var(--grayish-color)'}}>
                 <p className="italic" style={{ color: 'var(--grayish-color)'}}>Questão</p>
                 <p>{pergunta.pergunta}</p>
                 </div>
@@ -45,8 +50,8 @@ export default async function PesquisaSingleGestor({ relatorio }: Props) {
         const respostas = todasRespostas.filter((r) => r.questaoId == pergunta.id);
 
         return (
-            <div className="flex flex-1 flex-col max-h-90">
-                <div>
+            <div className="flex flex-1 gap-4 flex-col max-md:max-h-70 max-h-90">
+                <div className="border-b" style={{ borderColor: 'var(--grayish-color)'}}>
                 <p className="italic" style={{ color: 'var(--grayish-color)'}}>Questão</p>
                 <p>{pergunta.pergunta}</p>
                 </div>
@@ -56,16 +61,22 @@ export default async function PesquisaSingleGestor({ relatorio }: Props) {
     }
 
     return (
-        <div className="flex flex-col flex-1 pb-10">
+        <div className="flex flex-col flex-1 pb-10 p-2">
             <HeaderResultado pesquisa />
-            <div className="pt-5 flex justify-center">
-                <div className="bg-white self-center rounded p-5 w-4xl shadow-2xl pb-30">
+            <div className="pt-5 flex justify-center ">
+                <div className="bg-white self-center rounded p-5 shadow-2xl max-sm:max-w-fit lg:w-3xl pb-30 ">
                     <p className="italic" style={{ color: 'var(--grayish-color)'}}>Respostas</p>
                     <p className="font-bold text-3xl pb-2" style={{ color: 'var(--color-primary)' }}>{relatorio?.pesquisa.titulo}</p>
                     <hr className="opacity-50" style={{ color: 'var(--color-primary'}} />
-                    <p>{relatorio.pesquisa.descricao}</p>
-                    <p>Data início: {relatorio.pesquisa.dataInicio}</p>
-                    <p>Data final: {relatorio.pesquisa.dataFinal}</p>
+                    <p>Descrição: {relatorio.pesquisa.descricao}</p>
+                    <div className="flex justify-between py-4">
+                        <p>Data início: {dataInicioFormatada.toLocaleDateString('pt-br')}</p>
+                        <p>Data final: {dataFinalFormatada.toLocaleDateString('pt-br')}</p>
+                    </div>
+                    <div className="flex justify-between py-2">
+                        <p>Serviço: {relatorio.pesquisa.servicoNome}</p>
+                        <p>Setor: {relatorio.pesquisa.setorNome}</p>
+                    </div>
                     <p>Quantidade de questões: {relatorio.estatisticas.totalQuestoes}</p>
                     <p>Respostas: {relatorio.estatisticas.totalParticipantes} / {quantidadeRespondentes}</p>
 
