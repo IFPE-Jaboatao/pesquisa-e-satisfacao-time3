@@ -44,7 +44,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   // AJUSTE: Forçando a porta 3000 fixamente para evitar o conflito com o frontend
-  const port =  process.env.BACKEND_PORT || 3000;
+  const port =  process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`Application listening on http://0.0.0.0:${port}`);
 }
