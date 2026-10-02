@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteUserAction, updateUserAction } from "@/actions/users";
+import { deleteUserAction, resetUserPasswordAction, updateUserAction } from "@/actions/users";
 import { ArrowUturnLeftIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Label } from "flowbite-react";
 import { redirect, useRouter } from "next/navigation";
@@ -52,6 +52,12 @@ export default function UsuarioForm({
     const [deleteError, setDeleteError] = useState('');
     const [deleted, setDeleted] = useState(false);
     const [showDeletedError, setShowDeletedError] = useState(false);
+
+    // mensagem de erro ao resetar senha
+    const [reset, setReset] = useState(false);
+    const [showResetPasswordError, setShowResetPasswordError] = useState(false);
+    const [resetPasswordError, setResetPasswordError] = useState('');
+    const [resetSuccessMessage, setResetSuccessMessage] = useState('');
 
     // variável para controlar a exibição quando o usuário está sendo editado
     const [editing, setEditing] = useState(false);
@@ -107,6 +113,21 @@ export default function UsuarioForm({
         }
         else if (res.message) {
             setDeleted(true);
+        }
+    }
+
+    // chama a action pra resetar senha do usuário
+    async function handleResetPassword() {
+        const res = await resetUserPasswordAction({id: user.id});
+
+        if (res.error) {
+            setShowResetPasswordError(true);
+            setResetPasswordError(res.error)
+            return;
+        }
+        else if (res.message) {
+            setReset(true);
+            setResetSuccessMessage(res.message);
         }
     }
 
@@ -280,6 +301,25 @@ export default function UsuarioForm({
             >
                 {pending ? 'Excluindo...' : 'Excluir'}
             </Button>
+
+        </div>
+
+        <div className={`flex-1 flex-col gap-10 flex mt-7 items-center justify-center ${editing ? 'hidden' : ''}`}>
+        
+            <Button
+            className={`${reset ? 'hidden': ''}`}
+            aria-label="Excluir usuário"
+            disabled={editing}
+            style={{ backgroundColor: 'var(--color-secondary)'}}
+            type="button"
+            onClick={() => handleResetPassword()}
+            >
+                {pending ? 'Resetando...' : 'Resetar Senha'}
+            </Button>
+
+            <p
+            className={`${!reset ? 'hidden': ''}`}
+                >{resetSuccessMessage}</p>
 
         </div>
 

@@ -37,6 +37,18 @@ export async function updateUserAction(userId: number,prevState: ActionState, fo
 
 }
 
+export async function resetUserPasswordAction({id}: {id: number}) {
+    const res = await apiPatch(`/users/${id}/reset-password`)
+
+    if (!res.ok) {
+        return { error: `Erro: ${res.statusText}`} };
+    
+    const response = await res.json();
+
+    return {message: response.message} 
+    
+    }
+
 export async function deleteUserAction({id}: {id: number}) {
     const res = await apiDelete(`/users/${id}`)
 

@@ -117,6 +117,16 @@ export class UsersController {
     return this.service.update(userId, dto);
   }
 
+    // Resetar senha de usuário (Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(':userId/reset-password')
+  @Roles(Role.ADMIN)
+  resetPassword(
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.service.resetPassword(userId);
+  }
+
   // Deletar usuário (Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':userId')

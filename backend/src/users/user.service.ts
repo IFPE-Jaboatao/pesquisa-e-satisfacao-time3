@@ -499,6 +499,48 @@ export class UsersService implements OnModuleInit {
     return { message: 'Senha atualizada com sucesso' };
   }
 
+  async resetPassword(userId: number) {
+    const user = await this.repo.findOne({
+      where: { id: userId },
+      withDeleted: false,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    let purePassword = '';
+
+    // se for aluno/docente/gestor, retornará a matrícula
+    if (
+      user.role &&
+      [Role.ALUNO, Role.DOCENTE, Role.GESTOR].includes(user.role)
+    ) {
+      purePassword = user.matricula ?? '';
+    } else if (user.role === Role.ADMIN) {
+      // se for admin, será ou o valor de SEED_ADMIN ou o padrão "admin123"
+      const passwordEnv = this.configService.seedAdminPassword;
+      purePassword =
+        passwordEnv && passwordEnv.trim().length >= 6
+          ? passwordEnv
+          : 'admin123';
+    }
+
+    if (!purePassword) {
+      throw new BadRequestException(
+        'Não foi possível resetar a senha deste usuário.',
+      );
+    }
+
+    const hashed = await bcrypt.hash(purePassword, 10);
+
+    user.password = hashed;
+
+    await this.repo.save(user);
+
+    return { message: 'Senha resetada com sucesso.' };
+  }
+
   async delete(userId: string) {
     const id = Number(userId);
     // verifica se o usuário existe sem considerar os deletados
